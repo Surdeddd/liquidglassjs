@@ -29,7 +29,27 @@ h1 {
   font-weight: 600;
 }
 
+.stage {
+  position: relative;
+  padding: 3rem 2rem;
+}
+
+.stripes {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 200, 80, 0.55) 0 60px, transparent 61px),
+    radial-gradient(circle at 75% 70%, rgba(80, 220, 255, 0.5) 0 80px, transparent 81px),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.22) 0 10px,
+      transparent 10px 32px
+    );
+}
+
 .panels {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
@@ -42,8 +62,5 @@ h1 {
   min-height: 160px;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(4px) saturate(1.4);
-  -webkit-backdrop-filter: blur(4px) saturate(1.4);
   font-size: 1.1rem;
 }

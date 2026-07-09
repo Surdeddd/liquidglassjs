@@ -13,3 +13,36 @@ test('preset attribute drives the engine', async ({ page }) => {
   await panel.evaluate(el => el.setAttribute('preset', 'tinted'))
   await expect(panel).toHaveAttribute('data-liquid-glass', 'tinted')
 })
+
+test('engine picks the best backend per browser', async ({ page, browserName }) => {
+  await page.goto('/')
+  const panel = page.locator('liquid-glass').first()
+  const expected = browserName === 'chromium' ? 'css-svg' : 'css-fallback'
+  await expect(panel).toHaveAttribute('data-liquid-glass-backend', expected)
+})
+
+test('engine renders glass through a backend', async ({ page, browserName }) => {
+  await page.goto('/')
+  const panel = page.locator('liquid-glass').first()
+  const filter = await panel.evaluate(el => {
+    const computed = getComputedStyle(el)
+    return computed.backdropFilter || computed.getPropertyValue('-webkit-backdrop-filter')
+  })
+  if (browserName === 'chromium') {
+    expect(filter).toContain('url(')
+  } else {
+    expect(filter).toContain('blur')
+  }
+  const background = await panel.evaluate(el => getComputedStyle(el).backgroundColor)
+  expect(background).not.toBe('rgba(0, 0, 0, 0)')
+})
+
+test('chromium filter carries a displacement map', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'svg backdrop filters are chromium-only')
+  await page.goto('/')
+  const href = await page
+    .locator('svg defs filter feImage')
+    .first()
+    .evaluate(el => el.getAttribute('href') ?? '')
+  expect(href).toContain('data:image/png')
+})
