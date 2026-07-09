@@ -7,6 +7,7 @@ export interface BackendSurface {
   preset: LiquidGlassPreset
   material: MaterialParams
   state: SurfaceState
+  backdrop: Element | null
 }
 
 export interface BackendInstance {

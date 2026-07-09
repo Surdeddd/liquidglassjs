@@ -8,10 +8,13 @@ function presetFrom(value: string | null): LiquidGlassPreset {
 
 function createElementClass(): CustomElementConstructor {
   return class LiquidGlassElement extends HTMLElement {
-    static observedAttributes = ['preset']
+    static observedAttributes = ['preset', 'backdrop']
 
     connectedCallback(): void {
-      attach(this, { preset: presetFrom(this.getAttribute('preset')) })
+      attach(this, {
+        preset: presetFrom(this.getAttribute('preset')),
+        backdrop: this.getAttribute('backdrop')
+      })
     }
 
     disconnectedCallback(): void {
@@ -19,7 +22,10 @@ function createElementClass(): CustomElementConstructor {
     }
 
     attributeChangedCallback(name: string, _oldValue: string | null, value: string | null): void {
-      if (name === 'preset') getInstance(this)?.set({ preset: presetFrom(value) })
+      const instance = getInstance(this)
+      if (!instance) return
+      if (name === 'preset') instance.set({ preset: presetFrom(value) })
+      if (name === 'backdrop') instance.set({ backdrop: value })
     }
   }
 }

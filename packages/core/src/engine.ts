@@ -1,5 +1,6 @@
 import { cssFallbackBackend } from './backends/css-fallback'
 import { cssSvgBackend } from './backends/css-svg'
+import { svgContentBackend } from './backends/svg-content'
 import { registerBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
 import { SurfaceTracker } from './dom-sync'
@@ -9,8 +10,17 @@ import type { LiquidGlassHandle, LiquidGlassOptions } from './types'
 
 registerBackend(cssFallbackBackend)
 registerBackend(cssSvgBackend)
+registerBackend(svgContentBackend)
 
 const instances = new WeakMap<Element, LiquidGlassHandle>()
+
+function resolveBackdrop(backdrop: Element | string | null | undefined): Element | null {
+  if (!backdrop) return null
+  if (typeof backdrop === 'string') {
+    return typeof document === 'undefined' ? null : document.querySelector(backdrop)
+  }
+  return backdrop
+}
 
 export function attach(element: Element, options: LiquidGlassOptions = {}): LiquidGlassHandle {
   const existing = instances.get(element)
@@ -27,7 +37,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     element,
     preset: current.preset ?? 'clear',
     material: resolveMaterial(current),
-    state: { rect: { x: 0, y: 0, width: 0, height: 0 }, visible: true }
+    state: { rect: { x: 0, y: 0, width: 0, height: 0 }, visible: true },
+    backdrop: resolveBackdrop(current.backdrop)
   }
 
   let instance: BackendInstance = backend.mount(surface)
@@ -53,6 +64,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       current = { ...current, ...next }
       surface.preset = current.preset ?? 'clear'
       surface.material = resolveMaterial(current)
+      surface.backdrop = resolveBackdrop(current.backdrop)
       const wanted = current.backend ?? 'auto'
       if (wanted !== 'auto' && wanted !== backend.id) {
         const replacement = selectBackend(capabilities, wanted)

@@ -17,8 +17,21 @@ test('preset attribute drives the engine', async ({ page }) => {
 test('engine picks the best backend per browser', async ({ page, browserName }) => {
   await page.goto('/')
   const panel = page.locator('liquid-glass').first()
-  const expected = browserName === 'chromium' ? 'css-svg' : 'css-fallback'
+  const expected = browserName === 'chromium' ? 'css-svg' : 'svg-content'
   await expect(panel).toHaveAttribute('data-liquid-glass-backend', expected)
+})
+
+test('safari and firefox refract through a backdrop copy layer', async ({ page, browserName }) => {
+  test.skip(browserName === 'chromium', 'chromium refracts the real backdrop directly')
+  await page.goto('/')
+  const layer = page.locator('liquid-glass [data-liquid-glass-layer="refract"]').first()
+  await expect(layer).toBeAttached()
+  const filter = await layer.evaluate(el => getComputedStyle(el).filter)
+  expect(filter).toContain('url(')
+  const cloneCount = await page
+    .locator('liquid-glass [data-liquid-glass-layer="refract"] > *')
+    .count()
+  expect(cloneCount).toBeGreaterThanOrEqual(3)
 })
 
 test('engine renders glass through a backend', async ({ page, browserName }) => {
