@@ -1,0 +1,49 @@
+{
+  "name": "@liquidglass/react",
+  "version": "0.0.0",
+  "description": "React 18 & 19 bindings for @liquidglass/core",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@liquidglass/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": ">=18 <20"
+  },
+  "keywords": [
+    "liquid-glass",
+    "react",
+    "glassmorphism"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Surdeddd/liquidglassjs.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "react": "^19.2.7"
+  }
+}

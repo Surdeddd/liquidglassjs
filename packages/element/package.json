@@ -1,0 +1,36 @@
+{
+  "name": "@liquidglass/element",
+  "version": "0.0.0",
+  "description": "<liquid-glass> web component built on @liquidglass/core",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@liquidglass/core": "workspace:^"
+  },
+  "keywords": ["liquid-glass", "web-component", "custom-element", "glassmorphism"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Surdeddd/liquidglassjs.git",
+    "directory": "packages/element"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

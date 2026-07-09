@@ -1,0 +1,33 @@
+{
+  "name": "@liquidglass/core",
+  "version": "0.0.0",
+  "description": "Framework-agnostic Liquid Glass engine: tiered rendering, spring physics, adaptive materials",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": ["liquid-glass", "glassmorphism", "webgl", "ios26", "ui", "refraction"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Surdeddd/liquidglassjs.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

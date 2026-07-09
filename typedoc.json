@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "LiquidGlassJS",
+  "entryPoints": [
+    "packages/core/src/index.ts",
+    "packages/element/src/index.ts",
+    "packages/react/src/index.ts",
+    "packages/vue/src/index.ts",
+    "packages/svelte/src/index.ts"
+  ],
+  "tsconfig": "tsconfig.typedoc.json",
+  "out": "apps/docs/dist/api",
+  "cleanOutputDir": true,
+  "includeVersion": true
+}

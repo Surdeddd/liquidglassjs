@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@liquidglass/core": ["packages/core/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src"]
+}
