@@ -4,7 +4,7 @@ import { attach } from '../src/index'
 describe('css-fallback backend', () => {
   it('applies backdrop-filter and tint styles', () => {
     const el = document.createElement('div')
-    attach(el, { preset: 'frosted', backend: 'css-fallback' })
+    attach(el, { preset: 'frosted', backend: 'css-fallback', adaptive: false })
     expect(el.style.getPropertyValue('backdrop-filter')).toContain('blur(14px)')
     expect(el.style.getPropertyValue('background')).toContain('rgba(255, 255, 255')
     expect(el.getAttribute('data-liquid-glass-backend')).toBe('css-fallback')

@@ -55,6 +55,17 @@ h1 {
   gap: 1.5rem;
 }
 
+.light-card {
+  margin-top: 2.5rem;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  background: #f4f5f7;
+}
+
+.light-card .light-lens {
+  color: #1c1c1e;
+}
+
 .merge-stage {
   position: relative;
   margin-top: 2.5rem;

@@ -1,5 +1,15 @@
 export { attach, detach, getInstance } from './engine'
 export { colorWithOpacity } from './color'
+export {
+  adaptTintToTone,
+  applyReducedTransparency,
+  parseColor,
+  readReducedTransparency,
+  relativeLuminance,
+  sampleTone,
+  watchMedia
+} from './a11y'
+export type { BackdropTone } from './a11y'
 export { clampMaterial, MATERIAL_DEFAULTS, MATERIAL_PRESETS, resolveMaterial } from './material'
 export { NO_CAPABILITIES, probeCapabilities, resetCapabilitiesCache } from './probe'
 export type { Capabilities } from './probe'

@@ -43,6 +43,13 @@ if (app) {
       </div>
     </main>
   `
+  const lightCard = document.createElement('section')
+  lightCard.className = 'light-card'
+  lightCard.innerHTML = `
+    <liquid-glass preset="clear" class="panel light-lens"><span>adaptive contrast</span></liquid-glass>
+  `
+  app.querySelector('main')?.appendChild(lightCard)
+
   const mergeStage = document.createElement('section')
   mergeStage.className = 'merge-stage'
   mergeStage.innerHTML = `

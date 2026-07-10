@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(7)
+  await expect(panels).toHaveCount(8)
   await expect(panels.first()).toHaveAttribute('data-liquid-glass', 'frosted')
 })
 
@@ -74,6 +74,31 @@ test('webgl-overlay shares one viewport canvas', async ({ page }) => {
   }))
   expect(size.w).toBeGreaterThan(0)
   expect(size.h).toBeGreaterThan(0)
+})
+
+test('adaptive contrast flags the backdrop tone', async ({ page }) => {
+  await page.goto('/')
+  const lightLens = page.locator('liquid-glass.light-lens')
+  await expect(lightLens).toHaveAttribute('data-liquid-glass-tone', 'light')
+  const stripedPanel = page.locator('liquid-glass.panel').first()
+  await expect(stripedPanel).not.toHaveAttribute('data-liquid-glass-tone', /.+/)
+})
+
+test('injected engine layers stay hidden from assistive tech', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForTimeout(500)
+  const unlabeled = await page.evaluate(() => {
+    const injected = document.querySelectorAll(
+      '[data-liquid-glass-layer], [data-liquid-glass-overlay], svg defs'
+    )
+    let bad = 0
+    for (const node of injected) {
+      const host = node.closest('svg') ?? node
+      if (host.getAttribute('aria-hidden') !== 'true') bad++
+    }
+    return bad
+  })
+  expect(unlabeled).toBe(0)
 })
 
 test('merge group melts lenses on the shared overlay', async ({ page }) => {

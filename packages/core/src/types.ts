@@ -32,6 +32,7 @@ export interface LiquidGlassOptions extends Partial<MaterialParams> {
   physics?: boolean | { press?: boolean; hover?: boolean; wobble?: number }
   merge?: string | null
   mergeStrength?: number
+  adaptive?: boolean
 }
 
 export interface LiquidGlassHandle {
