@@ -2,6 +2,7 @@ import {
   attach,
   define,
   resolveMaterial,
+  Spring,
   type LiquidGlassOptions,
   type LiquidGlassPreset,
   type MaterialParams
@@ -124,6 +125,26 @@ if (pgLens) {
 
   syncInputs(resolveMaterial(pgState))
   renderSnippet()
+}
+
+const dockPill = document.querySelector<HTMLElement>('.dock-pill')
+const dockButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-dock]')]
+if (dockPill && dockButtons.length > 0) {
+  const spring = new Spring(0, { stiffness: 240, damping: 17, mass: 1 })
+  let frame = 0
+  const step = (): void => {
+    frame = 0
+    const moving = spring.step(1 / 60)
+    dockPill.style.left = `${spring.value}%`
+    if (moving) frame = requestAnimationFrame(step)
+  }
+  for (const button of dockButtons) {
+    button.addEventListener('click', () => {
+      spring.target = Number(button.dataset['dock'] ?? 0) * 25
+      dockButtons.forEach(other => other.classList.toggle('active', other === button))
+      if (!frame) frame = requestAnimationFrame(step)
+    })
+  }
 }
 
 const FRAMEWORK_SNIPPETS: Record<string, string> = {

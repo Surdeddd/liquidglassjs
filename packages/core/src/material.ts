@@ -13,7 +13,8 @@ export const MATERIAL_DEFAULTS: MaterialParams = {
   dispersion: 0.15,
   specular: 0.6,
   frost: 0,
-  radius: 'auto'
+  radius: 'auto',
+  shape: 'rounded'
 }
 
 export const MATERIAL_PRESETS: Record<LiquidGlassPreset, Partial<MaterialParams>> = {

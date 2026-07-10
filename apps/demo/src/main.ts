@@ -39,6 +39,7 @@ if (app) {
           <liquid-glass preset="clear" backdrop=".stripes" class="panel"><span>clear</span></liquid-glass>
           <liquid-glass preset="tinted" backdrop=".stripes" class="panel"><span>tinted</span></liquid-glass>
           <liquid-glass preset="clear" backend="webgl-overlay" class="panel"><span>webgl-overlay</span></liquid-glass>
+          <liquid-glass preset="frosted" backdrop=".stripes" shape="squircle" class="panel"><span>squircle</span></liquid-glass>
         </section>
       </div>
     </main>

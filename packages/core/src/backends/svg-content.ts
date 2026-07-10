@@ -1,5 +1,5 @@
 import { colorWithOpacity } from '../color'
-import { generateDisplacementMap } from '../displacement'
+import { generateDisplacementMap, squircleClipPath } from '../displacement'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -87,6 +87,7 @@ class SvgContentInstance implements BackendInstance {
     style.removeProperty('border-radius')
     style.removeProperty('box-shadow')
     style.removeProperty('isolation')
+    style.removeProperty('clip-path')
     if (!this.#hadInlinePosition) style.removeProperty('position')
   }
 
@@ -104,6 +105,11 @@ class SvgContentInstance implements BackendInstance {
     style.setProperty('background', colorWithOpacity(material.tint, material.tintOpacity))
     if (typeof material.radius === 'number') {
       style.setProperty('border-radius', `${material.radius}px`)
+    }
+    if (material.shape === 'squircle') {
+      style.setProperty('clip-path', squircleClipPath())
+    } else {
+      style.removeProperty('clip-path')
     }
     const specularAlpha = material.specular * 0.55
     style.setProperty(
@@ -247,7 +253,8 @@ class SvgContentInstance implements BackendInstance {
       height,
       radius: effectiveRadius(surface),
       bevelWidth: surface.material.bevelWidth,
-      bevelDepth: surface.material.bevelDepth
+      bevelDepth: surface.material.bevelDepth,
+      shape: surface.material.shape
     })
     if (map) {
       this.#feImage.setAttribute('href', map.toDataURL())

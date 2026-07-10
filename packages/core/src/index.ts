@@ -27,7 +27,13 @@ export { Spring } from './physics/spring'
 export type { SpringConfig } from './physics/spring'
 export { PHYSICS_DEFAULTS, PhysicsController, resolvePhysics } from './physics/controller'
 export type { PhysicsConfig, PhysicsOption } from './physics/controller'
-export { displacementAt, generateDisplacementMap, sdfRoundedRect } from './displacement'
+export {
+  displacementAt,
+  generateDisplacementMap,
+  sdfRoundedRect,
+  sdfSuperellipse,
+  squircleClipPath
+} from './displacement'
 export type { DisplacementSpec } from './displacement'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
@@ -35,6 +41,7 @@ export type {
   LiquidGlassHandle,
   LiquidGlassOptions,
   LiquidGlassPreset,
+  LiquidGlassShape,
   MaterialParams
 } from './types'
 

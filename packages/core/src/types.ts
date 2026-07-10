@@ -8,6 +8,8 @@ export type BackendId =
   | 'webgl-scene'
   | 'webgpu'
 
+export type LiquidGlassShape = 'rounded' | 'squircle'
+
 export interface MaterialParams {
   blur: number
   saturation: number
@@ -22,6 +24,7 @@ export interface MaterialParams {
   specular: number
   frost: number
   radius: number | 'auto'
+  shape: LiquidGlassShape
 }
 
 export interface LiquidGlassOptions extends Partial<MaterialParams> {

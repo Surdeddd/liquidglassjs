@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react-dom/client": ["./node_modules/@types/react-dom/client"],
+      "react-dom/test-utils": ["./node_modules/@types/react-dom/test-utils"]
+    }
+  },
+  "include": ["test", "vitest.config.ts"]
+}

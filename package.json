@@ -12,7 +12,7 @@
     "build:docs": "pnpm build && pnpm --filter docs run build && pnpm docs:api",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
-    "test": "pnpm -r --filter \"./packages/*\" run test",
+    "test": "pnpm -r --filter \"./packages/*\" --filter react18-smoke run test",
     "e2e": "playwright test",
     "ssr": "node scripts/ssr-smoke.mjs",
     "size": "size-limit",

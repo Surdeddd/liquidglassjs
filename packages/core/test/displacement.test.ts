@@ -21,6 +21,22 @@ describe('sdfRoundedRect', () => {
   })
 })
 
+describe('sdfSuperellipse and squircle', () => {
+  it('is negative inside and positive outside', async () => {
+    const { sdfSuperellipse, squircleClipPath } = await import('../src/displacement')
+    expect(sdfSuperellipse(50, 50, 100, 100)).toBeLessThan(0)
+    expect(sdfSuperellipse(-5, 50, 100, 100)).toBeGreaterThan(0)
+    expect(sdfSuperellipse(2, 2, 100, 100)).toBeGreaterThan(0)
+    expect(squircleClipPath()).toMatch(/^polygon\(/)
+    expect(squircleClipPath().split(',').length).toBe(64)
+  })
+
+  it('displaces along the squircle bevel', () => {
+    const [dx] = displacementAt(2, 50, { ...SPEC, shape: 'squircle' })
+    expect(dx).toBeLessThan(0)
+  })
+})
+
 describe('displacementAt', () => {
   it('is zero deep inside the surface', () => {
     expect(displacementAt(50, 50, SPEC)).toEqual([0, 0])

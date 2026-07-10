@@ -1,5 +1,18 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const ci = Boolean(process.env.CI)
+
+function server(app: string, port: number): { command: string; url: string; reuseExistingServer: boolean; timeout: number } {
+  const dev = `pnpm --filter ${app} exec vite --host 127.0.0.1 --port ${port} --strictPort`
+  const preview = `pnpm --filter ${app} exec sh -c 'vite build && vite preview --host 127.0.0.1 --port ${port} --strictPort'`
+  return {
+    command: ci ? preview : dev,
+    url: `http://127.0.0.1:${port}`,
+    reuseExistingServer: !ci,
+    timeout: 180_000
+  }
+}
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
@@ -12,16 +25,5 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } }
   ],
-  webServer: [
-    {
-      command: 'pnpm --filter demo exec vite --host 127.0.0.1 --port 4173 --strictPort',
-      url: 'http://127.0.0.1:4173',
-      reuseExistingServer: !process.env.CI
-    },
-    {
-      command: 'pnpm --filter docs exec vite --host 127.0.0.1 --port 4175 --strictPort',
-      url: 'http://127.0.0.1:4175',
-      reuseExistingServer: !process.env.CI
-    }
-  ]
+  webServer: [server('demo', 4173), server('docs', 4175)]
 })

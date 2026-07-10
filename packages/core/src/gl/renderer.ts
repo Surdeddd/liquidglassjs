@@ -41,6 +41,7 @@ uniform vec4 u_texRect;
 uniform vec4 u_shapes[8];
 uniform float u_shapeRadii[8];
 uniform int u_shapeCount;
+uniform int u_shapeMode;
 uniform float u_mergeK;
 uniform float u_bevelWidth;
 uniform float u_bevelDepth;
@@ -65,9 +66,18 @@ float smin(float a, float b, float k) {
   return mix(b, a, h) - k * h * (1.0 - h);
 }
 
+float sdSquircle(vec2 p, vec2 halfSize) {
+  vec2 h = max(halfSize, vec2(0.001));
+  vec2 q = abs(p) / h;
+  float v = pow(pow(q.x, 4.0) + pow(q.y, 4.0), 0.25);
+  return (v - 1.0) * min(h.x, h.y);
+}
+
 float shapeSdf(int i, vec2 px) {
   vec4 s = u_shapes[i];
-  return sdBox(px - s.xy - s.zw * 0.5, s.zw * 0.5, u_shapeRadii[i]);
+  vec2 p = px - s.xy - s.zw * 0.5;
+  if (u_shapeMode == 1) return sdSquircle(p, s.zw * 0.5);
+  return sdBox(p, s.zw * 0.5, u_shapeRadii[i]);
 }
 
 float sceneSdf(vec2 px) {
@@ -171,6 +181,7 @@ const UNIFORMS = [
   'u_shapes',
   'u_shapeRadii',
   'u_shapeCount',
+  'u_shapeMode',
   'u_mergeK',
   'u_bevelWidth',
   'u_bevelDepth',
@@ -317,6 +328,7 @@ export class GlRenderer {
       gl.uniform4fv(this.#locations.get('u_shapes') ?? null, this.#shapeData)
       gl.uniform1fv(this.#locations.get('u_shapeRadii') ?? null, this.#radiusData)
       gl.uniform1i(this.#locations.get('u_shapeCount') ?? null, shapes.length)
+      gl.uniform1i(this.#locations.get('u_shapeMode') ?? null, material.shape === 'squircle' ? 1 : 0)
       gl.uniform1f(this.#locations.get('u_mergeK') ?? null, draw.mergeK)
       gl.uniform1f(this.#locations.get('u_bevelWidth') ?? null, material.bevelWidth)
       gl.uniform1f(this.#locations.get('u_bevelDepth') ?? null, material.bevelDepth)

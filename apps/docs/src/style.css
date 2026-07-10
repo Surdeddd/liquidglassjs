@@ -16,8 +16,10 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -391,6 +393,66 @@ main {
   .orb-amber {
     animation: none;
   }
+}
+
+.dock-lead {
+  margin-top: 2.5rem;
+}
+
+.dock-stage {
+  display: grid;
+  place-items: center;
+  height: 200px;
+  margin-top: 1.2rem;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 30% 45%, rgba(94, 242, 220, 0.28) 0 58px, transparent 59px),
+    repeating-linear-gradient(30deg, rgba(233, 237, 246, 0.08) 0 9px, transparent 9px 27px);
+}
+
+.dock {
+  position: relative;
+  width: min(480px, 88%);
+  height: 76px;
+}
+
+.dock-bar {
+  position: absolute;
+  inset: 12px 0;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 237, 246, 0.28);
+}
+
+.dock-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 76px;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 237, 246, 0.35);
+}
+
+.dock-tabs {
+  position: absolute;
+  inset: 0;
+  z-index: 2147483002;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.dock-tabs button {
+  background: transparent;
+  border: 0;
+  color: var(--ink-dim);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.25s;
+}
+
+.dock-tabs button.active {
+  color: var(--ink);
 }
 
 .adaptive-grid {

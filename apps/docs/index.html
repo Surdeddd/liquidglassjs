@@ -13,12 +13,7 @@
       content="Liquid Glass for the whole web — one engine, every browser, every framework."
     />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700&family=Sora:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
     <title>LiquidGlassJS — Liquid Glass for the whole web</title>
   </head>
   <body>
@@ -97,6 +92,22 @@
         <div class="merge-stage">
           <liquid-glass class="m-blob m-blob-a" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
           <liquid-glass class="m-blob m-blob-b" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
+        </div>
+        <p class="section-lead dock-lead">
+          The same trick powers the tab bar: the pill rides a spring and bulges through the dock as it
+          passes.
+        </p>
+        <div class="dock-stage">
+          <div class="dock">
+            <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" preset="clear" physics="false"></liquid-glass>
+            <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" preset="clear" physics="false"></liquid-glass>
+            <nav class="dock-tabs">
+              <button type="button" data-dock="0" class="active">glass</button>
+              <button type="button" data-dock="1">physics</button>
+              <button type="button" data-dock="2">merge</button>
+              <button type="button" data-dock="3">adapt</button>
+            </nav>
+          </div>
         </div>
       </section>
 

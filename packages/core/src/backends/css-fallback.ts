@@ -1,4 +1,5 @@
 import { colorWithOpacity } from '../color'
+import { squircleClipPath } from '../displacement'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 function isStyleable(element: Element): element is HTMLElement {
@@ -16,6 +17,11 @@ function apply(surface: BackendSurface): void {
   if (typeof material.radius === 'number') {
     style.setProperty('border-radius', `${material.radius}px`)
   }
+  if (material.shape === 'squircle') {
+    style.setProperty('clip-path', squircleClipPath())
+  } else {
+    style.removeProperty('clip-path')
+  }
 }
 
 function clear(element: Element): void {
@@ -25,6 +31,7 @@ function clear(element: Element): void {
   style.removeProperty('backdrop-filter')
   style.removeProperty('-webkit-backdrop-filter')
   style.removeProperty('border-radius')
+  style.removeProperty('clip-path')
 }
 
 export const cssFallbackBackend: Backend = {

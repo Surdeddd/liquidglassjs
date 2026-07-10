@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(8)
+  await expect(panels).toHaveCount(9)
   await expect(panels.first()).toHaveAttribute('data-liquid-glass', 'frosted')
 })
 
@@ -109,6 +109,13 @@ test('merge group melts lenses on the shared overlay', async ({ page }) => {
   await expect(blobs.nth(1)).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
   const overlay = page.locator('canvas[data-liquid-glass-overlay]')
   await expect(overlay).toHaveCount(1)
+})
+
+test('squircle shape clips the surface with a superellipse', async ({ page }) => {
+  await page.goto('/')
+  const lens = page.locator('liquid-glass[shape="squircle"]')
+  const clip = await lens.evaluate(el => getComputedStyle(el).clipPath)
+  expect(clip).toContain('polygon')
 })
 
 test('press squashes the glass with spring physics', async ({ page }) => {

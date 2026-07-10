@@ -4,6 +4,7 @@ export interface DisplacementSpec {
   radius: number
   bevelWidth: number
   bevelDepth: number
+  shape?: 'rounded' | 'squircle'
 }
 
 export function sdfRoundedRect(
@@ -25,21 +26,53 @@ export function sdfRoundedRect(
   return outside + inside - r
 }
 
+export function sdfSuperellipse(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  exponent = 4
+): number {
+  const hx = Math.max(width / 2, 1e-3)
+  const hy = Math.max(height / 2, 1e-3)
+  const px = Math.abs(x - hx) / hx
+  const py = Math.abs(y - hy) / hy
+  const value = Math.pow(Math.pow(px, exponent) + Math.pow(py, exponent), 1 / exponent)
+  return (value - 1) * Math.min(hx, hy)
+}
+
+function surfaceSdf(x: number, y: number, spec: DisplacementSpec): number {
+  if (spec.shape === 'squircle') {
+    return sdfSuperellipse(x, y, spec.width, spec.height)
+  }
+  return sdfRoundedRect(x, y, spec.width, spec.height, spec.radius)
+}
+
 export function displacementAt(x: number, y: number, spec: DisplacementSpec): [number, number] {
-  const depth = -sdfRoundedRect(x, y, spec.width, spec.height, spec.radius)
+  const depth = -surfaceSdf(x, y, spec)
   if (depth < 0 || depth >= spec.bevelWidth) return [0, 0]
   const t = depth / spec.bevelWidth
   const magnitude = Math.pow(1 - t, 1 + spec.bevelDepth * 2)
   const eps = 1
-  const gx =
-    sdfRoundedRect(x + eps, y, spec.width, spec.height, spec.radius) -
-    sdfRoundedRect(x - eps, y, spec.width, spec.height, spec.radius)
-  const gy =
-    sdfRoundedRect(x, y + eps, spec.width, spec.height, spec.radius) -
-    sdfRoundedRect(x, y - eps, spec.width, spec.height, spec.radius)
+  const gx = surfaceSdf(x + eps, y, spec) - surfaceSdf(x - eps, y, spec)
+  const gy = surfaceSdf(x, y + eps, spec) - surfaceSdf(x, y - eps, spec)
   const length = Math.hypot(gx, gy)
   if (length === 0) return [0, 0]
   return [(gx / length) * magnitude, (gy / length) * magnitude]
+}
+
+export function squircleClipPath(exponent = 4, segments = 64): string {
+  const points: string[] = []
+  const power = 2 / exponent
+  for (let i = 0; i < segments; i++) {
+    const angle = (i / segments) * Math.PI * 2
+    const c = Math.cos(angle)
+    const s = Math.sin(angle)
+    const x = Math.sign(c) * Math.pow(Math.abs(c), power)
+    const y = Math.sign(s) * Math.pow(Math.abs(s), power)
+    points.push(`${(50 + x * 50).toFixed(2)}% ${(50 + y * 50).toFixed(2)}%`)
+  }
+  return `polygon(${points.join(', ')})`
 }
 
 const MAX_MAP_SIDE = 600

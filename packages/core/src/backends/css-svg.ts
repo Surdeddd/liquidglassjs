@@ -1,5 +1,5 @@
 import { colorWithOpacity } from '../color'
-import { generateDisplacementMap } from '../displacement'
+import { generateDisplacementMap, squircleClipPath } from '../displacement'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -111,6 +111,11 @@ class CssSvgInstance implements BackendInstance {
     if (typeof material.radius === 'number') {
       style.setProperty('border-radius', `${material.radius}px`)
     }
+    if (material.shape === 'squircle') {
+      style.setProperty('clip-path', squircleClipPath())
+    } else {
+      style.removeProperty('clip-path')
+    }
     const specularAlpha = material.specular * 0.55
     style.setProperty(
       'box-shadow',
@@ -137,7 +142,8 @@ class CssSvgInstance implements BackendInstance {
       height,
       radius: effectiveRadius(surface),
       bevelWidth: surface.material.bevelWidth,
-      bevelDepth: surface.material.bevelDepth
+      bevelDepth: surface.material.bevelDepth,
+      shape: surface.material.shape
     })
     if (map) {
       this.#feImage.setAttribute('href', map.toDataURL())
@@ -153,6 +159,7 @@ function clearStyles(element: Element): void {
   style.removeProperty('background')
   style.removeProperty('border-radius')
   style.removeProperty('box-shadow')
+  style.removeProperty('clip-path')
 }
 
 export const cssSvgBackend: Backend = {

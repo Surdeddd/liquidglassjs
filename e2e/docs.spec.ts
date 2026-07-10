@@ -34,6 +34,21 @@ test('playground drives the lens and exports the config', async ({ page }) => {
   await expect(page.locator('[data-snippet]')).toContainText("preset: 'frosted'")
 })
 
+test('dock pill springs between tabs and shares the merge group', async ({ page }) => {
+  await page.goto(DOCS)
+  await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' })
+  await page.locator('.dock-stage').scrollIntoViewIfNeeded()
+  await expect(page.locator('#metaballs')).toHaveClass(/in/)
+  const pill = page.locator('.dock-pill')
+  await expect(pill).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
+  const before = await pill.evaluate(el => el.style.left || '0%')
+  await page.locator('button[data-dock="3"]').click({ force: true })
+  await page.waitForTimeout(900)
+  const after = await pill.evaluate(el => el.style.left)
+  expect(after).not.toBe(before)
+  expect(parseFloat(after)).toBeGreaterThan(50)
+})
+
 test('adaptive cards expose their tone', async ({ page }) => {
   await page.goto(DOCS)
   const lightLens = page.locator('.adaptive-light liquid-glass')
