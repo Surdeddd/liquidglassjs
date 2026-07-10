@@ -13,5 +13,14 @@ export default tseslint.config(
     ]
   },
   js.configs.recommended,
-  ...tseslint.configs.recommended
+  ...tseslint.configs.recommended,
+  {
+    files: ['scripts/**'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly'
+      }
+    }
+  }
 )

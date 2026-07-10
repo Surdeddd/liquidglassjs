@@ -13,22 +13,26 @@ export const LiquidGlass = defineComponent({
   name: 'LiquidGlass',
   props: {
     preset: { type: String as PropType<LiquidGlassPreset>, default: 'clear' },
-    as: { type: String, default: 'div' }
+    as: { type: String, default: 'div' },
+    options: { type: Object as PropType<LiquidGlassOptions>, default: () => ({}) }
   },
-  setup(props, { slots }) {
+  setup(props, { slots, expose }) {
     const el = ref<HTMLElement | null>(null)
     let handle: LiquidGlassHandle | null = null
+    const merged = (): LiquidGlassOptions => ({ preset: props.preset, ...props.options })
     onMounted(() => {
-      if (el.value) handle = attach(el.value, { preset: props.preset })
+      if (el.value) handle = attach(el.value, merged())
     })
     onBeforeUnmount(() => {
       handle?.destroy()
       handle = null
     })
     watch(
-      () => props.preset,
-      preset => handle?.set({ preset })
+      merged,
+      next => handle?.set(next),
+      { deep: true }
     )
+    expose({ glass: () => handle })
     return () => h(props.as, { ref: el }, slots['default']?.())
   }
 })

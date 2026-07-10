@@ -48,6 +48,10 @@ function createElementClass(): CustomElementConstructor {
       detach(this)
     }
 
+    get glass() {
+      return getInstance(this)
+    }
+
     attributeChangedCallback(name: string, _oldValue: string | null, value: string | null): void {
       const instance = getInstance(this)
       if (!instance) return

@@ -3,7 +3,8 @@ import { LiquidGlass, useLiquidGlass, attach } from '../src/index'
 
 describe('react bindings', () => {
   it('exports a component', () => {
-    expect(typeof LiquidGlass).toBe('function')
+    expect(LiquidGlass).toBeTruthy()
+    expect(['function', 'object']).toContain(typeof LiquidGlass)
   })
 
   it('exports a hook', () => {

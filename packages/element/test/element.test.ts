@@ -25,4 +25,15 @@ describe('liquid-glass element', () => {
     define()
     expect(() => define()).not.toThrow()
   })
+
+  it('exposes the engine handle via the glass getter', () => {
+    define()
+    const el = document.createElement('liquid-glass') as HTMLElement & {
+      glass?: { backend: string }
+    }
+    document.body.appendChild(el)
+    expect(el.glass?.backend).toBeTruthy()
+    el.remove()
+    expect(el.glass).toBeUndefined()
+  })
 })
