@@ -30,3 +30,5 @@ Thumbs.db
 
 memory-bank/
 GOAL.md
+.vercel
+.env*
