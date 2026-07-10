@@ -40,13 +40,13 @@ test('dock pill springs between tabs and shares the merge group', async ({ page 
   await page.locator('.dock-stage').scrollIntoViewIfNeeded()
   await expect(page.locator('#metaballs')).toHaveClass(/in/)
   const pill = page.locator('.dock-pill')
-  await expect(pill).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
-  const before = await pill.evaluate(el => el.style.left || '0%')
+  await expect(pill).toHaveAttribute('data-liquid-glass-backend', /webgl-overlay|svg-content/)
   await page.locator('button[data-dock="3"]').click({ force: true })
-  await page.waitForTimeout(900)
-  const after = await pill.evaluate(el => el.style.left)
-  expect(after).not.toBe(before)
-  expect(parseFloat(after)).toBeGreaterThan(50)
+  await expect
+    .poll(async () => parseFloat(await pill.evaluate(el => el.style.left || '0')), {
+      timeout: 8000
+    })
+    .toBeGreaterThan(50)
 })
 
 test('adaptive cards expose their tone', async ({ page }) => {

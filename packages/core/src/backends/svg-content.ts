@@ -183,7 +183,19 @@ class SvgContentInstance implements BackendInstance {
 
   #observeSource(): void {
     if (!this.#source || typeof MutationObserver === 'undefined') return
-    this.#mutationObserver = new MutationObserver(() => this.#scheduleReclone())
+    this.#mutationObserver = new MutationObserver(records => {
+      for (const record of records) {
+        const target = record.target
+        if (
+          target instanceof Element &&
+          target.closest('[data-liquid-glass], [data-liquid-glass-layer], [data-liquid-glass-overlay]')
+        ) {
+          continue
+        }
+        this.#scheduleReclone()
+        return
+      }
+    })
     this.#mutationObserver.observe(this.#source, {
       childList: true,
       attributes: true,
@@ -207,6 +219,11 @@ class SvgContentInstance implements BackendInstance {
     if (!this.#layer || !this.#source) return
     this.#clone?.remove()
     const clone = this.#source.cloneNode(true) as Element
+    for (const glass of clone.querySelectorAll(
+      'liquid-glass, [data-liquid-glass], [data-liquid-glass-layer], [data-liquid-glass-overlay]'
+    )) {
+      glass.remove()
+    }
     if (isStyleable(clone)) {
       clone.style.margin = '0'
       clone.style.pointerEvents = 'none'

@@ -92,6 +92,12 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
   applyMaterial()
 
+  const markElement = (): void => {
+    element.setAttribute('data-liquid-glass', surface.preset)
+    element.setAttribute('data-liquid-glass-backend', backend.id)
+  }
+  markElement()
+
   let instance: BackendInstance = backend.mount(surface)
   let physics = createPhysics(element, current, capabilities.reducedMotion)
 
@@ -122,12 +128,6 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       instance.update(surface)
     })
   ]
-
-  const markElement = (): void => {
-    element.setAttribute('data-liquid-glass', surface.preset)
-    element.setAttribute('data-liquid-glass-backend', backend.id)
-  }
-  markElement()
 
   const handle: LiquidGlassHandle = {
     element,

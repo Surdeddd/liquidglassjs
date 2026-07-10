@@ -54,6 +54,27 @@ describe('svg-content backend', () => {
     source.remove()
   })
 
+  it('strips glass artifacts from the backdrop clone', () => {
+    const source = document.createElement('div')
+    const sibling = document.createElement('p')
+    source.appendChild(sibling)
+    const markedGlass = document.createElement('div')
+    markedGlass.setAttribute('data-liquid-glass', 'clear')
+    source.appendChild(markedGlass)
+    source.appendChild(document.createElement('liquid-glass'))
+    document.body.appendChild(source)
+    const surface = makeSurface(source)
+    source.appendChild(surface.element)
+    const instance = svgContentBackend.mount(surface)
+    const clone = surface.element.querySelector('[data-liquid-glass-layer="refract"]')
+      ?.firstElementChild
+    expect(clone?.querySelector('p')).not.toBeNull()
+    expect(clone?.querySelector('[data-liquid-glass]')).toBeNull()
+    expect(clone?.querySelector('liquid-glass')).toBeNull()
+    instance.destroy()
+    source.remove()
+  })
+
   it('rebuilds the layer when the backdrop source changes', () => {
     const first = document.createElement('div')
     first.className = 'first'

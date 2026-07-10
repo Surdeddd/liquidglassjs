@@ -132,11 +132,15 @@ const dockButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-dock
 if (dockPill && dockButtons.length > 0) {
   const spring = new Spring(0, { stiffness: 240, damping: 17, mass: 1 })
   let frame = 0
-  const step = (): void => {
+  let last = 0
+  const step = (time: number): void => {
     frame = 0
-    const moving = spring.step(1 / 60)
+    const dt = last ? Math.min((time - last) / 1000, 1 / 20) : 1 / 60
+    last = time
+    const moving = spring.step(dt)
     dockPill.style.left = `${spring.value}%`
     if (moving) frame = requestAnimationFrame(step)
+    else last = 0
   }
   for (const button of dockButtons) {
     button.addEventListener('click', () => {
