@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displacementAt, sdfRoundedRect } from '../src/displacement'
-
-const SPEC = { width: 100, height: 100, radius: 10, bevelWidth: 16, bevelDepth: 0.6 }
+import { computeOffsets, generateLensMap, sdfRoundedRect } from '../src/displacement'
 
 describe('sdfRoundedRect', () => {
   it('is negative inside the shape', () => {
@@ -30,32 +28,81 @@ describe('sdfSuperellipse and squircle', () => {
     expect(squircleClipPath()).toMatch(/^polygon\(/)
     expect(squircleClipPath().split(',').length).toBe(64)
   })
+})
 
-  it('displaces along the squircle bevel', () => {
-    const [dx] = displacementAt(2, 50, { ...SPEC, shape: 'squircle' })
+const base = {
+  width: 200,
+  height: 100,
+  radius: 24,
+  shape: 'rounded' as const,
+  band: 24,
+  ior: 1.5,
+  thickness: 12,
+  magnify: 0,
+}
+
+function offsetAt(opts: typeof base, x: number, y: number): [number, number] {
+  const { data, width } = computeOffsets(opts)
+  const i = (y * width + x) * 2
+  return [data[i]!, data[i + 1]!]
+}
+
+describe('computeOffsets (lens model)', () => {
+  it('keeps the interior optically flat without magnify', () => {
+    const [dx, dy] = offsetAt(base, 100, 50)
+    expect(Math.abs(dx)).toBeLessThan(1e-6)
+    expect(Math.abs(dy)).toBeLessThan(1e-6)
+  })
+
+  it('rim pixels deflect harder than mid-band pixels', () => {
+    const rim = Math.abs(offsetAt(base, 2, 50)[0])
+    const mid = Math.abs(offsetAt(base, 12, 50)[0])
+    expect(rim).toBeGreaterThan(mid)
+    expect(mid).toBeGreaterThan(0)
+  })
+
+  it('points outward on each edge', () => {
+    expect(offsetAt(base, 2, 50)[0]).toBeLessThan(0)
+    expect(offsetAt(base, 197, 50)[0]).toBeGreaterThan(0)
+    expect(offsetAt(base, 100, 97)[1]).toBeGreaterThan(0)
+  })
+
+  it('is symmetric across both axes (quarter-symmetry correctness)', () => {
+    const [lx, ly] = offsetAt(base, 5, 50)
+    const [rx, ry] = offsetAt(base, 194, 50)
+    expect(lx).toBeCloseTo(-rx, 5)
+    expect(ly).toBeCloseTo(ry, 5)
+    const [tx] = offsetAt(base, 5, 49)
+    const [bx] = offsetAt(base, 5, 50)
+    expect(tx).toBeCloseTo(bx, 1)
+  })
+
+  it('magnify pulls interior samples toward the center', () => {
+    const zoomed = { ...base, magnify: 0.02 }
+    const [dx] = offsetAt(zoomed, 150, 50)
+    expect(dx).toBeLessThan(0)
+  })
+
+  it('reports the max offset in element pixels', () => {
+    const { maxOffset } = computeOffsets(base)
+    expect(maxOffset).toBeGreaterThan(0)
+    expect(maxOffset).toBeLessThanOrEqual(base.band * 0.9 + base.width * 0.02)
+  })
+
+  it('supports the squircle shape', () => {
+    const [dx] = offsetAt({ ...base, shape: 'squircle' as never }, 2, 50)
     expect(dx).toBeLessThan(0)
   })
 })
 
-describe('displacementAt', () => {
-  it('is zero deep inside the surface', () => {
-    expect(displacementAt(50, 50, SPEC)).toEqual([0, 0])
-  })
-
-  it('points outward near the left edge', () => {
-    const [dx, dy] = displacementAt(2, 50, SPEC)
-    expect(dx).toBeLessThan(0)
-    expect(Math.abs(dy)).toBeLessThan(Math.abs(dx))
-  })
-
-  it('points outward near the bottom edge', () => {
-    const [, dy] = displacementAt(50, 98, SPEC)
-    expect(dy).toBeGreaterThan(0)
-  })
-
-  it('fades toward the bevel interior', () => {
-    const [nearEdge] = displacementAt(1, 50, SPEC)
-    const [deeper] = displacementAt(12, 50, SPEC)
-    expect(Math.abs(nearEdge)).toBeGreaterThan(Math.abs(deeper))
+describe('generateLensMap', () => {
+  it('never throws in canvas-less environments and returns null or a data url', () => {
+    const result = generateLensMap(base)
+    if (result !== null) {
+      expect(result.url).toMatch(/^data:image\/png/)
+      expect(result.maxOffset).toBeGreaterThan(0)
+    } else {
+      expect(result).toBeNull()
+    }
   })
 })
