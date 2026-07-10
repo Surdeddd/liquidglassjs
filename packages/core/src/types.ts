@@ -28,6 +28,7 @@ export interface LiquidGlassOptions extends Partial<MaterialParams> {
   preset?: LiquidGlassPreset
   backend?: BackendId | 'auto'
   backdrop?: Element | string | null
+  sceneImage?: string | null
 }
 
 export interface LiquidGlassHandle {

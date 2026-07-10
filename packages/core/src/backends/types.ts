@@ -8,6 +8,7 @@ export interface BackendSurface {
   material: MaterialParams
   state: SurfaceState
   backdrop: Element | null
+  sceneImage: string | null
 }
 
 export interface BackendInstance {
@@ -19,6 +20,7 @@ export interface BackendInstance {
 export interface Backend {
   readonly id: BackendId
   readonly priority: number
+  readonly autoSelect?: boolean
   isSupported(capabilities: Capabilities): boolean
   mount(surface: BackendSurface): BackendInstance
 }

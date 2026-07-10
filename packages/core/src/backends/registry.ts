@@ -22,6 +22,7 @@ export function selectBackend(capabilities: Capabilities, preferred: BackendId |
     if (exact && exact.isSupported(capabilities)) return exact
   }
   for (const backend of listBackends()) {
+    if (backend.autoSelect === false) continue
     if (backend.isSupported(capabilities)) return backend
   }
   throw new Error('liquidglass: no supported backend registered')

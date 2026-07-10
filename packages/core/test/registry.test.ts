@@ -40,4 +40,18 @@ describe('selectBackend', () => {
     registerBackend(unsupportedBackend)
     expect(selectBackend(NO_CAPABILITIES, 'webgpu').id).not.toBe('webgpu')
   })
+
+  it('skips explicit-only backends during auto selection', () => {
+    const explicitOnly: Backend = {
+      id: 'webgl-scene',
+      priority: 999,
+      autoSelect: false,
+      isSupported: () => true,
+      mount: () => ({ update() {}, sync() {}, destroy() {} })
+    }
+    registerBackend(explicitOnly)
+    registerBackend(supportedBackend)
+    expect(selectBackend(NO_CAPABILITIES, 'auto').id).not.toBe('webgl-scene')
+    expect(selectBackend(NO_CAPABILITIES, 'webgl-scene').id).toBe('webgl-scene')
+  })
 })

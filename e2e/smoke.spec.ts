@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(3)
+  await expect(panels).toHaveCount(4)
   await expect(panels.first()).toHaveAttribute('data-liquid-glass', 'frosted')
 })
 
@@ -48,6 +48,18 @@ test('engine renders glass through a backend', async ({ page, browserName }) => 
   }
   const background = await panel.evaluate(el => getComputedStyle(el).backgroundColor)
   expect(background).not.toBe('rgba(0, 0, 0, 0)')
+})
+
+test('webgl-scene renders into a canvas layer', async ({ page }) => {
+  await page.goto('/')
+  const lens = page.locator('liquid-glass.hero-lens')
+  await expect(lens).toHaveAttribute('data-liquid-glass-backend', 'webgl-scene')
+  await expect(lens.locator('canvas[data-liquid-glass-layer="scene"]')).toBeAttached()
+  const size = await lens
+    .locator('canvas[data-liquid-glass-layer="scene"]')
+    .evaluate(el => ({ w: (el as HTMLCanvasElement).width, h: (el as HTMLCanvasElement).height }))
+  expect(size.w).toBeGreaterThan(0)
+  expect(size.h).toBeGreaterThan(0)
 })
 
 test('chromium filter carries a displacement map', async ({ page, browserName }) => {

@@ -12,7 +12,8 @@ function makeSurface(): BackendSurface {
     preset: 'frosted',
     material: resolveMaterial({ preset: 'frosted' }),
     state: { rect: { x: 0, y: 0, width: 240, height: 120 }, visible: true },
-    backdrop: null
+    backdrop: null,
+    sceneImage: null
   }
 }
 

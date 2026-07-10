@@ -55,6 +55,29 @@ h1 {
   gap: 1.5rem;
 }
 
+.hero-scene {
+  position: relative;
+  margin-top: 2.5rem;
+  height: 260px;
+  border-radius: 16px;
+  background-size: 100% 100%;
+}
+
+.hero-lens {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 150px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 1.1rem;
+}
+
 .panel {
   display: flex;
   align-items: center;
