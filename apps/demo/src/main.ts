@@ -43,6 +43,14 @@ if (app) {
       </div>
     </main>
   `
+  const mergeStage = document.createElement('section')
+  mergeStage.className = 'merge-stage'
+  mergeStage.innerHTML = `
+    <liquid-glass class="blob blob-a" backend="webgl-overlay" merge="demo" preset="clear"></liquid-glass>
+    <liquid-glass class="blob blob-b" backend="webgl-overlay" merge="demo" preset="clear"></liquid-glass>
+  `
+  app.querySelector('main')?.appendChild(mergeStage)
+
   const sceneUrl = makeSceneImage()
   const hero = document.createElement('div')
   hero.className = 'hero-scene'

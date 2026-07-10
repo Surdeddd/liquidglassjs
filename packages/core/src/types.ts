@@ -30,6 +30,8 @@ export interface LiquidGlassOptions extends Partial<MaterialParams> {
   backdrop?: Element | string | null
   sceneImage?: string | null
   physics?: boolean | { press?: boolean; hover?: boolean; wobble?: number }
+  merge?: string | null
+  mergeStrength?: number
 }
 
 export interface LiquidGlassHandle {

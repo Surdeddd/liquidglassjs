@@ -55,6 +55,40 @@ h1 {
   gap: 1.5rem;
 }
 
+.merge-stage {
+  position: relative;
+  margin-top: 2.5rem;
+  height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 40%, rgba(255, 190, 90, 0.6) 0 70px, transparent 71px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 0 10px, transparent 10px 30px);
+}
+
+.blob {
+  position: absolute;
+  top: 50%;
+  width: 140px;
+  height: 140px;
+  border-radius: 70px;
+  transform: translateY(-50%);
+}
+
+.blob-a {
+  left: 18%;
+}
+
+.blob-b {
+  left: calc(18% + 100px);
+  animation: blob-drift 4s ease-in-out infinite alternate;
+}
+
+@keyframes blob-drift {
+  from { left: calc(18% + 100px); }
+  to { left: calc(18% + 260px); }
+}
+
 .hero-scene {
   position: relative;
   margin-top: 2.5rem;

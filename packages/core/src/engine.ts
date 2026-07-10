@@ -56,7 +56,9 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     material: resolveMaterial(current),
     state: { rect: { x: 0, y: 0, width: 0, height: 0 }, visible: true },
     backdrop: resolveBackdrop(current.backdrop),
-    sceneImage: current.sceneImage ?? null
+    sceneImage: current.sceneImage ?? null,
+    merge: current.merge ?? null,
+    mergeStrength: current.mergeStrength ?? null
   }
 
   let instance: BackendInstance = backend.mount(surface)
@@ -85,6 +87,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       surface.material = resolveMaterial(current)
       surface.backdrop = resolveBackdrop(current.backdrop)
       surface.sceneImage = current.sceneImage ?? null
+      surface.merge = current.merge ?? null
+      surface.mergeStrength = current.mergeStrength ?? null
       const wanted = current.backend ?? 'auto'
       if (wanted !== 'auto' && wanted !== backend.id) {
         const replacement = selectBackend(capabilities, wanted)

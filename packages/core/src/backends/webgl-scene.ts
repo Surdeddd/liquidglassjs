@@ -87,12 +87,14 @@ class WebglSceneInstance implements BackendInstance {
     if (!this.#renderer.hasTexture) return
     const reference = surface.backdrop ?? this.#host
     const refBox = reference.getBoundingClientRect()
+    const quad = { x: 0, y: 0, width: hostBox.width * dpr, height: hostBox.height * dpr }
     this.#renderer.render(
       [
         {
-          rect: { x: 0, y: 0, width: hostBox.width * dpr, height: hostBox.height * dpr },
+          quad,
+          shapes: [{ rect: quad, radius: effectiveRadius(surface) * dpr }],
           material: surface.material,
-          radius: effectiveRadius(surface) * dpr
+          mergeK: 1
         }
       ],
       {

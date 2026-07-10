@@ -1,6 +1,8 @@
 import { colorWithOpacity } from '../color'
-import { GlRenderer, type GlLens } from '../gl/renderer'
+import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlShape } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
+
+const DEFAULT_MERGE_K = 30
 
 const MAX_SNAPSHOT_SIDE = 4096
 const SNAPSHOT_DEBOUNCE_MS = 300
@@ -94,6 +96,7 @@ class OverlayManager {
   add(surface: BackendSurface): void {
     this.#surfaces.add(surface)
     this.scheduleRender()
+    this.#syncPoll()
   }
 
   remove(surface: BackendSurface): void {
@@ -103,6 +106,37 @@ class OverlayManager {
       return
     }
     this.scheduleRender()
+    this.#syncPoll()
+  }
+
+  #pollFrame = 0
+  #pollSignature = ''
+
+  #syncPoll(): void {
+    const needsPoll = [...this.#surfaces].some(surface => surface.merge)
+    if (!needsPoll && this.#pollFrame && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.#pollFrame)
+      this.#pollFrame = 0
+      return
+    }
+    if (needsPoll && !this.#pollFrame && typeof requestAnimationFrame === 'function') {
+      const loop = (): void => {
+        this.#pollFrame = 0
+        if (![...this.#surfaces].some(surface => surface.merge)) return
+        let signature = ''
+        for (const surface of this.#surfaces) {
+          if (!surface.merge) continue
+          const box = surface.element.getBoundingClientRect()
+          signature += `${box.left.toFixed(1)},${box.top.toFixed(1)},${box.width.toFixed(1)},${box.height.toFixed(1)};`
+        }
+        if (signature !== this.#pollSignature) {
+          this.#pollSignature = signature
+          this.#render()
+        }
+        this.#pollFrame = requestAnimationFrame(loop)
+      }
+      this.#pollFrame = requestAnimationFrame(loop)
+    }
   }
 
   scheduleSnapshot(): void {
@@ -162,26 +196,50 @@ class OverlayManager {
     const width = Math.round(window.innerWidth * ratio)
     const height = Math.round(window.innerHeight * ratio)
     this.#renderer.resize(width, height)
-    const lenses: GlLens[] = []
+    const draws: GlDraw[] = []
+    const groups = new Map<string, { shapes: GlShape[]; surface: BackendSurface; mergeK: number }>()
     for (const surface of this.#surfaces) {
       const box = surface.element.getBoundingClientRect()
       if (box.width < 1 || box.height < 1) continue
-      if (box.bottom < 0 || box.right < 0 || box.top > window.innerHeight || box.left > window.innerWidth) {
-        continue
-      }
-      lenses.push({
+      const offscreen =
+        box.bottom < 0 || box.right < 0 || box.top > window.innerHeight || box.left > window.innerWidth
+      const shape: GlShape = {
         rect: {
           x: box.left * ratio,
           y: box.top * ratio,
           width: box.width * ratio,
           height: box.height * ratio
         },
-        material: surface.material,
         radius: effectiveRadius(surface) * ratio
-      })
+      }
+      if (surface.merge) {
+        const key = surface.merge
+        const group = groups.get(key)
+        const mergeK = (surface.mergeStrength ?? DEFAULT_MERGE_K) * ratio
+        if (group) {
+          if (group.shapes.length < MAX_SHAPES) group.shapes.push(shape)
+          group.mergeK = Math.max(group.mergeK, mergeK)
+        } else {
+          groups.set(key, { shapes: [shape], surface, mergeK })
+        }
+        continue
+      }
+      if (offscreen) continue
+      draws.push({ quad: shape.rect, shapes: [shape], material: surface.material, mergeK: 1 })
+    }
+    for (const group of groups.values()) {
+      const quad = unionRect(
+        group.shapes.map(shape => shape.rect),
+        group.mergeK
+      )
+      if (quad.width < 1 || quad.height < 1) continue
+      if (quad.y + quad.height < 0 || quad.x + quad.width < 0 || quad.y > height || quad.x > width) {
+        continue
+      }
+      draws.push({ quad, shapes: group.shapes, material: group.surface.material, mergeK: group.mergeK })
     }
     const bodyBox = document.body.getBoundingClientRect()
-    this.#renderer.render(lenses, {
+    this.#renderer.render(draws, {
       x: bodyBox.left * ratio,
       y: bodyBox.top * ratio,
       width: bodyBox.width * ratio,
@@ -197,6 +255,10 @@ class OverlayManager {
     if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer)
     if (this.#renderFrame && typeof cancelAnimationFrame === 'function') {
       cancelAnimationFrame(this.#renderFrame)
+    }
+    if (this.#pollFrame && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.#pollFrame)
+      this.#pollFrame = 0
     }
     this.#renderer.destroy()
     this.#canvas.remove()
@@ -260,7 +322,7 @@ export const webglOverlayBackend: Backend = {
     return {
       update(next) {
         applyBaseStyles(next)
-        manager.scheduleRender()
+        manager.add(next)
       },
       sync() {
         manager.scheduleRender()

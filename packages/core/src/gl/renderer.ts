@@ -1,17 +1,25 @@
 import type { MaterialParams } from '../types'
 
-export interface GlLens {
-  rect: { x: number; y: number; width: number; height: number }
-  material: MaterialParams
-  radius: number
-}
-
-export interface GlTexRect {
+export interface GlRect {
   x: number
   y: number
   width: number
   height: number
 }
+
+export interface GlShape {
+  rect: GlRect
+  radius: number
+}
+
+export interface GlDraw {
+  quad: GlRect
+  shapes: GlShape[]
+  material: MaterialParams
+  mergeK: number
+}
+
+export const MAX_SHAPES = 8
 
 const VERT = `#version 300 es
 layout(location=0) in vec2 a_pos;
@@ -30,7 +38,10 @@ precision highp float;
 uniform sampler2D u_tex;
 uniform vec4 u_lensRect;
 uniform vec4 u_texRect;
-uniform float u_radius;
+uniform vec4 u_shapes[8];
+uniform float u_shapeRadii[8];
+uniform int u_shapeCount;
+uniform float u_mergeK;
 uniform float u_bevelWidth;
 uniform float u_bevelDepth;
 uniform float u_displace;
@@ -47,6 +58,25 @@ out vec4 outColor;
 float sdBox(vec2 p, vec2 halfSize, float r) {
   vec2 q = abs(p) - halfSize + r;
   return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+}
+
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+float shapeSdf(int i, vec2 px) {
+  vec4 s = u_shapes[i];
+  return sdBox(px - s.xy - s.zw * 0.5, s.zw * 0.5, u_shapeRadii[i]);
+}
+
+float sceneSdf(vec2 px) {
+  float d = shapeSdf(0, px);
+  for (int i = 1; i < 8; i++) {
+    if (i >= u_shapeCount) break;
+    d = smin(d, shapeSdf(i, px), max(u_mergeK, 0.001));
+  }
+  return d;
 }
 
 vec3 sampleBg(vec2 px) {
@@ -75,17 +105,16 @@ float hash(vec2 p) {
 }
 
 void main() {
-  vec2 sizePx = u_lensRect.zw;
-  vec2 p = (v_local - 0.5) * sizePx;
-  float d = sdBox(p, sizePx * 0.5, u_radius);
+  vec2 basePx = u_lensRect.xy + v_local * u_lensRect.zw;
+  float d = sceneSdf(basePx);
   float coverage = clamp(0.5 - d / 1.5, 0.0, 1.0);
   if (coverage <= 0.0) { outColor = vec4(0.0); discard; }
 
   float depth = -d;
   float eps = 1.0;
   vec2 grad = vec2(
-    sdBox(p + vec2(eps, 0.0), sizePx * 0.5, u_radius) - sdBox(p - vec2(eps, 0.0), sizePx * 0.5, u_radius),
-    sdBox(p + vec2(0.0, eps), sizePx * 0.5, u_radius) - sdBox(p - vec2(0.0, eps), sizePx * 0.5, u_radius)
+    sceneSdf(basePx + vec2(eps, 0.0)) - sceneSdf(basePx - vec2(eps, 0.0)),
+    sceneSdf(basePx + vec2(0.0, eps)) - sceneSdf(basePx - vec2(0.0, eps))
   );
   float gradLen = max(length(grad), 1e-5);
   grad /= gradLen;
@@ -93,16 +122,15 @@ void main() {
   float t = clamp(depth / max(u_bevelWidth, 1e-3), 0.0, 1.0);
   float mag = pow(1.0 - t, 1.0 + u_bevelDepth * 2.0) * u_displace;
 
-  vec2 base = u_lensRect.xy + v_local * sizePx;
   vec3 col;
   if (u_dispersion > 0.001) {
     col = vec3(
-      blurredBg(base + grad * mag * (1.0 + u_dispersion * 0.6), u_blur).r,
-      blurredBg(base + grad * mag, u_blur).g,
-      blurredBg(base + grad * mag * (1.0 - u_dispersion * 0.6), u_blur).b
+      blurredBg(basePx + grad * mag * (1.0 + u_dispersion * 0.6), u_blur).r,
+      blurredBg(basePx + grad * mag, u_blur).g,
+      blurredBg(basePx + grad * mag * (1.0 - u_dispersion * 0.6), u_blur).b
     );
   } else {
-    col = blurredBg(base + grad * mag, u_blur);
+    col = blurredBg(basePx + grad * mag, u_blur);
   }
 
   float grey = dot(col, vec3(0.299, 0.587, 0.114));
@@ -110,7 +138,7 @@ void main() {
   col = mix(col, u_tint.rgb, u_tint.a);
 
   if (u_frost > 0.001) {
-    col += (hash(v_local * sizePx) - 0.5) * u_frost * 0.12;
+    col += (hash(basePx) - 0.5) * u_frost * 0.12;
   }
 
   float rim = smoothstep(3.0, 0.0, depth);
@@ -140,7 +168,10 @@ const UNIFORMS = [
   'u_lensRect',
   'u_texRect',
   'u_canvasSize',
-  'u_radius',
+  'u_shapes',
+  'u_shapeRadii',
+  'u_shapeCount',
+  'u_mergeK',
   'u_bevelWidth',
   'u_bevelDepth',
   'u_displace',
@@ -155,6 +186,26 @@ const UNIFORMS = [
 
 type UniformName = (typeof UNIFORMS)[number]
 
+export function unionRect(rects: GlRect[], margin = 0): GlRect {
+  let left = Infinity
+  let top = Infinity
+  let right = -Infinity
+  let bottom = -Infinity
+  for (const rect of rects) {
+    left = Math.min(left, rect.x)
+    top = Math.min(top, rect.y)
+    right = Math.max(right, rect.x + rect.width)
+    bottom = Math.max(bottom, rect.y + rect.height)
+  }
+  if (!Number.isFinite(left)) return { x: 0, y: 0, width: 0, height: 0 }
+  return {
+    x: left - margin,
+    y: top - margin,
+    width: right - left + margin * 2,
+    height: bottom - top + margin * 2
+  }
+}
+
 export class GlRenderer {
   #gl: WebGL2RenderingContext
   #program: WebGLProgram
@@ -162,6 +213,8 @@ export class GlRenderer {
   #texture: WebGLTexture | null = null
   #width = 0
   #height = 0
+  #shapeData = new Float32Array(MAX_SHAPES * 4)
+  #radiusData = new Float32Array(MAX_SHAPES)
 
   private constructor(
     gl: WebGL2RenderingContext,
@@ -231,7 +284,7 @@ export class GlRenderer {
     this.#gl.viewport(0, 0, width, height)
   }
 
-  render(lenses: GlLens[], texRect: GlTexRect): void {
+  render(draws: GlDraw[], texRect: GlRect): void {
     const gl = this.#gl
     if (!this.#texture || this.#width === 0) return
     gl.useProgram(this.#program)
@@ -239,13 +292,32 @@ export class GlRenderer {
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.uniform1i(this.#locations.get('u_tex') ?? null, 0)
     gl.uniform2f(this.#locations.get('u_canvasSize') ?? null, this.#width, this.#height)
-    gl.uniform4f(this.#locations.get('u_texRect') ?? null, texRect.x, texRect.y, texRect.width, texRect.height)
-    for (const lens of lenses) {
-      const { material, rect } = lens
-      const tintAlpha = material.tintOpacity
+    gl.uniform4f(
+      this.#locations.get('u_texRect') ?? null,
+      texRect.x,
+      texRect.y,
+      texRect.width,
+      texRect.height
+    )
+    for (const draw of draws) {
+      const { material, quad } = draw
+      const shapes = draw.shapes.slice(0, MAX_SHAPES)
+      if (shapes.length === 0) continue
+      this.#shapeData.fill(0)
+      this.#radiusData.fill(0)
+      shapes.forEach((shape, i) => {
+        this.#shapeData[i * 4] = shape.rect.x
+        this.#shapeData[i * 4 + 1] = shape.rect.y
+        this.#shapeData[i * 4 + 2] = shape.rect.width
+        this.#shapeData[i * 4 + 3] = shape.rect.height
+        this.#radiusData[i] = shape.radius
+      })
       const tint = parseTint(material.tint)
-      gl.uniform4f(this.#locations.get('u_lensRect') ?? null, rect.x, rect.y, rect.width, rect.height)
-      gl.uniform1f(this.#locations.get('u_radius') ?? null, lens.radius)
+      gl.uniform4f(this.#locations.get('u_lensRect') ?? null, quad.x, quad.y, quad.width, quad.height)
+      gl.uniform4fv(this.#locations.get('u_shapes') ?? null, this.#shapeData)
+      gl.uniform1fv(this.#locations.get('u_shapeRadii') ?? null, this.#radiusData)
+      gl.uniform1i(this.#locations.get('u_shapeCount') ?? null, shapes.length)
+      gl.uniform1f(this.#locations.get('u_mergeK') ?? null, draw.mergeK)
       gl.uniform1f(this.#locations.get('u_bevelWidth') ?? null, material.bevelWidth)
       gl.uniform1f(this.#locations.get('u_bevelDepth') ?? null, material.bevelDepth)
       gl.uniform1f(
@@ -256,7 +328,7 @@ export class GlRenderer {
       gl.uniform1f(this.#locations.get('u_dispersion') ?? null, material.dispersion)
       gl.uniform1f(this.#locations.get('u_saturation') ?? null, material.saturation)
       gl.uniform1f(this.#locations.get('u_brightness') ?? null, material.brightness)
-      gl.uniform4f(this.#locations.get('u_tint') ?? null, tint[0], tint[1], tint[2], tintAlpha)
+      gl.uniform4f(this.#locations.get('u_tint') ?? null, tint[0], tint[1], tint[2], material.tintOpacity)
       gl.uniform1f(this.#locations.get('u_specular') ?? null, material.specular)
       gl.uniform1f(this.#locations.get('u_frost') ?? null, material.frost)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)

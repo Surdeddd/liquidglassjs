@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(5)
+  await expect(panels).toHaveCount(7)
   await expect(panels.first()).toHaveAttribute('data-liquid-glass', 'frosted')
 })
 
@@ -64,7 +64,7 @@ test('webgl-scene renders into a canvas layer', async ({ page }) => {
 
 test('webgl-overlay shares one viewport canvas', async ({ page }) => {
   await page.goto('/')
-  const lens = page.locator('liquid-glass[backend="webgl-overlay"]')
+  const lens = page.locator('liquid-glass.panel[backend="webgl-overlay"]')
   await expect(lens).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
   const overlay = page.locator('canvas[data-liquid-glass-overlay]')
   await expect(overlay).toHaveCount(1)
@@ -74,6 +74,16 @@ test('webgl-overlay shares one viewport canvas', async ({ page }) => {
   }))
   expect(size.w).toBeGreaterThan(0)
   expect(size.h).toBeGreaterThan(0)
+})
+
+test('merge group melts lenses on the shared overlay', async ({ page }) => {
+  await page.goto('/')
+  const blobs = page.locator('liquid-glass[merge="demo"]')
+  await expect(blobs).toHaveCount(2)
+  await expect(blobs.first()).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
+  await expect(blobs.nth(1)).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
+  const overlay = page.locator('canvas[data-liquid-glass-overlay]')
+  await expect(overlay).toHaveCount(1)
 })
 
 test('press squashes the glass with spring physics', async ({ page }) => {

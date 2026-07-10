@@ -31,7 +31,7 @@ function physicsFrom(value: string | null): boolean {
 
 function createElementClass(): CustomElementConstructor {
   return class LiquidGlassElement extends HTMLElement {
-    static observedAttributes = ['preset', 'backdrop', 'backend', 'scene-image', 'physics']
+    static observedAttributes = ['preset', 'backdrop', 'backend', 'scene-image', 'physics', 'merge']
 
     connectedCallback(): void {
       attach(this, {
@@ -39,7 +39,8 @@ function createElementClass(): CustomElementConstructor {
         backdrop: this.getAttribute('backdrop'),
         backend: backendFrom(this.getAttribute('backend')),
         sceneImage: this.getAttribute('scene-image'),
-        physics: physicsFrom(this.getAttribute('physics'))
+        physics: physicsFrom(this.getAttribute('physics')),
+        merge: this.getAttribute('merge')
       })
     }
 
@@ -55,6 +56,7 @@ function createElementClass(): CustomElementConstructor {
       if (name === 'backend') instance.set({ backend: backendFrom(value) })
       if (name === 'scene-image') instance.set({ sceneImage: value })
       if (name === 'physics') instance.set({ physics: physicsFrom(value) })
+      if (name === 'merge') instance.set({ merge: value })
     }
   }
 }

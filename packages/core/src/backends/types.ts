@@ -9,6 +9,8 @@ export interface BackendSurface {
   state: SurfaceState
   backdrop: Element | null
   sceneImage: string | null
+  merge?: string | null
+  mergeStrength?: number | null
 }
 
 export interface BackendInstance {
