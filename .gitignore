@@ -32,3 +32,10 @@ memory-bank/
 GOAL.md
 .vercel
 .env*
+
+# agent/plugin artifacts — never commit
+.claude/
+.superpowers/
+.playwright-mcp/
+.remember/
+docs/superpowers/
