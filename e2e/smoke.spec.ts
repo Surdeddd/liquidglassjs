@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(4)
+  await expect(panels).toHaveCount(5)
   await expect(panels.first()).toHaveAttribute('data-liquid-glass', 'frosted')
 })
 
@@ -58,6 +58,20 @@ test('webgl-scene renders into a canvas layer', async ({ page }) => {
   const size = await lens
     .locator('canvas[data-liquid-glass-layer="scene"]')
     .evaluate(el => ({ w: (el as HTMLCanvasElement).width, h: (el as HTMLCanvasElement).height }))
+  expect(size.w).toBeGreaterThan(0)
+  expect(size.h).toBeGreaterThan(0)
+})
+
+test('webgl-overlay shares one viewport canvas', async ({ page }) => {
+  await page.goto('/')
+  const lens = page.locator('liquid-glass[backend="webgl-overlay"]')
+  await expect(lens).toHaveAttribute('data-liquid-glass-backend', 'webgl-overlay')
+  const overlay = page.locator('canvas[data-liquid-glass-overlay]')
+  await expect(overlay).toHaveCount(1)
+  const size = await overlay.evaluate(el => ({
+    w: (el as HTMLCanvasElement).width,
+    h: (el as HTMLCanvasElement).height
+  }))
   expect(size.w).toBeGreaterThan(0)
   expect(size.h).toBeGreaterThan(0)
 })

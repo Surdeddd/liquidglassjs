@@ -60,7 +60,11 @@ importers:
         specifier: workspace:^
         version: link:../../packages/element
 
-  packages/core: {}
+  packages/core:
+    optionalDependencies:
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
 
   packages/element:
     dependencies:
@@ -1503,6 +1507,9 @@ packages:
   happy-dom@20.10.6:
     resolution: {integrity: sha512-6QD0ilzDDt93tX44y8tbmZdAcdTRYDhUP+Asgi6pC8Pp5IA3cvaZGyoVN/EGtlq9ziT65iPuBBn3ASLr6hCgVw==}
     engines: {node: '>=20.0.0'}
+
+  html-to-image@1.11.13:
+    resolution: {integrity: sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg==}
 
   human-id@4.2.0:
     resolution: {integrity: sha512-K3GbkIWqyvvlpfhBPlbEvD97TtqBpAYA4kt+cn2lD2x2HuohzZCibcA2nOlnJT6exqvJLggoB5nv2dNf192nEA==}
@@ -3500,6 +3507,9 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  html-to-image@1.11.13:
+    optional: true
 
   human-id@4.2.0: {}
 

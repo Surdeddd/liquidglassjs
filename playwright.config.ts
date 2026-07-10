@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://localhost:4173'
+    baseURL: 'http://127.0.0.1:4173'
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
@@ -13,8 +13,8 @@ export default defineConfig({
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } }
   ],
   webServer: {
-    command: 'pnpm --filter demo exec vite --port 4173 --strictPort',
-    url: 'http://localhost:4173',
+    command: 'pnpm --filter demo exec vite --host 127.0.0.1 --port 4173 --strictPort',
+    url: 'http://127.0.0.1:4173',
     reuseExistingServer: !process.env.CI
   }
 })

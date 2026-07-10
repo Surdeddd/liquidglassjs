@@ -1,6 +1,7 @@
 import { cssFallbackBackend } from './backends/css-fallback'
 import { cssSvgBackend } from './backends/css-svg'
 import { svgContentBackend } from './backends/svg-content'
+import { webglOverlayBackend } from './backends/webgl-overlay'
 import { webglSceneBackend } from './backends/webgl-scene'
 import { registerBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
@@ -13,6 +14,7 @@ registerBackend(cssFallbackBackend)
 registerBackend(cssSvgBackend)
 registerBackend(svgContentBackend)
 registerBackend(webglSceneBackend)
+registerBackend(webglOverlayBackend)
 
 const instances = new WeakMap<Element, LiquidGlassHandle>()
 

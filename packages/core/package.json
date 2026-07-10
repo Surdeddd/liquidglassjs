@@ -15,13 +15,22 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
-  "keywords": ["liquid-glass", "glassmorphism", "webgl", "ios26", "ui", "refraction"],
+  "keywords": [
+    "liquid-glass",
+    "glassmorphism",
+    "webgl",
+    "ios26",
+    "ui",
+    "refraction"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Surdeddd/liquidglassjs.git",
@@ -29,5 +38,11 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "html-to-image": "^1.11.13"
+  },
+  "optionalDependencies": {
+    "html-to-image": "^1.11.13"
   }
 }
