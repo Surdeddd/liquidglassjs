@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createElement, version } from 'react'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
-import { LiquidGlass } from '@liquidglass/react'
+import { LiquidGlass } from '@surdeddd/liquidglass-react'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 

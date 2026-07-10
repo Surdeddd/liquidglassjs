@@ -6,7 +6,7 @@ import {
   type LiquidGlassOptions,
   type LiquidGlassPreset,
   type MaterialParams
-} from '@liquidglass/element'
+} from '@surdeddd/liquidglass-element'
 import './style.css'
 
 define()
@@ -72,7 +72,7 @@ function renderSnippet(): void {
   const lines = entries.map(
     ([key, value]) => `  ${key}: ${typeof value === 'string' ? `'${value}'` : String(value)}`
   )
-  snippetNode.textContent = `import { attach } from '@liquidglass/core'\n\nattach(element, {\n${lines.join(',\n')}\n})`
+  snippetNode.textContent = `import { attach } from '@surdeddd/liquidglass-core'\n\nattach(element, {\n${lines.join(',\n')}\n})`
 }
 
 function syncInputs(material: MaterialParams): void {
@@ -152,7 +152,7 @@ if (dockPill && dockButtons.length > 0) {
 }
 
 const FRAMEWORK_SNIPPETS: Record<string, string> = {
-  vanilla: `import { attach } from '@liquidglass/core'
+  vanilla: `import { attach } from '@surdeddd/liquidglass-core'
 
 const glass = attach(document.querySelector('.panel'), {
   preset: 'frosted',
@@ -160,26 +160,26 @@ const glass = attach(document.querySelector('.panel'), {
 })
 
 glass.set({ preset: 'clear' })`,
-  element: `import { define } from '@liquidglass/element'
+  element: `import { define } from '@surdeddd/liquidglass-element'
 
 define()
 
 <liquid-glass preset="frosted" merge="dock">
   Hello
 </liquid-glass>`,
-  react: `import { LiquidGlass, useLiquidGlass } from '@liquidglass/react'
+  react: `import { LiquidGlass, useLiquidGlass } from '@surdeddd/liquidglass-react'
 
 <LiquidGlass as="nav" preset="clear" dispersion={0.3}>
   …
 </LiquidGlass>`,
   vue: `<script setup>
-import { LiquidGlass, vLiquidGlass } from '@liquidglass/vue'
+import { LiquidGlass, vLiquidGlass } from '@surdeddd/liquidglass-vue'
 </script>
 
 <LiquidGlass preset="frosted" :options="{ dispersion: 0.3 }">…</LiquidGlass>
 <div v-liquid-glass="{ preset: 'clear' }">…</div>`,
   svelte: `<script>
-  import { liquidGlass } from '@liquidglass/svelte'
+  import { liquidGlass } from '@surdeddd/liquidglass-svelte'
 </script>
 
 <div use:liquidGlass={{ preset: 'frosted', wobble: 0.8 }}>…</div>`

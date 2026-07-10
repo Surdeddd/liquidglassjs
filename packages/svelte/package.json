@@ -1,7 +1,7 @@
 {
-  "name": "@liquidglass/svelte",
+  "name": "@surdeddd/liquidglass-svelte",
   "version": "0.0.0",
-  "description": "Svelte action for @liquidglass/core",
+  "description": "Svelte action for @surdeddd/liquidglass-core",
   "type": "module",
   "license": "MIT",
   "sideEffects": false,
@@ -22,7 +22,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@liquidglass/core": "workspace:^"
+    "@surdeddd/liquidglass-core": "workspace:^"
   },
   "peerDependencies": {
     "svelte": "^4.0.0 || ^5.0.0"

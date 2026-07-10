@@ -1,7 +1,7 @@
 {
-  "name": "@liquidglass/element",
+  "name": "@surdeddd/liquidglass-element",
   "version": "0.0.0",
-  "description": "<liquid-glass> web component built on @liquidglass/core",
+  "description": "<liquid-glass> web component built on @surdeddd/liquidglass-core",
   "type": "module",
   "license": "MIT",
   "sideEffects": false,
@@ -22,7 +22,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@liquidglass/core": "workspace:^"
+    "@surdeddd/liquidglass-core": "workspace:^"
   },
   "keywords": ["liquid-glass", "web-component", "custom-element", "glassmorphism"],
   "repository": {

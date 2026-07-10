@@ -1,4 +1,4 @@
-import { attach, type LiquidGlassOptions } from '@liquidglass/core'
+import { attach, type LiquidGlassOptions } from '@surdeddd/liquidglass-core'
 
 export interface LiquidGlassActionReturn {
   update(options?: LiquidGlassOptions): void
@@ -17,4 +17,4 @@ export function liquidGlass(node: Element, options?: LiquidGlassOptions): Liquid
   }
 }
 
-export * from '@liquidglass/core'
+export * from '@surdeddd/liquidglass-core'

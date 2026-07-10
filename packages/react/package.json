@@ -1,7 +1,7 @@
 {
-  "name": "@liquidglass/react",
+  "name": "@surdeddd/liquidglass-react",
   "version": "0.0.0",
-  "description": "React 18 & 19 bindings for @liquidglass/core",
+  "description": "React 18 & 19 bindings for @surdeddd/liquidglass-core",
   "type": "module",
   "license": "MIT",
   "sideEffects": false,
@@ -24,7 +24,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@liquidglass/core": "workspace:^"
+    "@surdeddd/liquidglass-core": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=18 <20"

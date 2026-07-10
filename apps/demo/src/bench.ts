@@ -1,4 +1,4 @@
-import { define } from '@liquidglass/element'
+import { define } from '@surdeddd/liquidglass-element'
 
 define()
 

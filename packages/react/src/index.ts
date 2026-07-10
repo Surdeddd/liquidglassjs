@@ -1,6 +1,6 @@
 import { createElement, forwardRef, useEffect, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode, Ref, RefObject } from 'react'
-import { attach, getInstance, type LiquidGlassHandle, type LiquidGlassOptions } from '@liquidglass/core'
+import { attach, getInstance, type LiquidGlassHandle, type LiquidGlassOptions } from '@surdeddd/liquidglass-core'
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
@@ -75,4 +75,4 @@ export function useLiquidGlassHandle(
   return ref.current ? getInstance(ref.current) : undefined
 }
 
-export * from '@liquidglass/core'
+export * from '@surdeddd/liquidglass-core'

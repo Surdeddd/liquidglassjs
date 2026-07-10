@@ -3,12 +3,16 @@
 Liquid Glass for the whole web — one engine, every browser, every framework.
 
 [![CI](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml/badge.svg)](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@liquidglass/core)](https://www.npmjs.com/package/@liquidglass/core)
+[![npm](https://img.shields.io/npm/v/@surdeddd/liquidglass-core)](https://www.npmjs.com/package/@surdeddd/liquidglass-core)
 [![size](https://img.shields.io/badge/core-14.5kB_brotli-blue)](./packages/core)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 Real refraction over live DOM — not a screenshot, not Chromium-only. Living spring physics,
 iOS-26-style metaball merging, adaptive contrast, and accessibility baked in.
+
+**[Live demo & playground →](https://liquidglassjs.vercel.app)** · [API reference](https://liquidglassjs.vercel.app/api/) · [npm](https://www.npmjs.com/package/@surdeddd/liquidglass-core)
+
+[![LiquidGlassJS — real refraction over live DOM](docs/media/readme/hero.webp)](https://liquidglassjs.vercel.app)
 
 ## Why another liquid glass library?
 
@@ -16,7 +20,7 @@ Every existing implementation picked one rendering lane and died in it. LiquidGl
 the browser can do and routes each surface to the best available backend — under a single API:
 
 ```text
-@liquidglass/core
+@surdeddd/liquidglass-core
 ├─ physics        springs: press squash, release wobble, hover magnetism
 ├─ material       ior, frost, bevel, dispersion, specular, tint + presets
 ├─ a11y           backdrop tone sampling, reduced motion / transparency
@@ -43,20 +47,30 @@ the browser can do and routes each surface to the best available backend — und
 | Frameworks | vanilla · element · react 18+19 · vue 3 · svelte | react 19 only | vanilla | react | react 19 |
 | Core dependencies | 0 | — | 0 | — | — |
 
+## What it looks like
+
+| [Spring physics](https://liquidglassjs.vercel.app/#physics) | [Metaball merging + tab bar](https://liquidglassjs.vercel.app/#metaballs) |
+| --- | --- |
+| ![Press squash, wobbly release, magnetic hover](docs/media/readme/physics.webp) | ![Lenses melting together over the live page](docs/media/readme/metaballs.webp) |
+
+| [Adaptive contrast](https://liquidglassjs.vercel.app/#adaptive) | [Config-exporting playground](https://liquidglassjs.vercel.app/#playground) |
+| --- | --- |
+| ![Auto tint flip over light and dark backdrops](docs/media/readme/adaptive.webp) | ![Material sliders that export an attach() config](docs/media/readme/playground.webp) |
+
 ## Packages
 
 | Package | Description |
 | --- | --- |
-| `@liquidglass/core` | Framework-agnostic engine, zero dependencies, ~14.5 kB brotli |
-| `@liquidglass/element` | `<liquid-glass>` web component |
-| `@liquidglass/react` | React 18 & 19 component + hooks |
-| `@liquidglass/vue` | Vue 3 component + `v-liquid-glass` directive |
-| `@liquidglass/svelte` | Svelte action |
+| [`@surdeddd/liquidglass-core`](https://www.npmjs.com/package/@surdeddd/liquidglass-core) | Framework-agnostic engine, zero dependencies, ~14.5 kB brotli |
+| [`@surdeddd/liquidglass-element`](https://www.npmjs.com/package/@surdeddd/liquidglass-element) | `<liquid-glass>` web component |
+| [`@surdeddd/liquidglass-react`](https://www.npmjs.com/package/@surdeddd/liquidglass-react) | React 18 & 19 component + hooks |
+| [`@surdeddd/liquidglass-vue`](https://www.npmjs.com/package/@surdeddd/liquidglass-vue) | Vue 3 component + `v-liquid-glass` directive |
+| [`@surdeddd/liquidglass-svelte`](https://www.npmjs.com/package/@surdeddd/liquidglass-svelte) | Svelte action |
 
 ## Quick start
 
 ```ts
-import { attach } from '@liquidglass/core'
+import { attach } from '@surdeddd/liquidglass-core'
 
 const glass = attach(document.querySelector('.panel'), {
   preset: 'frosted',
@@ -70,7 +84,7 @@ glass.destroy()
 
 ```html
 <script type="module">
-  import { define } from '@liquidglass/element'
+  import { define } from '@surdeddd/liquidglass-element'
   define()
 </script>
 
@@ -78,7 +92,7 @@ glass.destroy()
 ```
 
 ```tsx
-import { LiquidGlass } from '@liquidglass/react'
+import { LiquidGlass } from '@surdeddd/liquidglass-react'
 
 <LiquidGlass as="nav" preset="clear" dispersion={0.3}>…</LiquidGlass>
 ```

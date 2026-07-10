@@ -7,7 +7,7 @@ import {
   type LiquidGlassHandle,
   type LiquidGlassOptions,
   type LiquidGlassPreset
-} from '@liquidglass/core'
+} from '@surdeddd/liquidglass-core'
 
 export const LiquidGlass = defineComponent({
   name: 'LiquidGlass',
@@ -49,4 +49,4 @@ export const vLiquidGlass: ObjectDirective<Element, LiquidGlassOptions | undefin
   }
 }
 
-export * from '@liquidglass/core'
+export * from '@surdeddd/liquidglass-core'

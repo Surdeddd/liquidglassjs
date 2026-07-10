@@ -50,19 +50,19 @@ importers:
 
   apps/demo:
     dependencies:
-      '@liquidglass/element':
+      '@surdeddd/liquidglass-element':
         specifier: workspace:^
         version: link:../../packages/element
 
   apps/docs:
     dependencies:
-      '@liquidglass/element':
+      '@surdeddd/liquidglass-element':
         specifier: workspace:^
         version: link:../../packages/element
 
   apps/react18-smoke:
     dependencies:
-      '@liquidglass/react':
+      '@surdeddd/liquidglass-react':
         specifier: workspace:^
         version: link:../../packages/react
       react:
@@ -87,13 +87,13 @@ importers:
 
   packages/element:
     dependencies:
-      '@liquidglass/core':
+      '@surdeddd/liquidglass-core':
         specifier: workspace:^
         version: link:../core
 
   packages/react:
     dependencies:
-      '@liquidglass/core':
+      '@surdeddd/liquidglass-core':
         specifier: workspace:^
         version: link:../core
     devDependencies:
@@ -112,7 +112,7 @@ importers:
 
   packages/svelte:
     dependencies:
-      '@liquidglass/core':
+      '@surdeddd/liquidglass-core':
         specifier: workspace:^
         version: link:../core
       svelte:
@@ -121,7 +121,7 @@ importers:
 
   packages/vue:
     dependencies:
-      '@liquidglass/core':
+      '@surdeddd/liquidglass-core':
         specifier: workspace:^
         version: link:../core
     devDependencies:

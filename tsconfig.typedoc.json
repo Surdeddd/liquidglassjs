@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@liquidglass/core": ["packages/core/src/index.ts"]
+      "@surdeddd/liquidglass-core": ["packages/core/src/index.ts"]
     }
   },
   "include": ["packages/*/src"]

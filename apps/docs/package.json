@@ -10,6 +10,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@liquidglass/element": "workspace:^"
+    "@surdeddd/liquidglass-element": "workspace:^"
   }
 }

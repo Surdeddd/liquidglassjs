@@ -18,7 +18,7 @@ if (typeof window !== 'undefined' || typeof document !== 'undefined') {
 for (const [name, exportName] of targets) {
   const mod = await import(resolve(root, 'packages', name, 'dist', 'index.js'))
   if (typeof mod[exportName] === 'undefined') {
-    throw new Error(`@liquidglass/${name}: missing export ${exportName}`)
+    throw new Error(`@surdeddd/liquidglass-${name}: missing export ${exportName}`)
   }
 }
 

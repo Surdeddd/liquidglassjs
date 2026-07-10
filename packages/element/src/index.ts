@@ -4,7 +4,7 @@ import {
   getInstance,
   type BackendId,
   type LiquidGlassPreset
-} from '@liquidglass/core'
+} from '@surdeddd/liquidglass-core'
 
 const PRESETS: readonly LiquidGlassPreset[] = ['clear', 'frosted', 'tinted']
 
@@ -80,4 +80,4 @@ export function define(tag = 'liquid-glass'): void {
   if (!customElements.get(tag)) customElements.define(tag, createElementClass())
 }
 
-export * from '@liquidglass/core'
+export * from '@surdeddd/liquidglass-core'
