@@ -1,6 +1,6 @@
 {
   "name": "@surdeddd/liquidglass-element",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "<liquid-glass> web component built on @surdeddd/liquidglass-core",
   "type": "module",
   "license": "MIT",
@@ -15,7 +15,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
@@ -24,7 +26,12 @@
   "dependencies": {
     "@surdeddd/liquidglass-core": "workspace:^"
   },
-  "keywords": ["liquid-glass", "web-component", "custom-element", "glassmorphism"],
+  "keywords": [
+    "liquid-glass",
+    "web-component",
+    "custom-element",
+    "glassmorphism"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Surdeddd/liquidglassjs.git",
