@@ -76,6 +76,33 @@ test('webgl-overlay shares one viewport canvas', async ({ page }) => {
   expect(size.h).toBeGreaterThan(0)
 })
 
+test('press squashes the glass with spring physics', async ({ page }) => {
+  await page.goto('/')
+  const panel = page.locator('liquid-glass').first()
+  const box = await panel.boundingBox()
+  if (!box) throw new Error('panel not laid out')
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.waitForTimeout(250)
+  const transform = await panel.evaluate(el => getComputedStyle(el).transform)
+  expect(transform).not.toBe('none')
+  await page.mouse.up()
+})
+
+test('reduced motion disables physics', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  const panel = page.locator('liquid-glass').first()
+  const box = await panel.boundingBox()
+  if (!box) throw new Error('panel not laid out')
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.waitForTimeout(250)
+  const transform = await panel.evaluate(el => getComputedStyle(el).transform)
+  expect(transform).toBe('none')
+  await page.mouse.up()
+})
+
 test('chromium filter carries a displacement map', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'svg backdrop filters are chromium-only')
   await page.goto('/')

@@ -25,16 +25,21 @@ function backendFrom(value: string | null): BackendId | 'auto' {
   return BACKENDS.includes(value as BackendId) ? (value as BackendId) : 'auto'
 }
 
+function physicsFrom(value: string | null): boolean {
+  return value !== 'false' && value !== 'off'
+}
+
 function createElementClass(): CustomElementConstructor {
   return class LiquidGlassElement extends HTMLElement {
-    static observedAttributes = ['preset', 'backdrop', 'backend', 'scene-image']
+    static observedAttributes = ['preset', 'backdrop', 'backend', 'scene-image', 'physics']
 
     connectedCallback(): void {
       attach(this, {
         preset: presetFrom(this.getAttribute('preset')),
         backdrop: this.getAttribute('backdrop'),
         backend: backendFrom(this.getAttribute('backend')),
-        sceneImage: this.getAttribute('scene-image')
+        sceneImage: this.getAttribute('scene-image'),
+        physics: physicsFrom(this.getAttribute('physics'))
       })
     }
 
@@ -49,6 +54,7 @@ function createElementClass(): CustomElementConstructor {
       if (name === 'backdrop') instance.set({ backdrop: value })
       if (name === 'backend') instance.set({ backend: backendFrom(value) })
       if (name === 'scene-image') instance.set({ sceneImage: value })
+      if (name === 'physics') instance.set({ physics: physicsFrom(value) })
     }
   }
 }

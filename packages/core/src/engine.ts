@@ -7,6 +7,7 @@ import { registerBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
 import { SurfaceTracker } from './dom-sync'
 import { resolveMaterial } from './material'
+import { PhysicsController, resolvePhysics } from './physics/controller'
 import { probeCapabilities } from './probe'
 import type { LiquidGlassHandle, LiquidGlassOptions } from './types'
 
@@ -24,6 +25,18 @@ function resolveBackdrop(backdrop: Element | string | null | undefined): Element
     return typeof document === 'undefined' ? null : document.querySelector(backdrop)
   }
   return backdrop
+}
+
+function createPhysics(
+  element: Element,
+  options: LiquidGlassOptions,
+  reducedMotion: boolean
+): PhysicsController | null {
+  if (reducedMotion) return null
+  if (typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement)) return null
+  const config = resolvePhysics(options.physics)
+  if (!config) return null
+  return new PhysicsController(element, config)
 }
 
 export function attach(element: Element, options: LiquidGlassOptions = {}): LiquidGlassHandle {
@@ -47,6 +60,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
 
   let instance: BackendInstance = backend.mount(surface)
+  let physics = createPhysics(element, current, capabilities.reducedMotion)
 
   const tracker = new SurfaceTracker(element, state => {
     surface.state = state
@@ -80,11 +94,17 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
           instance = backend.mount(surface)
         }
       }
+      if (next.physics !== undefined) {
+        physics?.destroy()
+        physics = createPhysics(element, current, capabilities.reducedMotion)
+      }
       instance.update(surface)
       markElement()
     },
     destroy() {
       tracker.stop()
+      physics?.destroy()
+      physics = null
       instance.destroy()
       instances.delete(element)
       element.removeAttribute('data-liquid-glass')
