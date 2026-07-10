@@ -1,6 +1,6 @@
 {
   "name": "@liquidglass/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Framework-agnostic Liquid Glass engine: tiered rendering, spring physics, adaptive materials",
   "type": "module",
   "license": "MIT",

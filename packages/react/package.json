@@ -1,6 +1,6 @@
 {
   "name": "@liquidglass/react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "React 18 & 19 bindings for @liquidglass/core",
   "type": "module",
   "license": "MIT",
