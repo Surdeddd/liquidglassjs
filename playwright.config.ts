@@ -12,9 +12,16 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } }
   ],
-  webServer: {
-    command: 'pnpm --filter demo exec vite --host 127.0.0.1 --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI
-  }
+  webServer: [
+    {
+      command: 'pnpm --filter demo exec vite --host 127.0.0.1 --port 4173 --strictPort',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: !process.env.CI
+    },
+    {
+      command: 'pnpm --filter docs exec vite --host 127.0.0.1 --port 4175 --strictPort',
+      url: 'http://127.0.0.1:4175',
+      reuseExistingServer: !process.env.CI
+    }
+  ]
 })

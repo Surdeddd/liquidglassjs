@@ -3,11 +3,177 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Liquid Glass for the whole web — one engine, every browser, every framework." />
-    <title>LiquidGlassJS</title>
+    <meta
+      name="description"
+      content="LiquidGlassJS — Liquid Glass for the whole web. One engine, every browser, every framework: tiered rendering, spring physics, metaball merging, adaptive contrast."
+    />
+    <meta property="og:title" content="LiquidGlassJS" />
+    <meta
+      property="og:description"
+      content="Liquid Glass for the whole web — one engine, every browser, every framework."
+    />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700&family=Sora:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>LiquidGlassJS — Liquid Glass for the whole web</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div class="orb orb-cyan" aria-hidden="true"></div>
+    <div class="orb orb-amber" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <liquid-glass class="nav" preset="clear" physics="false">
+      <span class="nav-logo">🫧 liquidglass<span class="nav-logo-dim">js</span></span>
+      <span class="nav-links">
+        <a href="#playground">playground</a>
+        <a href="/api/" target="_blank" rel="noreferrer">api</a>
+        <a href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
+      </span>
+    </liquid-glass>
+
+    <header class="hero">
+      <div class="hero-titles" aria-hidden="true">
+        <span class="hero-word">LIQUID</span>
+        <span class="hero-word hero-word-outline">GLASS</span>
+      </div>
+      <liquid-glass class="hero-lens" preset="clear"></liquid-glass>
+      <h1 class="visually-hidden">LiquidGlassJS — Liquid Glass for the whole web</h1>
+      <p class="hero-sub reveal">
+        One engine. Every browser. Every framework.<br />
+        Real refraction over live DOM — not a screenshot, not Chromium-only.
+      </p>
+      <div class="hero-cta reveal">
+        <code class="install" data-install>pnpm add @liquidglass/core</code>
+        <button class="copy-btn" data-copy-install type="button">copy</button>
+        <a class="ghost-btn" href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">★ github</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="section reveal" id="tiers">
+        <p class="section-index">01</p>
+        <h2 class="section-title">A capability-tiered engine</h2>
+        <p class="section-lead">
+          Every other library picked one rendering lane and died in it. LiquidGlassJS probes what your
+          browser can do and routes each surface to the best backend — under a single API.
+        </p>
+        <p class="detected">
+          your browser renders with
+          <span class="chip" data-backend-chip>detecting…</span>
+        </p>
+        <ol class="tiers">
+          <li data-tier="css-svg"><b>css-svg</b><i>live backdrop displacement — Chromium</i></li>
+          <li data-tier="svg-content"><b>svg-content</b><i>counter-positioned live copy — Safari &amp; Firefox</i></li>
+          <li data-tier="webgl-scene"><b>webgl-scene</b><i>full GPU optics over owned scenes</i></li>
+          <li data-tier="webgl-overlay"><b>webgl-overlay</b><i>one shared canvas, page snapshot</i></li>
+          <li data-tier="css-fallback"><b>css-fallback</b><i>graceful blur + tint, everywhere</i></li>
+        </ol>
+        <liquid-glass class="tier-lens" preset="frosted" data-probe></liquid-glass>
+      </section>
+
+      <section class="section reveal" id="physics">
+        <p class="section-index">02</p>
+        <h2 class="section-title">Physics you can feel</h2>
+        <p class="section-lead">
+          A mass–spring–damper system drives every surface: gel squash on press, wobbly release,
+          magnetic hover. Runs on any backend, sleeps when idle, respects prefers-reduced-motion.
+        </p>
+        <div class="physics-stage">
+          <liquid-glass class="physics-lens" preset="clear"><span>press&nbsp;me</span></liquid-glass>
+        </div>
+      </section>
+
+      <section class="section reveal" id="metaballs">
+        <p class="section-index">03</p>
+        <h2 class="section-title">Lenses that melt together</h2>
+        <p class="section-lead">
+          The iOS 26 signature move: SDF smooth-min metaballs in a WebGL2 shader. Give two lenses the
+          same <code>merge</code> group and they flow into each other — over your real page.
+        </p>
+        <div class="merge-stage">
+          <liquid-glass class="m-blob m-blob-a" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
+          <liquid-glass class="m-blob m-blob-b" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
+        </div>
+      </section>
+
+      <section class="section reveal" id="adaptive">
+        <p class="section-index">04</p>
+        <h2 class="section-title">Contrast that adapts itself</h2>
+        <p class="section-lead">
+          Glass samples the luminance beneath it and flips its own tint — plus a
+          <code>data-liquid-glass-tone</code> hook for your text. No manual overLight flags. Zero
+          competitors do this.
+        </p>
+        <div class="adaptive-grid">
+          <div class="adaptive-card adaptive-dark">
+            <liquid-glass class="a-lens" preset="clear" physics="false"><span>over dark</span></liquid-glass>
+          </div>
+          <div class="adaptive-card adaptive-light">
+            <liquid-glass class="a-lens" preset="clear" physics="false"><span>over light</span></liquid-glass>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal" id="playground">
+        <p class="section-index">05</p>
+        <h2 class="section-title">Playground</h2>
+        <p class="section-lead">Tune the material, take the config with you.</p>
+        <div class="pg">
+          <div class="pg-controls">
+            <div class="pg-presets">
+              <button type="button" data-preset="clear" class="active">clear</button>
+              <button type="button" data-preset="frosted">frosted</button>
+              <button type="button" data-preset="tinted">tinted</button>
+            </div>
+            <label>blur <output>2</output><input type="range" data-param="blur" min="0" max="40" step="1" value="2" /></label>
+            <label>tint opacity <output>0.06</output><input type="range" data-param="tintOpacity" min="0" max="1" step="0.01" value="0.06" /></label>
+            <label>refraction <output>0.65</output><input type="range" data-param="refraction" min="0" max="1" step="0.01" value="0.65" /></label>
+            <label>thickness <output>12</output><input type="range" data-param="thickness" min="0" max="60" step="1" value="12" /></label>
+            <label>bevel width <output>16</output><input type="range" data-param="bevelWidth" min="1" max="80" step="1" value="16" /></label>
+            <label>dispersion <output>0.15</output><input type="range" data-param="dispersion" min="0" max="1" step="0.01" value="0.15" /></label>
+            <label>specular <output>0.6</output><input type="range" data-param="specular" min="0" max="1" step="0.01" value="0.6" /></label>
+            <label>saturation <output>1.4</output><input type="range" data-param="saturation" min="0" max="3" step="0.05" value="1.4" /></label>
+            <label>frost <output>0</output><input type="range" data-param="frost" min="0" max="1" step="0.01" value="0" /></label>
+            <label class="pg-color">tint <input type="color" data-param="tint" value="#ffffff" /></label>
+          </div>
+          <div class="pg-stage">
+            <div class="pg-backdrop" aria-hidden="true"></div>
+            <div class="pg-lens" data-pg-lens></div>
+          </div>
+        </div>
+        <div class="pg-export">
+          <pre><code data-snippet></code></pre>
+          <button class="copy-btn" data-copy-snippet type="button">copy config</button>
+        </div>
+      </section>
+
+      <section class="section reveal" id="frameworks">
+        <p class="section-index">06</p>
+        <h2 class="section-title">One core, your framework</h2>
+        <div class="fw-tabs" role="tablist">
+          <button type="button" class="active" data-tab="vanilla">vanilla</button>
+          <button type="button" data-tab="element">element</button>
+          <button type="button" data-tab="react">react</button>
+          <button type="button" data-tab="vue">vue</button>
+          <button type="button" data-tab="svelte">svelte</button>
+        </div>
+        <pre class="fw-code"><code data-fw-code></code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>MIT · built with its own glass</span>
+      <span>
+        <a href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
+        · <a href="/api/" target="_blank" rel="noreferrer">api reference</a>
+        · <a href="https://www.npmjs.com/package/@liquidglass/core" target="_blank" rel="noreferrer">npm</a>
+      </span>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
