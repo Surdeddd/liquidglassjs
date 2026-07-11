@@ -1,6 +1,6 @@
 {
   "name": "@surdeddd/liquidglass-svelte",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Svelte action for @surdeddd/liquidglass-core",
   "type": "module",
   "license": "MIT",
@@ -15,7 +15,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
@@ -32,7 +34,11 @@
       "optional": true
     }
   },
-  "keywords": ["liquid-glass", "svelte", "glassmorphism"],
+  "keywords": [
+    "liquid-glass",
+    "svelte",
+    "glassmorphism"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Surdeddd/liquidglassjs.git",
