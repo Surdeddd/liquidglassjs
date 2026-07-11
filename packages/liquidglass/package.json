@@ -1,6 +1,6 @@
 {
   "name": "@surdeddd/liquidglass",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Liquid Glass for the whole web in one package: core engine plus /react, /vue, /svelte and /element entries",
   "type": "module",
   "license": "MIT",

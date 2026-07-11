@@ -1,5 +1,11 @@
 # @surdeddd/liquidglass
 
+## 0.6.1
+
+### Patch Changes
+
+- README media and links use absolute GitHub URLs so screenshots render on the npm package page
+
 ## 0.6.0
 
 ### Minor Changes

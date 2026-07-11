@@ -4,15 +4,15 @@ Liquid Glass for the whole web — one engine, every browser, every framework.
 
 [![CI](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml/badge.svg)](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@surdeddd/liquidglass)](https://www.npmjs.com/package/@surdeddd/liquidglass)
-[![size](https://img.shields.io/badge/engine-19.3kB_brotli-blue)](./packages/core)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![size](https://img.shields.io/badge/engine-19.3kB_brotli-blue)](https://github.com/Surdeddd/liquidglassjs/tree/main/packages/core)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Surdeddd/liquidglassjs/blob/main/LICENSE)
 
 Real refraction over live DOM — not a screenshot, not Chromium-only. Living spring physics,
 iOS-26-style metaball merging, adaptive contrast, and accessibility baked in.
 
 **[Live demo & playground →](https://liquidglassjs.vercel.app)** · [API reference](https://liquidglassjs.vercel.app/api/) · [npm](https://www.npmjs.com/package/@surdeddd/liquidglass)
 
-[![LiquidGlassJS — real refraction over live DOM](docs/media/readme/hero.webp)](https://liquidglassjs.vercel.app)
+[![LiquidGlassJS — real refraction over live DOM](https://raw.githubusercontent.com/Surdeddd/liquidglassjs/main/docs/media/readme/hero.webp)](https://liquidglassjs.vercel.app)
 
 ## Why another liquid glass library?
 
@@ -51,11 +51,11 @@ the browser can do and routes each surface to the best available backend — und
 
 | [Spring physics](https://liquidglassjs.vercel.app/#physics) | [Metaball merging + tab bar](https://liquidglassjs.vercel.app/#metaballs) |
 | --- | --- |
-| ![Press squash, wobbly release, magnetic hover](docs/media/readme/physics.webp) | ![Lenses melting together over the live page](docs/media/readme/metaballs.webp) |
+| ![Press squash, wobbly release, magnetic hover](https://raw.githubusercontent.com/Surdeddd/liquidglassjs/main/docs/media/readme/physics.webp) | ![Lenses melting together over the live page](https://raw.githubusercontent.com/Surdeddd/liquidglassjs/main/docs/media/readme/metaballs.webp) |
 
 | [iOS showcase](https://liquidglassjs.vercel.app/#ios) | [Config-exporting playground](https://liquidglassjs.vercel.app/#playground) |
 | --- | --- |
-| ![Lock screen, control center and tab bar rebuilt from library primitives](docs/media/readme/ios.webp) | ![Material sliders that export an attach() config](docs/media/readme/playground.webp) |
+| ![Lock screen, control center and tab bar rebuilt from library primitives](https://raw.githubusercontent.com/Surdeddd/liquidglassjs/main/docs/media/readme/ios.webp) | ![Material sliders that export an attach() config](https://raw.githubusercontent.com/Surdeddd/liquidglassjs/main/docs/media/readme/playground.webp) |
 
 ## One package
 
@@ -137,7 +137,7 @@ node scripts/fps-bench.mjs --headed
 ```
 
 The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, research notes in
-[docs/research](docs/research/competitive-landscape.md).
+[docs/research](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).
 
 ## License
 
