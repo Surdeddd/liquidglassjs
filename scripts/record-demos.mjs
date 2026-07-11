@@ -7,10 +7,15 @@ const browser = await chromium.launch({ headless: true })
 
 async function record(name, run) {
   const context = await browser.newContext({
-    viewport: { width: 960, height: 560 },
-    recordVideo: { dir: OUT, size: { width: 960, height: 560 } }
+    viewport: { width: 1920, height: 1120 },
+    recordVideo: { dir: OUT, size: { width: 1920, height: 1120 } }
   })
   const page = await context.newPage()
+  await page.addInitScript(() => {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.style.zoom = '2'
+    })
+  })
   await run(page)
   const video = page.video()
   await context.close()
