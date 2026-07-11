@@ -122,6 +122,7 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 - **Tiered rendering** — capability probe picks the best backend per browser; fidelity improves as browsers ship new APIs, your code never changes.
 - **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way.
 - **Scroll edge** — `mountScrollEdge(document.body, { position: 'top' })` progressively dissolves content under your floating bars, like iOS scroll edge effects.
+- **Morphing** — `morphGlass(from, to)` hands one control's geometry to another on a spring, the glassEffectID transition.
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
 - **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
 - **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden.
