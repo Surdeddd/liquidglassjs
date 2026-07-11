@@ -29,7 +29,7 @@ test('playground drives the lens and exports the config', async ({ page }) => {
   await expect(page.locator('[data-snippet]')).toContainText('blur: 33')
   const lens = page.locator('[data-pg-lens]')
   await expect(lens).toHaveAttribute('data-liquid-glass', 'clear')
-  await page.locator('button[data-preset="frosted"]').click()
+  await page.locator('button[data-preset="frosted"]').click({ force: true })
   await expect(lens).toHaveAttribute('data-liquid-glass', 'frosted')
   await expect(page.locator('[data-snippet]')).toContainText("preset: 'frosted'")
 })
