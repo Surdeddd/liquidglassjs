@@ -120,7 +120,8 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 - **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on every backend, including the default Chromium path.
 - **Living specular bezel** — a two-tone rim highlight that follows the pointer (or device tilt with `motionLight: true`) instead of a painted-on gradient.
 - **Tiered rendering** — capability probe picks the best backend per browser; fidelity improves as browsers ship new APIs, your code never changes.
-- **Metaballs** — lenses sharing a `merge` group melt into each other through an SDF smooth-min shader on one shared canvas.
+- **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way.
+- **Scroll edge** — `mountScrollEdge(document.body, { position: 'top' })` progressively dissolves content under your floating bars, like iOS scroll edge effects.
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
 - **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
 - **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden.

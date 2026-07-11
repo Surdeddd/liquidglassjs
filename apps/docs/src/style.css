@@ -365,6 +365,10 @@ main {
   height: 300px;
 }
 
+.m-group {
+  display: contents;
+}
+
 .m-blob {
   position: absolute;
   border-radius: 50%;

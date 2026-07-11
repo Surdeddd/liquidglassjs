@@ -1,6 +1,7 @@
 import {
   attach,
   define,
+  mountScrollEdge,
   resolveMaterial,
   Spring,
   type LiquidGlassOptions,
@@ -12,6 +13,7 @@ import './style.css'
 
 paintAllWallpapers()
 define()
+mountScrollEdge(document.body, { position: 'top', size: 108, strength: 10 })
 
 const heroLensB = document.querySelector<HTMLElement>('[data-hero-lens-b]')
 if (heroLensB) {
@@ -222,9 +224,10 @@ glass.set({ preset: 'clear' })`,
 
 define()
 
-<liquid-glass preset="frosted" merge="dock">
-  Hello
-</liquid-glass>`,
+<liquid-glass-group spacing="48">
+  <liquid-glass preset="clear">A</liquid-glass>
+  <liquid-glass preset="clear">B</liquid-glass>
+</liquid-glass-group>`,
   react: `import { LiquidGlass, useLiquidGlass } from '@surdeddd/liquidglass/react'
 
 <LiquidGlass as="nav" preset="clear" dispersion={0.3}>

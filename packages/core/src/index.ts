@@ -38,6 +38,8 @@ export {
 export type { DisplacementSpec, LensMap, MapOptions } from './displacement'
 export { interiorZoomOffset, lensProfile } from './optics'
 export type { LensOptions } from './optics'
+export { mountScrollEdge } from './scroll-edge'
+export type { ScrollEdgeHandle, ScrollEdgeOptions } from './scroll-edge'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
   BackendId,

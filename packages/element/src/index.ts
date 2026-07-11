@@ -112,9 +112,50 @@ function createElementClass(): CustomElementConstructor {
   }
 }
 
+let groupUid = 0
+
+function createGroupClass(): CustomElementConstructor {
+  return class LiquidGlassGroupElement extends HTMLElement {
+    static observedAttributes = ['spacing']
+
+    #group = ''
+    #observer: MutationObserver | null = null
+
+    connectedCallback(): void {
+      this.#group = `lg-group-${++groupUid}`
+      queueMicrotask(() => this.#apply())
+      if (typeof MutationObserver !== 'undefined') {
+        this.#observer = new MutationObserver(() => this.#apply())
+        this.#observer.observe(this, { childList: true, subtree: true })
+      }
+    }
+
+    disconnectedCallback(): void {
+      this.#observer?.disconnect()
+      this.#observer = null
+    }
+
+    attributeChangedCallback(): void {
+      if (this.#group) this.#apply()
+    }
+
+    #apply(): void {
+      const spacing = Number(this.getAttribute('spacing'))
+      const strength = Number.isFinite(spacing) && spacing > 0 ? spacing : 40
+      for (const glass of this.querySelectorAll('liquid-glass')) {
+        glass.setAttribute('merge', this.#group)
+        glass.setAttribute('merge-strength', String(strength))
+        if (!glass.hasAttribute('backend')) glass.setAttribute('backend', 'webgl-overlay')
+      }
+    }
+  }
+}
+
 export function define(tag = 'liquid-glass'): void {
   if (typeof customElements === 'undefined') return
   if (!customElements.get(tag)) customElements.define(tag, createElementClass())
+  const groupTag = `${tag}-group`
+  if (!customElements.get(groupTag)) customElements.define(groupTag, createGroupClass())
 }
 
 export * from '@surdeddd/liquidglass-core'

@@ -93,8 +93,10 @@
         </p>
         <div class="stage merge-stage">
           <div class="wall" data-wall="sea" data-wall-seed="3" aria-hidden="true"></div>
-          <liquid-glass class="m-blob m-blob-a" backend="webgl-overlay" merge="landing" merge-strength="64" preset="clear" ior="1.8" physics="false"></liquid-glass>
-          <liquid-glass class="m-blob m-blob-b" backend="webgl-overlay" merge="landing" merge-strength="64" preset="clear" ior="1.8" physics="false"></liquid-glass>
+          <liquid-glass-group spacing="64" class="m-group">
+            <liquid-glass class="m-blob m-blob-a" preset="clear" ior="1.8" physics="false"></liquid-glass>
+            <liquid-glass class="m-blob m-blob-b" preset="clear" ior="1.8" physics="false"></liquid-glass>
+          </liquid-glass-group>
         </div>
         <p class="section-lead dock-lead">
           The same trick powers the tab bar: the pill rides a spring and bulges through the dock as it
