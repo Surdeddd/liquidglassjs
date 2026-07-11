@@ -1,5 +1,5 @@
 import { colorWithOpacity } from '../color'
-import { resolveRadiusPx } from '../displacement'
+import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -302,7 +302,11 @@ class OverlayManager {
         rect: toCanvas(shape.rect),
         radius: shape.radius * ratio
       })),
-      material: draw.material,
+      material: {
+        ...draw.material,
+        thickness:
+          resolveThicknessPx(draw.material.thickness, draw.quad.width, draw.quad.height) * ratio
+      },
       mergeK: draw.mergeK * ratio
     }))
     const bodyBox = document.body.getBoundingClientRect()

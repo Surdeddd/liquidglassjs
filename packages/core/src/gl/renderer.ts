@@ -362,7 +362,10 @@ export class GlRenderer {
       )
       gl.uniform1f(this.#locations.get('u_ior') ?? null, material.ior)
       gl.uniform1f(this.#locations.get('u_magnify') ?? null, material.magnify)
-      gl.uniform1f(this.#locations.get('u_thickness') ?? null, material.thickness)
+      gl.uniform1f(
+        this.#locations.get('u_thickness') ?? null,
+        typeof material.thickness === 'number' ? material.thickness : 12
+      )
       gl.uniform2f(
         this.#locations.get('u_center') ?? null,
         quad.x + quad.width / 2,

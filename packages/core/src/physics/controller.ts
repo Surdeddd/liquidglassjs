@@ -14,6 +14,11 @@ export const PHYSICS_DEFAULTS: PhysicsConfig = {
 
 export type PhysicsOption = boolean | Partial<PhysicsConfig> | undefined
 
+export interface PhysicsHooks {
+  onPress?(x: number, y: number): void
+  onRelease?(): void
+}
+
 export function resolvePhysics(option: PhysicsOption): PhysicsConfig | null {
   if (option === false) return null
   if (option === true || option === undefined) return { ...PHYSICS_DEFAULTS }
@@ -36,16 +41,23 @@ export class PhysicsController {
   #frame = 0
   #lastTime = 0
 
-  #onDown = (): void => {
+  #onDown = (event: PointerEvent): void => {
     if (!this.#config.press) return
     this.#configureScale(PRESS_SPRING.stiffness, PRESS_SPRING.damping)
     this.#scaleX.target = 1.04
     this.#scaleY.target = 0.94
+    const box = this.#element.getBoundingClientRect()
+    this.#hooks?.onPress?.(event.clientX - box.left, event.clientY - box.top)
+    this.#pressed = true
     this.#wake()
   }
 
   #onUp = (): void => {
     if (!this.#config.press) return
+    if (this.#pressed) {
+      this.#pressed = false
+      this.#hooks?.onRelease?.()
+    }
     const damping = 8 + (1 - this.#config.wobble) * 20
     this.#configureScale(300, damping)
     this.#scaleX.target = 1
@@ -71,9 +83,13 @@ export class PhysicsController {
     this.#wake()
   }
 
-  constructor(element: HTMLElement, config: PhysicsConfig) {
+  #hooks: PhysicsHooks | undefined
+  #pressed = false
+
+  constructor(element: HTMLElement, config: PhysicsConfig, hooks?: PhysicsHooks) {
     this.#element = element
     this.#config = config
+    this.#hooks = hooks
     this.#hadInlineTransform = element.style.transform !== ''
     const computed = typeof getComputedStyle === 'function' ? getComputedStyle(element) : null
     this.#base = computed && computed.transform !== 'none' ? computed.transform : ''

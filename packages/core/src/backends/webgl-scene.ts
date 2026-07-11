@@ -1,5 +1,5 @@
 import { colorWithOpacity } from '../color'
-import { resolveRadiusPx } from '../displacement'
+import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -92,7 +92,11 @@ class WebglSceneInstance implements BackendInstance {
                 dpr
             }
           ],
-          material: surface.material,
+          material: {
+            ...surface.material,
+            thickness:
+              resolveThicknessPx(surface.material.thickness, hostBox.width, hostBox.height) * dpr
+          },
           mergeK: 1
         }
       ],

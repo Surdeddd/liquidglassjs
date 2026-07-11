@@ -9,7 +9,7 @@ export const MATERIAL_DEFAULTS: MaterialParams = {
   refraction: 0.5,
   ior: 1.5,
   magnify: 0.015,
-  thickness: 12,
+  thickness: 'auto',
   bevelWidth: 'auto',
   bevelDepth: 0.6,
   dispersion: 0.15,

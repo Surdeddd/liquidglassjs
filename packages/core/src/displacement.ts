@@ -188,6 +188,16 @@ export function resolveRadiusPx(
   return 0
 }
 
+export function resolveThicknessPx(
+  thickness: number | 'auto',
+  width: number,
+  height: number
+): number {
+  if (typeof thickness === 'number') return Math.max(0, Math.min(thickness, 100))
+  const factor = Math.min(1.6, Math.max(0.85, Math.sqrt(width * height) / 260))
+  return 12 * factor
+}
+
 const MIN_AUTO_BAND = 12
 
 export function resolveBandPx(

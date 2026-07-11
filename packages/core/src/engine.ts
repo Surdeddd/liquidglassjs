@@ -8,6 +8,8 @@ import {
 } from './a11y'
 import { mountBezel } from './bezel'
 import type { BezelHandle } from './bezel'
+import { mountGlow } from './glow'
+import type { GlowHandle } from './glow'
 import { registerLight } from './light'
 import { cssFallbackBackend } from './backends/css-fallback'
 import { cssSvgBackend } from './backends/css-svg'
@@ -19,6 +21,7 @@ import type { Backend, BackendInstance, BackendSurface } from './backends/types'
 import { SurfaceTracker } from './dom-sync'
 import { MATERIAL_DEFAULTS, resolveMaterial } from './material'
 import { PhysicsController, resolvePhysics } from './physics/controller'
+import type { PhysicsHooks } from './physics/controller'
 import { probeCapabilities } from './probe'
 import type { LiquidGlassHandle, LiquidGlassOptions } from './types'
 
@@ -43,13 +46,14 @@ function resolveBackdrop(backdrop: Element | string | null | undefined): Element
 function createPhysics(
   element: Element,
   options: LiquidGlassOptions,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  hooks?: PhysicsHooks
 ): PhysicsController | null {
   if (reducedMotion) return null
   if (typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement)) return null
   const config = resolvePhysics(options.physics)
   if (!config) return null
-  return new PhysicsController(element, config)
+  return new PhysicsController(element, config, hooks)
 }
 
 export function attach(element: Element, options: LiquidGlassOptions = {}): LiquidGlassHandle {
@@ -60,6 +64,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
 
   let current: LiquidGlassOptions = { ...options }
+  let pressed = false
   const capabilities = probeCapabilities()
   let backend: Backend = selectBackend(capabilities, current.backend ?? 'auto')
   let tone: BackdropTone | null = null
@@ -80,6 +85,13 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     let material = resolveMaterial(current)
     if (readReducedTransparency()) {
       material = applyReducedTransparency(material)
+    }
+    if (pressed) {
+      material = {
+        ...material,
+        refraction: material.refraction * 0.82,
+        specular: Math.min(1, material.specular * 1.3)
+      }
     }
     if (current.adaptive !== false) {
       tone = sampleTone(element, surface.backdrop)
@@ -102,7 +114,28 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   markElement()
 
   let instance: BackendInstance = backend.mount(surface)
-  let physics = createPhysics(element, current, capabilities.reducedMotion)
+
+  let glow: GlowHandle | null = null
+  const pressHooks: PhysicsHooks = {
+    onPress(x, y) {
+      pressed = true
+      element.setAttribute('data-liquid-glass-pressed', 'true')
+      applyMaterial()
+      instance.update(surface)
+      if (!glow && typeof HTMLElement !== 'undefined' && element instanceof HTMLElement) {
+        glow = mountGlow(element)
+      }
+      glow?.press(x, y)
+    },
+    onRelease() {
+      pressed = false
+      element.removeAttribute('data-liquid-glass-pressed')
+      applyMaterial()
+      instance.update(surface)
+      glow?.release()
+    }
+  }
+  let physics = createPhysics(element, current, capabilities.reducedMotion, pressHooks)
 
   let bezel: BezelHandle | null = null
   let bezelSpecular = -1
@@ -156,7 +189,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   const unsubscribers: Array<() => void> = [
     watchMedia('(prefers-reduced-motion: reduce)', matches => {
       physics?.destroy()
-      physics = matches ? null : createPhysics(element, current, false)
+      physics = matches ? null : createPhysics(element, current, false, pressHooks)
     }),
     watchMedia('(prefers-reduced-transparency: reduce)', () => {
       applyMaterial()
@@ -188,7 +221,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       }
       if (next.physics !== undefined) {
         physics?.destroy()
-        physics = createPhysics(element, current, capabilities.reducedMotion)
+        physics = createPhysics(element, current, capabilities.reducedMotion, pressHooks)
       }
       instance.update(surface)
       syncBezel()
@@ -203,8 +236,11 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       releaseLight = null
       bezel?.destroy()
       bezel = null
+      glow?.destroy()
+      glow = null
       instance.destroy()
       instances.delete(element)
+      element.removeAttribute('data-liquid-glass-pressed')
       element.removeAttribute('data-liquid-glass')
       element.removeAttribute('data-liquid-glass-backend')
       element.removeAttribute('data-liquid-glass-tone')

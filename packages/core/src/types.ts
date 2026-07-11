@@ -19,7 +19,7 @@ export interface MaterialParams {
   refraction: number
   ior: number
   magnify: number
-  thickness: number
+  thickness: number | 'auto'
   bevelWidth: number | 'auto'
   bevelDepth: number
   dispersion: number

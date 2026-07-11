@@ -48,12 +48,14 @@ function createElementClass(): CustomElementConstructor {
       'shape',
       'ior',
       'magnify',
+      'thickness',
       'motion-light'
     ]
 
     connectedCallback(): void {
       const ior = numberFrom(this.getAttribute('ior'))
       const magnify = numberFrom(this.getAttribute('magnify'))
+      const thickness = numberFrom(this.getAttribute('thickness'))
       const mergeStrength = numberFrom(this.getAttribute('merge-strength'))
       attach(this, {
         preset: presetFrom(this.getAttribute('preset')),
@@ -65,6 +67,7 @@ function createElementClass(): CustomElementConstructor {
         shape: this.getAttribute('shape') === 'squircle' ? 'squircle' : 'rounded',
         ...(ior !== undefined ? { ior } : {}),
         ...(magnify !== undefined ? { magnify } : {}),
+        ...(thickness !== undefined ? { thickness } : {}),
         ...(mergeStrength !== undefined ? { mergeStrength } : {}),
         motionLight: this.hasAttribute('motion-light')
       })
@@ -99,6 +102,10 @@ function createElementClass(): CustomElementConstructor {
       if (name === 'magnify') {
         const magnify = numberFrom(value)
         if (magnify !== undefined) instance.set({ magnify })
+      }
+      if (name === 'thickness') {
+        const thickness = numberFrom(value)
+        if (thickness !== undefined) instance.set({ thickness })
       }
       if (name === 'motion-light') instance.set({ motionLight: value !== null })
     }
