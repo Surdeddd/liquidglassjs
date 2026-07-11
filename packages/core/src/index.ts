@@ -42,6 +42,8 @@ export { mountScrollEdge } from './scroll-edge'
 export type { ScrollEdgeHandle, ScrollEdgeOptions } from './scroll-edge'
 export { backdropLuminance, buildLuminanceGrid, getLuminanceGrid, setLuminanceGrid } from './contrast'
 export type { LuminanceGrid } from './contrast'
+export { morphGlass } from './morph'
+export type { MorphOptions } from './morph'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
   BackendId,
