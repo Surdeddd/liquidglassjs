@@ -1,5 +1,5 @@
 import { colorWithOpacity } from '../color'
-import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlShape } from '../gl/renderer'
+import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const DEFAULT_MERGE_K = 30
@@ -24,15 +24,32 @@ function dpr(): number {
   return Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2)
 }
 
-export function scrollGlueTransform(
-  renderedX: number,
-  renderedY: number,
-  scrollX: number,
-  scrollY: number
-): string {
-  const dx = renderedX - scrollX
-  const dy = renderedY - scrollY
-  return dx || dy ? `translate(${dx}px, ${dy}px)` : ''
+const ANCHOR_MARGIN = 72
+const MAX_CANVAS_SIDE = 8192
+
+export function requiredOverlayBox(rects: GlRect[], margin = ANCHOR_MARGIN): GlRect {
+  const union = unionRect(rects, margin)
+  return {
+    x: Math.floor(union.x),
+    y: Math.floor(union.y),
+    width: Math.ceil(union.width),
+    height: Math.ceil(union.height)
+  }
+}
+
+export function needsReanchor(current: GlRect | null, required: GlRect): boolean {
+  if (!current) return true
+  if (
+    required.x < current.x ||
+    required.y < current.y ||
+    required.x + required.width > current.x + current.width ||
+    required.y + required.height > current.y + current.height
+  ) {
+    return true
+  }
+  const currentArea = current.width * current.height
+  const requiredArea = Math.max(required.width * required.height, 1)
+  return currentArea > requiredArea * 2.5
 }
 
 class OverlayManager {
@@ -45,10 +62,9 @@ class OverlayManager {
     canvas.setAttribute('data-liquid-glass-overlay', 'true')
     canvas.setAttribute('aria-hidden', 'true')
     const style = canvas.style
-    style.position = 'fixed'
-    style.inset = '0'
-    style.width = '100vw'
-    style.height = '100vh'
+    style.position = 'absolute'
+    style.left = '0'
+    style.top = '0'
     style.pointerEvents = 'none'
     style.zIndex = '2147483000'
     style.willChange = 'transform'
@@ -70,18 +86,7 @@ class OverlayManager {
   #snapshotting = false
   #snapshotDirty = false
   #mutationObserver: MutationObserver | null = null
-  #renderedScrollX = 0
-  #renderedScrollY = 0
-
-  #onViewport = (): void => {
-    this.#canvas.style.transform = scrollGlueTransform(
-      this.#renderedScrollX,
-      this.#renderedScrollY,
-      window.scrollX,
-      window.scrollY
-    )
-    this.scheduleRender()
-  }
+  #anchor: GlRect | null = null
 
   #onResize = (): void => {
     this.scheduleRender()
@@ -90,7 +95,6 @@ class OverlayManager {
   private constructor(canvas: HTMLCanvasElement, renderer: GlRenderer) {
     this.#canvas = canvas
     this.#renderer = renderer
-    window.addEventListener('scroll', this.#onViewport, { passive: true, capture: true })
     window.addEventListener('resize', this.#onResize, { passive: true })
     if (typeof MutationObserver !== 'undefined') {
       this.#mutationObserver = new MutationObserver(records => {
@@ -212,30 +216,26 @@ class OverlayManager {
 
   #render(): void {
     if (typeof document !== 'undefined' && document.hidden) return
-    const ratio = dpr()
-    const width = Math.round(window.innerWidth * ratio)
-    const height = Math.round(window.innerHeight * ratio)
-    this.#renderer.resize(width, height)
+    const scrollX = window.scrollX
+    const scrollY = window.scrollY
     const draws: GlDraw[] = []
     const groups = new Map<string, { shapes: GlShape[]; surface: BackendSurface; mergeK: number }>()
     for (const surface of this.#surfaces) {
       const box = surface.element.getBoundingClientRect()
       if (box.width < 1 || box.height < 1) continue
-      const offscreen =
-        box.bottom < 0 || box.right < 0 || box.top > window.innerHeight || box.left > window.innerWidth
       const shape: GlShape = {
         rect: {
-          x: box.left * ratio,
-          y: box.top * ratio,
-          width: box.width * ratio,
-          height: box.height * ratio
+          x: box.left + scrollX,
+          y: box.top + scrollY,
+          width: box.width,
+          height: box.height
         },
-        radius: effectiveRadius(surface) * ratio
+        radius: effectiveRadius(surface)
       }
       if (surface.merge) {
         const key = surface.merge
         const group = groups.get(key)
-        const mergeK = (surface.mergeStrength ?? DEFAULT_MERGE_K) * ratio
+        const mergeK = surface.mergeStrength ?? DEFAULT_MERGE_K
         if (group) {
           if (group.shapes.length < MAX_SHAPES) group.shapes.push(shape)
           group.mergeK = Math.max(group.mergeK, mergeK)
@@ -244,7 +244,6 @@ class OverlayManager {
         }
         continue
       }
-      if (offscreen) continue
       draws.push({ quad: shape.rect, shapes: [shape], material: surface.material, mergeK: 1 })
     }
     for (const group of groups.values()) {
@@ -253,25 +252,51 @@ class OverlayManager {
         group.mergeK
       )
       if (quad.width < 1 || quad.height < 1) continue
-      if (quad.y + quad.height < 0 || quad.x + quad.width < 0 || quad.y > height || quad.x > width) {
-        continue
-      }
       draws.push({ quad, shapes: group.shapes, material: group.surface.material, mergeK: group.mergeK })
     }
+    if (draws.length === 0) return
+
+    const required = requiredOverlayBox(draws.map(draw => draw.quad))
+    if (needsReanchor(this.#anchor, required)) {
+      this.#anchor = required
+      const style = this.#canvas.style
+      style.width = `${required.width}px`
+      style.height = `${required.height}px`
+      style.transform = `translate(${required.x}px, ${required.y}px)`
+    }
+    const anchor = this.#anchor
+    if (!anchor) return
+    const ratio = Math.min(
+      dpr(),
+      MAX_CANVAS_SIDE / Math.max(anchor.width, anchor.height, 1)
+    )
+    this.#renderer.resize(Math.round(anchor.width * ratio), Math.round(anchor.height * ratio))
+
+    const toCanvas = (rect: GlRect): GlRect => ({
+      x: (rect.x - anchor.x) * ratio,
+      y: (rect.y - anchor.y) * ratio,
+      width: rect.width * ratio,
+      height: rect.height * ratio
+    })
+    const canvasDraws: GlDraw[] = draws.map(draw => ({
+      quad: toCanvas(draw.quad),
+      shapes: draw.shapes.map(shape => ({
+        rect: toCanvas(shape.rect),
+        radius: shape.radius * ratio
+      })),
+      material: draw.material,
+      mergeK: draw.mergeK * ratio
+    }))
     const bodyBox = document.body.getBoundingClientRect()
-    this.#renderer.render(draws, {
-      x: bodyBox.left * ratio,
-      y: bodyBox.top * ratio,
+    this.#renderer.render(canvasDraws, {
+      x: (bodyBox.left + scrollX - anchor.x) * ratio,
+      y: (bodyBox.top + scrollY - anchor.y) * ratio,
       width: bodyBox.width * ratio,
       height: bodyBox.height * ratio
     })
-    this.#renderedScrollX = window.scrollX
-    this.#renderedScrollY = window.scrollY
-    this.#canvas.style.transform = ''
   }
 
   #teardown(): void {
-    window.removeEventListener('scroll', this.#onViewport, true)
     window.removeEventListener('resize', this.#onResize)
     this.#mutationObserver?.disconnect()
     this.#mutationObserver = null

@@ -31,6 +31,8 @@ export function mountBezel(host: HTMLElement, specular: number): BezelHandle {
   style.setProperty('-webkit-mask', 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)')
   style.setProperty('-webkit-mask-composite', 'xor')
   style.setProperty('mask-composite', 'exclude')
+  style.setProperty('clip-path', 'inherit')
+  style.setProperty('-webkit-clip-path', 'inherit')
 
   let madePositioned = false
   if (typeof getComputedStyle === 'function') {

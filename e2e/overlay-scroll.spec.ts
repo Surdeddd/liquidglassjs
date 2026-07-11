@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('overlay canvas glues to fast scroll and settles after render', async ({ page }) => {
+test('overlay canvas stays glued to the content through fast scroll', async ({ page }) => {
   await page.goto('/')
   const blob = page.locator('liquid-glass[merge]').first()
   await blob.waitFor()
@@ -11,24 +11,23 @@ test('overlay canvas glues to fast scroll and settles after render', async ({ pa
   await expect(overlay).toBeAttached()
   await page.waitForTimeout(400)
 
-  const glued = await page.evaluate(() => {
+  const offsets = await page.evaluate(async () => {
     const canvas = document.querySelector<HTMLCanvasElement>('canvas[data-liquid-glass-overlay]')!
-    window.scrollTo(0, window.scrollY + 420)
-    window.dispatchEvent(new Event('scroll'))
-    return canvas.style.transform
+    const glass = document.querySelector('liquid-glass[merge]')!
+    const gap = () => canvas.getBoundingClientRect().top - glass.getBoundingClientRect().top
+    const samples: number[] = [gap()]
+    for (const step of [180, 260, 340, -220, -180]) {
+      window.scrollBy(0, step)
+      window.dispatchEvent(new Event('scroll'))
+      samples.push(gap())
+    }
+    return samples
   })
-  expect(glued).toMatch(/translate\(0px, -?\d+(\.\d+)?px\)/)
-  expect(glued).toContain('-420px')
 
-  await expect
-    .poll(
-      () =>
-        page.evaluate(
-          () =>
-            document.querySelector<HTMLCanvasElement>('canvas[data-liquid-glass-overlay]')!.style
-              .transform
-        ),
-      { timeout: 4000 }
-    )
-    .toBe('')
+  const first = offsets[0]!
+  for (const sample of offsets) {
+    expect(Math.abs(sample - first)).toBeLessThanOrEqual(1)
+  }
+
+  await expect(overlay).toHaveCSS('position', 'absolute')
 })

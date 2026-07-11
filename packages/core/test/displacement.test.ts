@@ -42,8 +42,8 @@ const base = {
 }
 
 function offsetAt(opts: typeof base, x: number, y: number): [number, number] {
-  const { data, width } = computeOffsets(opts)
-  const i = (y * width + x) * 2
+  const { data, width, padX, padY } = computeOffsets(opts)
+  const i = ((y + padY) * width + (x + padX)) * 2
   return [data[i]!, data[i + 1]!]
 }
 
@@ -52,6 +52,22 @@ describe('computeOffsets (lens model)', () => {
     const [dx, dy] = offsetAt(base, 100, 50)
     expect(Math.abs(dx)).toBeLessThan(1e-6)
     expect(Math.abs(dy)).toBeLessThan(1e-6)
+  })
+
+  it('pads the map with a neutral margin covering the widened filter region', () => {
+    const { data, width, height, padX, padY } = computeOffsets({ ...base, magnify: 0.03 })
+    expect(padX).toBeGreaterThan(0)
+    expect(padY).toBeGreaterThan(0)
+    const corners = [
+      0,
+      (width - 1) * 2,
+      (height - 1) * width * 2,
+      ((height - 1) * width + width - 1) * 2
+    ]
+    for (const i of corners) {
+      expect(data[i]).toBe(0)
+      expect(data[i + 1]).toBe(0)
+    }
   })
 
   it('rim pixels deflect harder than mid-band pixels', () => {

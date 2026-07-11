@@ -118,6 +118,12 @@ class CssSvgInstance implements BackendInstance {
     this.#lastWidth = width
     this.#lastHeight = height
     const { material } = surface
+    if (material.shape === 'squircle' && material.radius === 'auto' && isStyleable(surface.element)) {
+      surface.element.style.setProperty(
+        'border-radius',
+        `${Math.round(Math.min(width, height) * 0.36)}px`
+      )
+    }
     const radius = effectiveRadius(surface)
     this.#band = resolveBandPx(material.bevelWidth, radius, width, height)
     const map = generateLensMap({

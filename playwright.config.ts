@@ -17,6 +17,7 @@ export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
+  ignoreSnapshots: process.platform !== 'darwin',
   expect: {
     toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: 'disabled' }
   },

@@ -62,10 +62,10 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
   const feImage = el('feImage')
   feImage.setAttribute('result', 'lgMap')
   feImage.setAttribute('preserveAspectRatio', 'none')
-  feImage.setAttribute('x', '0%')
-  feImage.setAttribute('y', '0%')
-  feImage.setAttribute('width', '100%')
-  feImage.setAttribute('height', '100%')
+  feImage.setAttribute('x', '-20%')
+  feImage.setAttribute('y', '-20%')
+  feImage.setAttribute('width', '140%')
+  feImage.setAttribute('height', '140%')
   filter.appendChild(feImage)
 
   const caShift = material.dispersion * 0.25

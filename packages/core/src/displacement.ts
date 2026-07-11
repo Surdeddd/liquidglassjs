@@ -67,6 +67,8 @@ export function squircleClipPath(exponent = 4, segments = 64): string {
 
 const MAX_MAP_SIDE = 600
 
+export const MAP_PAD = 0.2
+
 export interface MapOptions {
   width: number
   height: number
@@ -82,16 +84,26 @@ interface OffsetField {
   data: Float32Array
   width: number
   height: number
+  padX: number
+  padY: number
+  scale: number
   maxOffset: number
 }
 
 export function computeOffsets(opts: MapOptions): OffsetField {
-  const scale = Math.min(1, MAX_MAP_SIDE / Math.max(opts.width, opts.height))
-  const w = Math.max(2, Math.round(opts.width * scale))
-  const h = Math.max(2, Math.round(opts.height * scale))
+  const scale = Math.min(
+    1,
+    MAX_MAP_SIDE / (Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2))
+  )
+  const ew = opts.width * scale
+  const eh = opts.height * scale
+  const padX = Math.round(ew * MAP_PAD)
+  const padY = Math.round(eh * MAP_PAD)
+  const w = Math.max(2, Math.round(ew) + padX * 2)
+  const h = Math.max(2, Math.round(eh) + padY * 2)
   const sdfSpec: DisplacementSpec = {
-    width: w,
-    height: h,
+    width: Math.round(ew),
+    height: Math.round(eh),
     radius: opts.radius * scale,
     bevelWidth: 0,
     bevelDepth: 0,
@@ -99,8 +111,8 @@ export function computeOffsets(opts: MapOptions): OffsetField {
   }
   const band = opts.band * scale
   const lens: LensOptions = { band, ior: opts.ior, thickness: opts.thickness * scale }
-  const cx = w / 2
-  const cy = h / 2
+  const cx = sdfSpec.width / 2
+  const cy = sdfSpec.height / 2
   const data = new Float32Array(w * h * 2)
   let maxOffset = 0
 
@@ -108,8 +120,8 @@ export function computeOffsets(opts: MapOptions): OffsetField {
   const halfH = Math.ceil(h / 2)
   for (let y = 0; y < halfH; y++) {
     for (let x = 0; x < halfW; x++) {
-      const sx = x + 0.5
-      const sy = y + 0.5
+      const sx = x + 0.5 - padX
+      const sy = y + 0.5 - padY
       const d = surfaceSdf(sx, sy, sdfSpec)
       const depth = -d
       let dx = 0
@@ -139,14 +151,13 @@ export function computeOffsets(opts: MapOptions): OffsetField {
       writeOffset(data, w, w - 1 - x, h - 1 - y, -dx, -dy)
     }
   }
-  const elementScale = Math.max(opts.width, opts.height) / Math.max(w, h)
-  return { data, width: w, height: h, maxOffset: maxOffset * elementScale }
+  return { data, width: w, height: h, padX, padY, scale, maxOffset: maxOffset / (scale || 1) }
 }
 
 function writeOffset(data: Float32Array, w: number, x: number, y: number, dx: number, dy: number): void {
   const i = (y * w + x) * 2
-  data[i] = dx
-  data[i + 1] = dy
+  data[i] = dx || 0
+  data[i + 1] = dy || 0
 }
 
 export interface LensMap {
@@ -175,7 +186,7 @@ export function generateLensMap(opts: MapOptions): LensMap | null {
   const key = `${opts.width}|${opts.height}|${opts.radius}|${opts.shape}|${opts.band}|${opts.ior}|${opts.thickness}|${opts.magnify}`
   const hit = lensMapCache.get(key)
   if (hit) return hit
-  const { data, width, height, maxOffset } = computeOffsets(opts)
+  const { data, width, height, scale, maxOffset } = computeOffsets(opts)
   const entry: LensMap = { url: null, maxOffset }
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas')
@@ -184,8 +195,7 @@ export function generateLensMap(opts: MapOptions): LensMap | null {
     const context = context2d(canvas)
     if (context && typeof context.createImageData === 'function') {
       const image = context.createImageData(width, height)
-      const elementScale = Math.max(opts.width, opts.height) / Math.max(width, height)
-      const norm = maxOffset / elementScale || 1
+      const norm = maxOffset * scale || 1
       for (let p = 0, i = 0; p < data.length; p += 2, i += 4) {
         image.data[i] = 128 + Math.round((data[p]! / norm) * 127)
         image.data[i + 1] = 128 + Math.round((data[p + 1]! / norm) * 127)

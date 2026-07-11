@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scrollGlueTransform, webglOverlayBackend } from '../src/backends/webgl-overlay'
+import { needsReanchor, requiredOverlayBox, webglOverlayBackend } from '../src/backends/webgl-overlay'
 import type { BackendSurface } from '../src/backends/types'
 import { resolveMaterial } from '../src/material'
 import { NO_CAPABILITIES } from '../src/probe'
@@ -28,15 +28,24 @@ describe('webgl-overlay backend', () => {
     expect(webglOverlayBackend.priority).toBeLessThan(20)
   })
 
-  it('compensates unrendered scroll with an equal opposite translate', () => {
-    expect(scrollGlueTransform(0, 100, 0, 340)).toBe('translate(0px, -240px)')
-    expect(scrollGlueTransform(50, 0, 20, 0)).toBe('translate(30px, 0px)')
-    expect(scrollGlueTransform(12, 700, 12, 340)).toBe('translate(0px, 360px)')
+  it('anchors the canvas around the union of glass rects with a margin', () => {
+    const box = requiredOverlayBox(
+      [
+        { x: 100, y: 2000, width: 200, height: 100 },
+        { x: 400, y: 2160, width: 120, height: 120 }
+      ],
+      72
+    )
+    expect(box).toEqual({ x: 28, y: 1928, width: 564, height: 424 })
   })
 
-  it('clears the glue transform once the render caught up', () => {
-    expect(scrollGlueTransform(0, 500, 0, 500)).toBe('')
-    expect(scrollGlueTransform(33, 42, 33, 42)).toBe('')
+  it('reanchors only when the union escapes or the canvas is bloated', () => {
+    const anchor = { x: 0, y: 1900, width: 600, height: 500 }
+    expect(needsReanchor(null, anchor)).toBe(true)
+    expect(needsReanchor(anchor, { x: 40, y: 1950, width: 500, height: 420 })).toBe(false)
+    expect(needsReanchor(anchor, { x: 40, y: 1850, width: 300, height: 200 })).toBe(true)
+    expect(needsReanchor(anchor, { x: 200, y: 2300, width: 500, height: 200 })).toBe(true)
+    expect(needsReanchor(anchor, { x: 40, y: 1950, width: 300, height: 200 })).toBe(true)
   })
 
   it('applies base glass styles even without webgl2 runtime', () => {
