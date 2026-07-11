@@ -87,7 +87,7 @@ body {
   top: 18px;
   left: 50%;
   translate: -50% 0;
-  z-index: 30;
+  z-index: 2147483004;
   display: flex;
   gap: 26px;
   align-items: center;
@@ -240,13 +240,13 @@ main {
 
 .reveal {
   opacity: 0;
-  translate: 0 26px;
-  transition: opacity 0.7s ease, translate 0.7s ease;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 .reveal.in {
   opacity: 1;
-  translate: 0 0;
+  transform: none;
 }
 
 .section-index {
@@ -923,7 +923,7 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
-    translate: none;
+    transform: none;
     transition: none;
   }
 

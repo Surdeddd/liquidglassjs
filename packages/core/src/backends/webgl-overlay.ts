@@ -208,6 +208,8 @@ class OverlayManager {
       )
       const snapshot = await toCanvas(body, {
         pixelRatio: scale,
+        width: body.scrollWidth,
+        height: body.scrollHeight,
         filter: node =>
           !(
             node instanceof Element &&

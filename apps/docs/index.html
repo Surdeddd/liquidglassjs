@@ -104,7 +104,7 @@
           <div class="dock">
             <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
             <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
-            <nav class="dock-tabs">
+            <nav class="dock-tabs" data-liquid-glass-ignore>
               <button type="button" data-dock="0" class="active">glass</button>
               <button type="button" data-dock="1">physics</button>
               <button type="button" data-dock="2">merge</button>
@@ -187,7 +187,7 @@
               <div class="wall" data-wall="sea" data-wall-seed="17" aria-hidden="true"></div>
               <div class="ios-tabbar">
                 <liquid-glass class="ios-tabbar-glass" preset="clear" backdrop="#ios .ios-tabbar-stage .wall" physics="false" motion-light></liquid-glass>
-                <nav class="ios-tabs">
+                <nav class="ios-tabs" data-liquid-glass-ignore>
                   <button type="button" data-ios-tab="0" class="active" aria-label="home">
                     <svg viewBox="0 0 24 24"><path d="M12 3 2.7 11h2.6v9h5.2v-6h3v6h5.2v-9h2.6L12 3Z"/></svg>
                   </button>
