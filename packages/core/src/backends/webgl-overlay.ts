@@ -1,4 +1,5 @@
 import { colorWithOpacity } from '../color'
+import { buildLuminanceGrid, setLuminanceGrid } from '../contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
@@ -219,6 +220,7 @@ class OverlayManager {
           )
       })
       this.#renderer.setTexture(snapshot)
+      setLuminanceGrid(buildLuminanceGrid(snapshot, body.scrollWidth, body.scrollHeight))
       this.scheduleRender()
     } catch {
       this.#snapshotDirty = false
@@ -319,6 +321,7 @@ class OverlayManager {
   }
 
   #teardown(): void {
+    setLuminanceGrid(null)
     window.removeEventListener('resize', this.#onResize)
     this.#mutationObserver?.disconnect()
     this.#mutationObserver = null

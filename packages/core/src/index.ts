@@ -40,6 +40,8 @@ export { interiorZoomOffset, lensProfile } from './optics'
 export type { LensOptions } from './optics'
 export { mountScrollEdge } from './scroll-edge'
 export type { ScrollEdgeHandle, ScrollEdgeOptions } from './scroll-edge'
+export { backdropLuminance, buildLuminanceGrid, getLuminanceGrid, setLuminanceGrid } from './contrast'
+export type { LuminanceGrid } from './contrast'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
   BackendId,

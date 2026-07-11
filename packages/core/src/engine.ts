@@ -8,6 +8,7 @@ import {
 } from './a11y'
 import { mountBezel } from './bezel'
 import type { BezelHandle } from './bezel'
+import { backdropLuminance } from './contrast'
 import { mountGlow } from './glow'
 import type { GlowHandle } from './glow'
 import { registerLight } from './light'
@@ -94,7 +95,20 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       }
     }
     if (current.adaptive !== false) {
-      tone = sampleTone(element, surface.backdrop)
+      const box = element.getBoundingClientRect()
+      const luminance = backdropLuminance({
+        left: box.left + (typeof window === 'undefined' ? 0 : window.scrollX),
+        top: box.top + (typeof window === 'undefined' ? 0 : window.scrollY),
+        width: box.width,
+        height: box.height
+      })
+      if (luminance !== null) {
+        if (tone === null || Math.abs(luminance - 0.5) >= 0.06) {
+          tone = luminance > 0.5 ? 'light' : 'dark'
+        }
+      } else {
+        tone = sampleTone(element, surface.backdrop)
+      }
       if (current.tint === undefined) {
         material = adaptTintToTone(material, tone, MATERIAL_DEFAULTS.tint)
       }
