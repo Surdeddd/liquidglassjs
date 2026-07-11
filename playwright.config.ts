@@ -17,6 +17,9 @@ export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: 'disabled' }
+  },
   use: {
     baseURL: 'http://127.0.0.1:4173'
   },
