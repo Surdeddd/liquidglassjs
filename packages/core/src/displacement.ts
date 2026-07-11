@@ -51,19 +51,6 @@ function surfaceSdf(x: number, y: number, spec: DisplacementSpec): number {
   return sdfRoundedRect(x, y, spec.width, spec.height, spec.radius)
 }
 
-export function displacementAt(x: number, y: number, spec: DisplacementSpec): [number, number] {
-  const depth = -surfaceSdf(x, y, spec)
-  if (depth < 0 || depth >= spec.bevelWidth) return [0, 0]
-  const t = depth / spec.bevelWidth
-  const magnitude = Math.pow(1 - t, 1 + spec.bevelDepth * 2)
-  const eps = 1
-  const gx = surfaceSdf(x + eps, y, spec) - surfaceSdf(x - eps, y, spec)
-  const gy = surfaceSdf(x, y + eps, spec) - surfaceSdf(x, y - eps, spec)
-  const length = Math.hypot(gx, gy)
-  if (length === 0) return [0, 0]
-  return [(gx / length) * magnitude, (gy / length) * magnitude]
-}
-
 export function squircleClipPath(exponent = 4, segments = 64): string {
   const points: string[] = []
   const power = 2 / exponent
@@ -95,11 +82,9 @@ interface OffsetField {
   data: Float32Array
   width: number
   height: number
-  /** strongest offset converted back to element px */
   maxOffset: number
 }
 
-/** Raw per-pixel sample offsets for one map — quarter computed, mirrored. Exported for tests. */
 export function computeOffsets(opts: MapOptions): OffsetField {
   const scale = Math.min(1, MAX_MAP_SIDE / Math.max(opts.width, opts.height))
   const w = Math.max(2, Math.round(opts.width * scale))
@@ -165,37 +150,52 @@ function writeOffset(data: Float32Array, w: number, x: number, y: number, dx: nu
 }
 
 export interface LensMap {
-  url: string
+  url: string | null
   maxOffset: number
+}
+
+const MIN_AUTO_BAND = 12
+
+export function resolveBandPx(
+  bevelWidth: number | 'auto',
+  radiusPx: number,
+  width: number,
+  height: number
+): number {
+  if (typeof bevelWidth === 'number') return bevelWidth
+  const halfMin = Math.min(width, height) / 2
+  return Math.min(Math.max(radiusPx, MIN_AUTO_BAND), halfMin)
 }
 
 const lensMapCache = new Map<string, LensMap>()
 const LENS_MAP_CACHE_MAX = 32
 
-/** Normalized R/G displacement map; drive intensity via feDisplacementMap scale = 2 * maxOffset * gain. */
 export function generateLensMap(opts: MapOptions): LensMap | null {
-  if (typeof document === 'undefined' || opts.width < 1 || opts.height < 1) return null
+  if (opts.width < 1 || opts.height < 1) return null
   const key = `${opts.width}|${opts.height}|${opts.radius}|${opts.shape}|${opts.band}|${opts.ior}|${opts.thickness}|${opts.magnify}`
   const hit = lensMapCache.get(key)
   if (hit) return hit
   const { data, width, height, maxOffset } = computeOffsets(opts)
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const context = context2d(canvas)
-  if (!context || typeof context.createImageData !== 'function') return null
-  const image = context.createImageData(width, height)
-  // normalize against map-space max so the strongest pixel spans the full channel range
-  const elementScale = Math.max(opts.width, opts.height) / Math.max(width, height)
-  const norm = maxOffset / elementScale || 1
-  for (let p = 0, i = 0; p < data.length; p += 2, i += 4) {
-    image.data[i] = 128 + Math.round((data[p]! / norm) * 127)
-    image.data[i + 1] = 128 + Math.round((data[p + 1]! / norm) * 127)
-    image.data[i + 2] = 128 // B reserved — specular lives in the bezel overlay
-    image.data[i + 3] = 255
+  const entry: LensMap = { url: null, maxOffset }
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const context = context2d(canvas)
+    if (context && typeof context.createImageData === 'function') {
+      const image = context.createImageData(width, height)
+      const elementScale = Math.max(opts.width, opts.height) / Math.max(width, height)
+      const norm = maxOffset / elementScale || 1
+      for (let p = 0, i = 0; p < data.length; p += 2, i += 4) {
+        image.data[i] = 128 + Math.round((data[p]! / norm) * 127)
+        image.data[i + 1] = 128 + Math.round((data[p + 1]! / norm) * 127)
+        image.data[i + 2] = 128
+        image.data[i + 3] = 255
+      }
+      context.putImageData(image, 0, 0)
+      entry.url = canvas.toDataURL('image/png')
+    }
   }
-  context.putImageData(image, 0, 0)
-  const entry: LensMap = { url: canvas.toDataURL('image/png'), maxOffset }
   if (lensMapCache.size >= LENS_MAP_CACHE_MAX) {
     const oldest = lensMapCache.keys().next().value
     if (oldest !== undefined) lensMapCache.delete(oldest)
@@ -212,28 +212,3 @@ function context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
   }
 }
 
-export function generateDisplacementMap(spec: DisplacementSpec): HTMLCanvasElement | null {
-  if (typeof document === 'undefined' || spec.width < 1 || spec.height < 1) return null
-  const scale = Math.min(1, MAX_MAP_SIDE / Math.max(spec.width, spec.height))
-  const width = Math.max(1, Math.round(spec.width * scale))
-  const height = Math.max(1, Math.round(spec.height * scale))
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const context = context2d(canvas)
-  if (!context || typeof context.createImageData !== 'function') return null
-  const image = context.createImageData(width, height)
-  const data = image.data
-  for (let py = 0; py < height; py++) {
-    for (let px = 0; px < width; px++) {
-      const [dx, dy] = displacementAt((px + 0.5) / scale, (py + 0.5) / scale, spec)
-      const i = (py * width + px) * 4
-      data[i] = 128 + Math.round(dx * 127)
-      data[i + 1] = 128 + Math.round(dy * 127)
-      data[i + 2] = 128
-      data[i + 3] = 255
-    }
-  }
-  context.putImageData(image, 0, 0)
-  return canvas
-}

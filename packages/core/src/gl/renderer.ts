@@ -1,3 +1,5 @@
+import { resolveBandPx } from '../displacement'
+import { globalLightDir } from '../light'
 import type { MaterialParams } from '../types'
 
 export interface GlRect {
@@ -44,7 +46,11 @@ uniform int u_shapeCount;
 uniform int u_shapeMode;
 uniform float u_mergeK;
 uniform float u_bevelWidth;
-uniform float u_bevelDepth;
+uniform float u_ior;
+uniform float u_magnify;
+uniform float u_thickness;
+uniform vec2 u_center;
+uniform vec2 u_lightDir;
 uniform float u_displace;
 uniform float u_blur;
 uniform float u_dispersion;
@@ -114,6 +120,16 @@ float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
+float lensMag(float depth, float band, float ior, float thickness) {
+  if (depth < 0.0 || depth >= band || ior <= 1.0) return 0.0;
+  float t = depth / band;
+  float u = 1.0 - t;
+  float slope = (thickness / band) * u * u * u * pow(max(1.0 - u * u * u * u, 1e-4), -0.75);
+  float alpha = atan(slope);
+  float beta = asin(clamp(sin(alpha) / ior, -1.0, 1.0));
+  return min(thickness * tan(alpha - beta), band * 0.9);
+}
+
 void main() {
   vec2 basePx = u_lensRect.xy + v_local * u_lensRect.zw;
   float d = sceneSdf(basePx);
@@ -129,18 +145,18 @@ void main() {
   float gradLen = max(length(grad), 1e-5);
   grad /= gradLen;
 
-  float t = clamp(depth / max(u_bevelWidth, 1e-3), 0.0, 1.0);
-  float mag = pow(1.0 - t, 1.0 + u_bevelDepth * 2.0) * u_displace;
+  float mag = lensMag(depth, max(u_bevelWidth, 1e-3), u_ior, u_thickness) * u_displace;
+  vec2 zoom = (basePx - u_center) * -u_magnify;
 
   vec3 col;
   if (u_dispersion > 0.001) {
     col = vec3(
-      blurredBg(basePx + grad * mag * (1.0 + u_dispersion * 0.6), u_blur).r,
-      blurredBg(basePx + grad * mag, u_blur).g,
-      blurredBg(basePx + grad * mag * (1.0 - u_dispersion * 0.6), u_blur).b
+      blurredBg(basePx + grad * mag * (1.0 + u_dispersion * 0.6) + zoom, u_blur).r,
+      blurredBg(basePx + grad * mag + zoom, u_blur).g,
+      blurredBg(basePx + grad * mag * (1.0 - u_dispersion * 0.6) + zoom, u_blur).b
     );
   } else {
-    col = blurredBg(basePx + grad * mag, u_blur);
+    col = blurredBg(basePx + grad * mag + zoom, u_blur);
   }
 
   float grey = dot(col, vec3(0.299, 0.587, 0.114));
@@ -152,14 +168,19 @@ void main() {
   }
 
   float rim = smoothstep(3.0, 0.0, depth);
-  float topLight = 0.55 + 0.45 * clamp(-grad.y, 0.0, 1.0);
-  col += rim * topLight * u_specular * 0.55;
+  float facing = clamp(dot(grad, normalize(u_lightDir)), -1.0, 1.0);
+  float sheen = pow(max(facing, 0.0), 2.0);
+  float counterSheen = pow(max(-facing, 0.0), 2.0);
+  col += rim * (0.25 + sheen) * u_specular * 0.5;
+  col -= rim * counterSheen * u_specular * 0.22;
 
   float fresnel = smoothstep(u_bevelWidth, 0.0, depth) * 0.08 * u_specular;
   col += fresnel;
 
   outColor = vec4(col, coverage);
 }`
+
+export const FRAGMENT_SRC = FRAG
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader | null {
   const shader = gl.createShader(type)
@@ -184,7 +205,11 @@ const UNIFORMS = [
   'u_shapeMode',
   'u_mergeK',
   'u_bevelWidth',
-  'u_bevelDepth',
+  'u_ior',
+  'u_magnify',
+  'u_thickness',
+  'u_center',
+  'u_lightDir',
   'u_displace',
   'u_blur',
   'u_dispersion',
@@ -330,12 +355,21 @@ export class GlRenderer {
       gl.uniform1i(this.#locations.get('u_shapeCount') ?? null, shapes.length)
       gl.uniform1i(this.#locations.get('u_shapeMode') ?? null, material.shape === 'squircle' ? 1 : 0)
       gl.uniform1f(this.#locations.get('u_mergeK') ?? null, draw.mergeK)
-      gl.uniform1f(this.#locations.get('u_bevelWidth') ?? null, material.bevelWidth)
-      gl.uniform1f(this.#locations.get('u_bevelDepth') ?? null, material.bevelDepth)
       gl.uniform1f(
-        this.#locations.get('u_displace') ?? null,
-        material.refraction * material.thickness * 2
+        this.#locations.get('u_bevelWidth') ?? null,
+        resolveBandPx(material.bevelWidth, shapes[0]?.radius ?? 0, quad.width, quad.height)
       )
+      gl.uniform1f(this.#locations.get('u_ior') ?? null, material.ior)
+      gl.uniform1f(this.#locations.get('u_magnify') ?? null, material.magnify)
+      gl.uniform1f(this.#locations.get('u_thickness') ?? null, material.thickness)
+      gl.uniform2f(
+        this.#locations.get('u_center') ?? null,
+        quad.x + quad.width / 2,
+        quad.y + quad.height / 2
+      )
+      const light = globalLightDir()
+      gl.uniform2f(this.#locations.get('u_lightDir') ?? null, light[0], light[1])
+      gl.uniform1f(this.#locations.get('u_displace') ?? null, material.refraction * 2)
       gl.uniform1f(this.#locations.get('u_blur') ?? null, material.blur)
       gl.uniform1f(this.#locations.get('u_dispersion') ?? null, material.dispersion)
       gl.uniform1f(this.#locations.get('u_saturation') ?? null, material.saturation)

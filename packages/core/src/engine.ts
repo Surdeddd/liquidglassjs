@@ -6,6 +6,9 @@ import {
   watchMedia,
   type BackdropTone
 } from './a11y'
+import { mountBezel } from './bezel'
+import type { BezelHandle } from './bezel'
+import { registerLight } from './light'
 import { cssFallbackBackend } from './backends/css-fallback'
 import { cssSvgBackend } from './backends/css-svg'
 import { svgContentBackend } from './backends/svg-content'
@@ -101,6 +104,38 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   let instance: BackendInstance = backend.mount(surface)
   let physics = createPhysics(element, current, capabilities.reducedMotion)
 
+  let bezel: BezelHandle | null = null
+  let bezelSpecular = -1
+  let releaseLight: (() => void) | null = null
+
+  const syncBezel = (): void => {
+    const styleable = typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
+    const wanted = styleable && surface.material.specular > 0
+    if (!wanted) {
+      releaseLight?.()
+      releaseLight = null
+      bezel?.destroy()
+      bezel = null
+      bezelSpecular = -1
+      return
+    }
+    if (bezel && surface.material.specular === bezelSpecular) return
+    releaseLight?.()
+    releaseLight = null
+    bezel?.destroy()
+    const host = element as HTMLElement
+    bezel = mountBezel(host, surface.material.specular)
+    bezelSpecular = surface.material.specular
+    if (!capabilities.reducedMotion) {
+      releaseLight = registerLight({
+        host,
+        motion: current.motionLight === true,
+        update: angle => bezel?.update(angle)
+      })
+    }
+  }
+  syncBezel()
+
   const tracker = new SurfaceTracker(element, state => {
     surface.state = state
     if (current.adaptive !== false) {
@@ -156,6 +191,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
         physics = createPhysics(element, current, capabilities.reducedMotion)
       }
       instance.update(surface)
+      syncBezel()
       markElement()
     },
     destroy() {
@@ -163,6 +199,10 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       for (const unsubscribe of unsubscribers) unsubscribe()
       physics?.destroy()
       physics = null
+      releaseLight?.()
+      releaseLight = null
+      bezel?.destroy()
+      bezel = null
       instance.destroy()
       instances.delete(element)
       element.removeAttribute('data-liquid-glass')

@@ -28,13 +28,16 @@ export type { SpringConfig } from './physics/spring'
 export { PHYSICS_DEFAULTS, PhysicsController, resolvePhysics } from './physics/controller'
 export type { PhysicsConfig, PhysicsOption } from './physics/controller'
 export {
-  displacementAt,
-  generateDisplacementMap,
+  computeOffsets,
+  generateLensMap,
+  resolveBandPx,
   sdfRoundedRect,
   sdfSuperellipse,
   squircleClipPath
 } from './displacement'
-export type { DisplacementSpec } from './displacement'
+export type { DisplacementSpec, LensMap, MapOptions } from './displacement'
+export { interiorZoomOffset, lensProfile } from './optics'
+export type { LensOptions } from './optics'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
   BackendId,

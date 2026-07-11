@@ -29,7 +29,7 @@ describe('svg-content backend', () => {
     const surface = makeSurface(null)
     const instance = svgContentBackend.mount(surface)
     const style = (surface.element as HTMLElement).style
-    expect(style.getPropertyValue('backdrop-filter')).toContain('blur(14px)')
+    expect(style.getPropertyValue('backdrop-filter')).toContain('blur(10px)')
     expect(surface.element.querySelector('[data-liquid-glass-layer]')).toBeNull()
     instance.destroy()
     surface.element.remove()
@@ -72,6 +72,24 @@ describe('svg-content backend', () => {
     expect(clone?.querySelector('[data-liquid-glass]')).toBeNull()
     expect(clone?.querySelector('liquid-glass')).toBeNull()
     instance.destroy()
+    source.remove()
+  })
+
+  it('stays single-pass regardless of dispersion (software filter tier)', () => {
+    const source = document.createElement('div')
+    document.body.appendChild(source)
+    const surface = makeSurface(source)
+    surface.material = resolveMaterial({ dispersion: 0.5 })
+    const instance = svgContentBackend.mount(surface)
+    const filters = document.querySelectorAll('svg defs filter')
+    const filter = filters[filters.length - 1]!
+    expect(filter.querySelectorAll('feDisplacementMap[data-lg-role^="displace"]').length).toBe(1)
+    expect(filter.querySelector('feComponentTransfer feFuncR')?.getAttribute('slope')).toBe('1')
+    const scale = Number(filter.querySelector('[data-lg-role="displace"]')?.getAttribute('scale'))
+    expect(scale).toBeGreaterThan(0)
+    expect(instance.debug?.().band).toBeGreaterThan(0)
+    instance.destroy()
+    surface.element.remove()
     source.remove()
   })
 

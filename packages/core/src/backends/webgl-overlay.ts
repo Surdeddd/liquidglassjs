@@ -24,6 +24,17 @@ function dpr(): number {
   return Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2)
 }
 
+export function scrollGlueTransform(
+  renderedX: number,
+  renderedY: number,
+  scrollX: number,
+  scrollY: number
+): string {
+  const dx = renderedX - scrollX
+  const dy = renderedY - scrollY
+  return dx || dy ? `translate(${dx}px, ${dy}px)` : ''
+}
+
 class OverlayManager {
   static #instance: OverlayManager | null = null
 
@@ -40,6 +51,7 @@ class OverlayManager {
     style.height = '100vh'
     style.pointerEvents = 'none'
     style.zIndex = '2147483000'
+    style.willChange = 'transform'
     document.body.appendChild(canvas)
     const renderer = GlRenderer.create(canvas)
     if (!renderer) {
@@ -58,8 +70,16 @@ class OverlayManager {
   #snapshotting = false
   #snapshotDirty = false
   #mutationObserver: MutationObserver | null = null
+  #renderedScrollX = 0
+  #renderedScrollY = 0
 
   #onViewport = (): void => {
+    this.#canvas.style.transform = scrollGlueTransform(
+      this.#renderedScrollX,
+      this.#renderedScrollY,
+      window.scrollX,
+      window.scrollY
+    )
     this.scheduleRender()
   }
 
@@ -245,6 +265,9 @@ class OverlayManager {
       width: bodyBox.width * ratio,
       height: bodyBox.height * ratio
     })
+    this.#renderedScrollX = window.scrollX
+    this.#renderedScrollY = window.scrollY
+    this.#canvas.style.transform = ''
   }
 
   #teardown(): void {

@@ -1,5 +1,7 @@
 import { colorWithOpacity } from '../color'
-import { generateDisplacementMap, squircleClipPath } from '../displacement'
+import { generateLensMap, resolveBandPx, squircleClipPath } from '../displacement'
+import { buildLensChain } from './filter-chain'
+import type { LensChainNodes } from './filter-chain'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -46,10 +48,10 @@ function surfaceSize(surface: BackendSurface): { width: number; height: number }
 class SvgContentInstance implements BackendInstance {
   #defs: SVGDefsElement
   #filter: SVGFilterElement | null = null
-  #feImage: SVGFEImageElement | null = null
-  #feDisplacement: SVGFEDisplacementMapElement | null = null
-  #feBlur: SVGFEGaussianBlurElement | null = null
-  #feSaturate: SVGFEColorMatrixElement | null = null
+  #chain: LensChainNodes | null = null
+  #chainKey = ''
+  #band = 0
+  #lastMapKey = ''
   #layer: HTMLElement | null = null
   #clone: Element | null = null
   #source: Element | null = null
@@ -111,7 +113,7 @@ class SvgContentInstance implements BackendInstance {
     } else {
       style.removeProperty('clip-path')
     }
-    const specularAlpha = material.specular * 0.55
+    const specularAlpha = material.specular * 0.25
     style.setProperty(
       'box-shadow',
       `inset 0 1px 0 rgba(255, 255, 255, ${specularAlpha.toFixed(3)}), inset 0 -1px 0 rgba(255, 255, 255, ${(specularAlpha * 0.35).toFixed(3)})`
@@ -139,28 +141,11 @@ class SvgContentInstance implements BackendInstance {
     filter.setAttribute('width', '140%')
     filter.setAttribute('height', '140%')
     filter.setAttribute('color-interpolation-filters', 'sRGB')
-
-    const feImage = document.createElementNS(SVG_NS, 'feImage')
-    feImage.setAttribute('result', 'lgMap')
-    feImage.setAttribute('preserveAspectRatio', 'none')
-
-    const feDisplacement = document.createElementNS(SVG_NS, 'feDisplacementMap')
-    feDisplacement.setAttribute('in', 'SourceGraphic')
-    feDisplacement.setAttribute('in2', 'lgMap')
-    feDisplacement.setAttribute('xChannelSelector', 'R')
-    feDisplacement.setAttribute('yChannelSelector', 'G')
-
-    const feBlur = document.createElementNS(SVG_NS, 'feGaussianBlur')
-    const feSaturate = document.createElementNS(SVG_NS, 'feColorMatrix')
-    feSaturate.setAttribute('type', 'saturate')
-
-    filter.append(feImage, feDisplacement, feBlur, feSaturate)
     this.#defs.appendChild(filter)
     this.#filter = filter
-    this.#feImage = feImage
-    this.#feDisplacement = feDisplacement
-    this.#feBlur = feBlur
-    this.#feSaturate = feSaturate
+    this.#chain = null
+    this.#chainKey = ''
+    this.#lastMapKey = ''
 
     const layer = document.createElement('div')
     layer.setAttribute('data-liquid-glass-layer', 'refract')
@@ -251,7 +236,7 @@ class SvgContentInstance implements BackendInstance {
   }
 
   #refreshMap(surface: BackendSurface, force: boolean): void {
-    if (!this.#feImage || !this.#feDisplacement) return
+    if (!this.#filter) return
     const { width, height } = surfaceSize(surface)
     if (width < 1 || height < 1) return
     if (!force && Math.abs(width - this.#lastWidth) < 1 && Math.abs(height - this.#lastHeight) < 1) {
@@ -259,23 +244,37 @@ class SvgContentInstance implements BackendInstance {
     }
     this.#lastWidth = width
     this.#lastHeight = height
-    this.#feDisplacement.setAttribute(
-      'scale',
-      String(Math.round(surface.material.refraction * surface.material.thickness * 2))
-    )
-    this.#feBlur?.setAttribute('stdDeviation', String(surface.material.blur))
-    this.#feSaturate?.setAttribute('values', String(surface.material.saturation))
-    const map = generateDisplacementMap({
+    const { material } = surface
+    const radius = effectiveRadius(surface)
+    this.#band = resolveBandPx(material.bevelWidth, radius, width, height)
+    const map = generateLensMap({
       width,
       height,
-      radius: effectiveRadius(surface),
-      bevelWidth: surface.material.bevelWidth,
-      bevelDepth: surface.material.bevelDepth,
-      shape: surface.material.shape
+      radius,
+      shape: material.shape,
+      band: this.#band,
+      ior: material.ior,
+      thickness: material.thickness,
+      magnify: material.magnify
     })
-    if (map) {
-      this.#feImage.setAttribute('href', map.toDataURL())
+    if (!map) return
+    const scale = 2 * map.maxOffset * material.refraction * 2
+    const chainKey = `1|${material.frost > 0}|${material.blur}|${material.saturation}|${material.brightness}`
+    if (!this.#chain || chainKey !== this.#chainKey) {
+      this.#chain = buildLensChain({ filter: this.#filter, material, scale, passes: 1 })
+      this.#chainKey = chainKey
+      this.#lastMapKey = ''
+    } else {
+      this.#chain.setScale(scale)
     }
+    if (map.url && map.url !== this.#lastMapKey) {
+      this.#chain.feImage.setAttribute('href', map.url)
+      this.#lastMapKey = map.url
+    }
+  }
+
+  debug(): { band: number } {
+    return { band: this.#band }
   }
 
   #teardownLayer(): void {
@@ -291,10 +290,9 @@ class SvgContentInstance implements BackendInstance {
     this.#layer = null
     this.#filter?.remove()
     this.#filter = null
-    this.#feImage = null
-    this.#feDisplacement = null
-    this.#feBlur = null
-    this.#feSaturate = null
+    this.#chain = null
+    this.#chainKey = ''
+    this.#lastMapKey = ''
     this.#source = null
   }
 }
@@ -320,6 +318,9 @@ export const svgContentBackend: Backend = {
       },
       destroy() {
         instance.destroy()
+      },
+      debug() {
+        return instance.debug()
       }
     }
   }

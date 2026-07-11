@@ -96,13 +96,16 @@ describe('computeOffsets (lens model)', () => {
 })
 
 describe('generateLensMap', () => {
-  it('never throws in canvas-less environments and returns null or a data url', () => {
+  it('always reports maxOffset; url is a data url or null without canvas support', () => {
     const result = generateLensMap(base)
-    if (result !== null) {
-      expect(result.url).toMatch(/^data:image\/png/)
-      expect(result.maxOffset).toBeGreaterThan(0)
-    } else {
-      expect(result).toBeNull()
+    expect(result).not.toBeNull()
+    expect(result!.maxOffset).toBeGreaterThan(0)
+    if (result!.url !== null) {
+      expect(result!.url).toMatch(/^data:image\/png/)
     }
+  })
+
+  it('caches identical option sets', () => {
+    expect(generateLensMap({ ...base })).toBe(generateLensMap({ ...base }))
   })
 })

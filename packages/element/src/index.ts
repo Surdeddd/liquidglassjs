@@ -29,6 +29,12 @@ function physicsFrom(value: string | null): boolean {
   return value !== 'false' && value !== 'off'
 }
 
+function numberFrom(value: string | null): number | undefined {
+  if (value === null) return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
 function createElementClass(): CustomElementConstructor {
   return class LiquidGlassElement extends HTMLElement {
     static observedAttributes = [
@@ -38,10 +44,15 @@ function createElementClass(): CustomElementConstructor {
       'scene-image',
       'physics',
       'merge',
-      'shape'
+      'shape',
+      'ior',
+      'magnify',
+      'motion-light'
     ]
 
     connectedCallback(): void {
+      const ior = numberFrom(this.getAttribute('ior'))
+      const magnify = numberFrom(this.getAttribute('magnify'))
       attach(this, {
         preset: presetFrom(this.getAttribute('preset')),
         backdrop: this.getAttribute('backdrop'),
@@ -49,7 +60,10 @@ function createElementClass(): CustomElementConstructor {
         sceneImage: this.getAttribute('scene-image'),
         physics: physicsFrom(this.getAttribute('physics')),
         merge: this.getAttribute('merge'),
-        shape: this.getAttribute('shape') === 'squircle' ? 'squircle' : 'rounded'
+        shape: this.getAttribute('shape') === 'squircle' ? 'squircle' : 'rounded',
+        ...(ior !== undefined ? { ior } : {}),
+        ...(magnify !== undefined ? { magnify } : {}),
+        motionLight: this.hasAttribute('motion-light')
       })
     }
 
@@ -71,6 +85,15 @@ function createElementClass(): CustomElementConstructor {
       if (name === 'physics') instance.set({ physics: physicsFrom(value) })
       if (name === 'merge') instance.set({ merge: value })
       if (name === 'shape') instance.set({ shape: value === 'squircle' ? 'squircle' : 'rounded' })
+      if (name === 'ior') {
+        const ior = numberFrom(value)
+        if (ior !== undefined) instance.set({ ior })
+      }
+      if (name === 'magnify') {
+        const magnify = numberFrom(value)
+        if (magnify !== undefined) instance.set({ magnify })
+      }
+      if (name === 'motion-light') instance.set({ motionLight: value !== null })
     }
   }
 }

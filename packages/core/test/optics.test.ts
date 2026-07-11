@@ -41,8 +41,8 @@ describe('lensProfile', () => {
 describe('interiorZoomOffset', () => {
   it('pulls samples toward the element center (magnification)', () => {
     const [dx, dy] = interiorZoomOffset(150, 40, 100, 50, 0.02)
-    expect(dx).toBeCloseTo(-1, 5) // (150-100) * -0.02
-    expect(dy).toBeCloseTo(0.2, 5) // (40-50) * -0.02
+    expect(dx).toBeCloseTo(-1, 5)
+    expect(dy).toBeCloseTo(0.2, 5)
   })
 
   it('is zero at the center and with magnify 0', () => {

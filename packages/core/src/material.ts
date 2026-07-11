@@ -7,8 +7,10 @@ export const MATERIAL_DEFAULTS: MaterialParams = {
   tint: '#ffffff',
   tintOpacity: 0.12,
   refraction: 0.5,
+  ior: 1.5,
+  magnify: 0.015,
   thickness: 12,
-  bevelWidth: 16,
+  bevelWidth: 'auto',
   bevelDepth: 0.6,
   dispersion: 0.15,
   specular: 0.6,
@@ -18,9 +20,16 @@ export const MATERIAL_DEFAULTS: MaterialParams = {
 }
 
 export const MATERIAL_PRESETS: Record<LiquidGlassPreset, Partial<MaterialParams>> = {
-  clear: { blur: 2, tintOpacity: 0.06, frost: 0, refraction: 0.65 },
-  frosted: { blur: 14, tintOpacity: 0.16, frost: 0.35, refraction: 0.4 },
-  tinted: { blur: 8, tint: '#7c5cff', tintOpacity: 0.28, refraction: 0.45 }
+  clear: { blur: 2, tintOpacity: 0.06, frost: 0, refraction: 0.65, ior: 1.5, magnify: 0.02 },
+  frosted: {
+    blur: 10,
+    tintOpacity: 0.14,
+    frost: 0.35,
+    refraction: 0.45,
+    saturation: 1.6,
+    brightness: 1.05
+  },
+  tinted: { blur: 8, tint: '#7c5cff', tintOpacity: 0.28, refraction: 0.5 }
 }
 
 const MATERIAL_KEYS = Object.keys(MATERIAL_DEFAULTS) as (keyof MaterialParams)[]
@@ -31,6 +40,8 @@ const NUMERIC_RANGES: Partial<Record<keyof MaterialParams, [number, number]>> = 
   brightness: [0, 3],
   tintOpacity: [0, 1],
   refraction: [0, 1],
+  ior: [1, 2.5],
+  magnify: [0, 0.1],
   thickness: [0, 100],
   bevelWidth: [0, 200],
   bevelDepth: [0, 1],

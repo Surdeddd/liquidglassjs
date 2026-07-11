@@ -17,8 +17,10 @@ export interface MaterialParams {
   tint: string
   tintOpacity: number
   refraction: number
+  ior: number
+  magnify: number
   thickness: number
-  bevelWidth: number
+  bevelWidth: number | 'auto'
   bevelDepth: number
   dispersion: number
   specular: number
@@ -36,6 +38,7 @@ export interface LiquidGlassOptions extends Partial<MaterialParams> {
   merge?: string | null
   mergeStrength?: number
   adaptive?: boolean
+  motionLight?: boolean
 }
 
 export interface LiquidGlassHandle {

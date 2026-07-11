@@ -17,6 +17,7 @@ export interface BackendInstance {
   update(surface: BackendSurface): void
   sync(surface: BackendSurface): void
   destroy(): void
+  debug?(): { band: number }
 }
 
 export interface Backend {

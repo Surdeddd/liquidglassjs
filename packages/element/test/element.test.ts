@@ -36,4 +36,18 @@ describe('liquid-glass element', () => {
     el.remove()
     expect(el.glass).toBeUndefined()
   })
+  it('parses ior, magnify and motion-light attributes', () => {
+    define()
+    const el = document.createElement('liquid-glass') as HTMLElement & {
+      glass?: { set(options: object): void }
+    }
+    el.setAttribute('ior', '1.8')
+    el.setAttribute('magnify', '0.03')
+    el.setAttribute('motion-light', '')
+    document.body.appendChild(el)
+    expect(el.getAttribute('data-liquid-glass')).toBe('clear')
+    el.setAttribute('ior', '2.0')
+    expect(el.getAttribute('data-liquid-glass')).toBe('clear')
+    el.remove()
+  })
 })

@@ -27,6 +27,19 @@ describe('resolveMaterial', () => {
     expect(material.tintOpacity).toBe(1)
     expect(material.dispersion).toBe(0)
   })
+
+  it('carries the lens params with iOS-parity defaults', () => {
+    const material = resolveMaterial({ preset: 'clear' })
+    expect(material.ior).toBe(1.5)
+    expect(material.magnify).toBeCloseTo(0.02)
+    expect(material.bevelWidth).toBe('auto')
+  })
+
+  it('clamps ior and magnify', () => {
+    const material = resolveMaterial({ ior: 9, magnify: 3 })
+    expect(material.ior).toBe(2.5)
+    expect(material.magnify).toBe(0.1)
+  })
 })
 
 describe('clampMaterial', () => {
