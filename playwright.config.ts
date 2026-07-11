@@ -16,6 +16,7 @@ function server(app: string, port: number): { command: string; url: string; reus
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
+  retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   ignoreSnapshots: process.platform !== 'darwin',
   expect: {
