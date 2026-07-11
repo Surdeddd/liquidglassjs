@@ -7,9 +7,31 @@ import {
   type LiquidGlassPreset,
   type MaterialParams
 } from '@surdeddd/liquidglass-element'
+import { paintAllWallpapers } from './wallpaper'
 import './style.css'
 
+paintAllWallpapers()
 define()
+
+const heroLensB = document.querySelector<HTMLElement>('[data-hero-lens-b]')
+if (heroLensB) {
+  attach(heroLensB, {
+    preset: 'tinted',
+    tint: '#7c5cff',
+    tintOpacity: 0.12,
+    refraction: 0.55,
+    physics: false,
+    motionLight: true
+  })
+}
+
+const iosTime = document.querySelector('[data-ios-time]')
+const iosDate = document.querySelector('[data-ios-date]')
+if (iosTime && iosDate) {
+  const now = new Date()
+  iosTime.textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })
+  iosDate.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+}
 
 const revealObserver =
   typeof IntersectionObserver !== 'undefined'
@@ -123,6 +145,18 @@ if (pgLens) {
     })
   }
 
+  const motionToggle = document.querySelector<HTMLInputElement>('[data-motion-light]')
+  motionToggle?.addEventListener('change', () => {
+    if (motionToggle.checked) {
+      pgState.motionLight = true
+      handle.set({ motionLight: true })
+    } else {
+      delete pgState.motionLight
+      handle.set({ motionLight: false })
+    }
+    renderSnippet()
+  })
+
   syncInputs(resolveMaterial(pgState))
   renderSnippet()
 }
@@ -146,6 +180,30 @@ if (dockPill && dockButtons.length > 0) {
     button.addEventListener('click', () => {
       spring.target = Number(button.dataset['dock'] ?? 0) * 25
       dockButtons.forEach(other => other.classList.toggle('active', other === button))
+      if (!frame) frame = requestAnimationFrame(step)
+    })
+  }
+}
+
+const iosPill = document.querySelector<HTMLElement>('.ios-tab-pill')
+const iosTabs = [...document.querySelectorAll<HTMLButtonElement>('[data-ios-tab]')]
+if (iosPill && iosTabs.length > 0) {
+  const spring = new Spring(1.5, { stiffness: 260, damping: 16, mass: 1 })
+  let frame = 0
+  let last = 0
+  const step = (time: number): void => {
+    frame = 0
+    const dt = last ? Math.min((time - last) / 1000, 1 / 20) : 1 / 60
+    last = time
+    const moving = spring.step(dt)
+    iosPill.style.left = `${spring.value}%`
+    if (moving) frame = requestAnimationFrame(step)
+    else last = 0
+  }
+  for (const button of iosTabs) {
+    button.addEventListener('click', () => {
+      spring.target = 1.5 + Number(button.dataset['iosTab'] ?? 0) * 25
+      iosTabs.forEach(other => other.classList.toggle('active', other === button))
       if (!frame) frame = requestAnimationFrame(step)
     })
   }

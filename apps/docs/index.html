@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="LiquidGlassJS — Liquid Glass for the whole web. One engine, every browser, every framework: tiered rendering, spring physics, metaball merging, adaptive contrast."
+      content="LiquidGlassJS — Liquid Glass for the whole web. One engine, every browser, every framework: real Snell lens optics, spring physics, metaball merging, adaptive contrast."
     />
     <meta property="og:title" content="LiquidGlassJS" />
     <meta
@@ -17,13 +17,13 @@
     <title>LiquidGlassJS — Liquid Glass for the whole web</title>
   </head>
   <body>
-    <div class="orb orb-cyan" aria-hidden="true"></div>
-    <div class="orb orb-amber" aria-hidden="true"></div>
+    <div class="wp" data-wall="aurora" data-wall-seed="7" aria-hidden="true"></div>
     <div class="grain" aria-hidden="true"></div>
 
-    <liquid-glass class="nav" preset="clear" physics="false">
+    <liquid-glass class="nav" preset="clear" physics="false" motion-light>
       <span class="nav-logo">🫧 liquidglass<span class="nav-logo-dim">js</span></span>
       <span class="nav-links">
+        <a href="#ios">showcase</a>
         <a href="#playground">playground</a>
         <a href="/api/" target="_blank" rel="noreferrer">api</a>
         <a href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
@@ -35,11 +35,12 @@
         <span class="hero-word">LIQUID</span>
         <span class="hero-word hero-word-outline">GLASS</span>
       </div>
-      <liquid-glass class="hero-lens" preset="clear"></liquid-glass>
+      <liquid-glass class="hero-lens" preset="clear" motion-light></liquid-glass>
+      <div class="hero-lens hero-lens-b" data-hero-lens-b></div>
       <h1 class="visually-hidden">LiquidGlassJS — Liquid Glass for the whole web</h1>
       <p class="hero-sub reveal">
         One engine. Every browser. Every framework.<br />
-        Real refraction over live DOM — not a screenshot, not Chromium-only.
+        Real Snell refraction over live DOM — not a screenshot, not Chromium-only.
       </p>
       <div class="hero-cta reveal">
         <code class="install" data-install>npm i @surdeddd/liquidglass-core</code>
@@ -67,7 +68,7 @@
           <li data-tier="webgl-overlay"><b>webgl-overlay</b><i>one shared canvas, page snapshot</i></li>
           <li data-tier="css-fallback"><b>css-fallback</b><i>graceful blur + tint, everywhere</i></li>
         </ol>
-        <liquid-glass class="tier-lens" preset="frosted" data-probe></liquid-glass>
+        <liquid-glass class="tier-lens" preset="frosted" data-probe motion-light></liquid-glass>
       </section>
 
       <section class="section reveal" id="physics">
@@ -77,8 +78,9 @@
           A mass–spring–damper system drives every surface: gel squash on press, wobbly release,
           magnetic hover. Runs on any backend, sleeps when idle, respects prefers-reduced-motion.
         </p>
-        <div class="physics-stage">
-          <liquid-glass class="physics-lens" preset="clear"><span>press&nbsp;me</span></liquid-glass>
+        <div class="stage physics-stage">
+          <div class="wall" data-wall="dusk" data-wall-seed="11" aria-hidden="true"></div>
+          <liquid-glass class="physics-lens" preset="clear" backdrop="#physics .wall" motion-light><span>press&nbsp;me</span></liquid-glass>
         </div>
       </section>
 
@@ -89,7 +91,8 @@
           The iOS 26 signature move: SDF smooth-min metaballs in a WebGL2 shader. Give two lenses the
           same <code>merge</code> group and they flow into each other — over your real page.
         </p>
-        <div class="merge-stage">
+        <div class="stage merge-stage">
+          <div class="wall" data-wall="sea" data-wall-seed="3" aria-hidden="true"></div>
           <liquid-glass class="m-blob m-blob-a" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
           <liquid-glass class="m-blob m-blob-b" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
         </div>
@@ -129,8 +132,84 @@
         </div>
       </section>
 
-      <section class="section reveal" id="playground">
+      <section class="section reveal" id="ios">
         <p class="section-index">05</p>
+        <h2 class="section-title">Feels like the real thing</h2>
+        <p class="section-lead">
+          Lock screen, tab bar, control center — rebuilt from library primitives over a live
+          wallpaper. Move your pointer: the bezel light follows it, the way glass follows the room.
+        </p>
+        <div class="ios-grid">
+          <div class="ios-phone stage">
+            <div class="wall" data-wall="aurora" data-wall-seed="21" aria-hidden="true"></div>
+            <div class="ios-clock" aria-hidden="true">
+              <span class="ios-date" data-ios-date>Friday, July 11</span>
+              <span class="ios-time" data-ios-time>09:41</span>
+            </div>
+            <liquid-glass class="ios-notif" preset="clear" backdrop="#ios .ios-phone .wall" motion-light>
+              <span class="ios-notif-icon">🫧</span>
+              <span class="ios-notif-body">
+                <b>LiquidGlassJS</b>
+                <i>Real refraction, zero screenshots</i>
+              </span>
+            </liquid-glass>
+            <liquid-glass class="ios-notif ios-notif-b" preset="clear" backdrop="#ios .ios-phone .wall" motion-light>
+              <span class="ios-notif-icon">🌊</span>
+              <span class="ios-notif-body">
+                <b>Snell's law</b>
+                <i>ior 1.5 · squircle dome · rim band</i>
+              </span>
+            </liquid-glass>
+          </div>
+          <div class="ios-right">
+            <div class="ios-cc stage">
+              <div class="wall" data-wall="dusk" data-wall-seed="31" aria-hidden="true"></div>
+              <div class="ios-cc-grid">
+                <liquid-glass class="ios-tile" preset="frosted" shape="squircle" backdrop="#ios .ios-cc .wall" motion-light>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm-4.2-3.9a6 6 0 0 1 8.4 0l-1.7 1.7a3.6 3.6 0 0 0-5 0l-1.7-1.7Zm-3.3-3.3a10.7 10.7 0 0 1 15 0l-1.7 1.7a8.3 8.3 0 0 0-11.6 0L4.5 11.3Zm-3.3-3.4a15.4 15.4 0 0 1 21.6 0L21.1 9.6a13 13 0 0 0-18.2 0L1.2 7.9Z"/></svg>
+                  <span>wi-fi</span>
+                </liquid-glass>
+                <liquid-glass class="ios-tile" preset="frosted" shape="squircle" backdrop="#ios .ios-cc .wall" motion-light>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2h1.2l5.1 4.9-3.9 3.7 3.9 3.7L12.2 19H11v-5.2L7.6 17l-1.4-1.3 4.2-4-4.2-4L7.6 6.4 11 9.6V2Zm2 3.4v3.4l1.8-1.7L13 5.4Zm0 9.8v3.4l1.8-1.7-1.8-1.7Z"/></svg>
+                  <span>bluetooth</span>
+                </liquid-glass>
+                <liquid-glass class="ios-tile" preset="frosted" shape="squircle" backdrop="#ios .ios-cc .wall" motion-light>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.4 2.1a9.9 9.9 0 1 0 8.5 8.5A8 8 0 0 1 13.4 2.1Z"/></svg>
+                  <span>focus</span>
+                </liquid-glass>
+                <liquid-glass class="ios-tile" preset="frosted" shape="squircle" backdrop="#ios .ios-cc .wall" motion-light>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6v3.5c0 .8.3 1.5.8 2.1l1.4 1.6c.5.6.8 1.3.8 2.1V21a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-9.7c0-.8.3-1.5.8-2.1l1.4-1.6c.5-.6.8-1.3.8-2.1V2Zm2 2v1.5c0 1.3-.5 2.5-1.3 3.4L8.3 10.5c-.2.2-.3.5-.3.8V20h8v-8.7c0-.3-.1-.6-.3-.8l-1.4-1.6A5.2 5.2 0 0 1 13 5.5V4h-2Z"/></svg>
+                  <span>torch</span>
+                </liquid-glass>
+              </div>
+            </div>
+            <div class="ios-tabbar-stage stage">
+              <div class="wall" data-wall="sea" data-wall-seed="17" aria-hidden="true"></div>
+              <div class="ios-tabbar">
+                <liquid-glass class="ios-tabbar-glass" preset="clear" backdrop="#ios .ios-tabbar-stage .wall" physics="false" motion-light></liquid-glass>
+                <nav class="ios-tabs">
+                  <button type="button" data-ios-tab="0" class="active" aria-label="home">
+                    <svg viewBox="0 0 24 24"><path d="M12 3 2.7 11h2.6v9h5.2v-6h3v6h5.2v-9h2.6L12 3Z"/></svg>
+                  </button>
+                  <button type="button" data-ios-tab="1" aria-label="search">
+                    <svg viewBox="0 0 24 24"><path d="M10.5 3a7.5 7.5 0 1 0 4.6 13.4l4.7 4.8 1.5-1.4-4.8-4.8A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg>
+                  </button>
+                  <button type="button" data-ios-tab="2" aria-label="library">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>
+                  </button>
+                  <button type="button" data-ios-tab="3" aria-label="profile">
+                    <svg viewBox="0 0 24 24"><path d="M12 3a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0 11c4.4 0 8 2.2 8 5v2H4v-2c0-2.8 3.6-5 8-5Z"/></svg>
+                  </button>
+                </nav>
+                <liquid-glass class="ios-tab-pill" preset="clear" backdrop="#ios .ios-tabbar-stage .wall" physics="false"></liquid-glass>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal" id="playground">
+        <p class="section-index">06</p>
         <h2 class="section-title">Playground</h2>
         <p class="section-lead">Tune the material, take the config with you.</p>
         <div class="pg">
@@ -143,16 +222,19 @@
             <label>blur <output>2</output><input type="range" data-param="blur" min="0" max="40" step="1" value="2" /></label>
             <label>tint opacity <output>0.06</output><input type="range" data-param="tintOpacity" min="0" max="1" step="0.01" value="0.06" /></label>
             <label>refraction <output>0.65</output><input type="range" data-param="refraction" min="0" max="1" step="0.01" value="0.65" /></label>
+            <label>ior <output>1.5</output><input type="range" data-param="ior" min="1" max="2.5" step="0.05" value="1.5" /></label>
+            <label>magnify <output>0.02</output><input type="range" data-param="magnify" min="0" max="0.1" step="0.005" value="0.02" /></label>
             <label>thickness <output>12</output><input type="range" data-param="thickness" min="0" max="60" step="1" value="12" /></label>
             <label>bevel width <output>16</output><input type="range" data-param="bevelWidth" min="1" max="80" step="1" value="16" /></label>
             <label>dispersion <output>0.15</output><input type="range" data-param="dispersion" min="0" max="1" step="0.01" value="0.15" /></label>
             <label>specular <output>0.6</output><input type="range" data-param="specular" min="0" max="1" step="0.01" value="0.6" /></label>
             <label>saturation <output>1.4</output><input type="range" data-param="saturation" min="0" max="3" step="0.05" value="1.4" /></label>
             <label>frost <output>0</output><input type="range" data-param="frost" min="0" max="1" step="0.01" value="0" /></label>
+            <label class="pg-check">motion light <input type="checkbox" data-motion-light /></label>
             <label class="pg-color">tint <input type="color" data-param="tint" value="#ffffff" /></label>
           </div>
-          <div class="pg-stage">
-            <div class="pg-backdrop" aria-hidden="true"></div>
+          <div class="pg-stage stage">
+            <div class="wall pg-backdrop" data-wall="aurora" data-wall-seed="41" aria-hidden="true"></div>
             <div class="pg-lens" data-pg-lens></div>
           </div>
         </div>
@@ -163,7 +245,7 @@
       </section>
 
       <section class="section reveal" id="frameworks">
-        <p class="section-index">06</p>
+        <p class="section-index">07</p>
         <h2 class="section-title">One core, your framework</h2>
         <div class="fw-tabs" role="tablist">
           <button type="button" class="active" data-tab="vanilla">vanilla</button>

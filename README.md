@@ -53,9 +53,9 @@ the browser can do and routes each surface to the best available backend — und
 | --- | --- |
 | ![Press squash, wobbly release, magnetic hover](docs/media/readme/physics.webp) | ![Lenses melting together over the live page](docs/media/readme/metaballs.webp) |
 
-| [Adaptive contrast](https://liquidglassjs.vercel.app/#adaptive) | [Config-exporting playground](https://liquidglassjs.vercel.app/#playground) |
+| [iOS showcase](https://liquidglassjs.vercel.app/#ios) | [Config-exporting playground](https://liquidglassjs.vercel.app/#playground) |
 | --- | --- |
-| ![Auto tint flip over light and dark backdrops](docs/media/readme/adaptive.webp) | ![Material sliders that export an attach() config](docs/media/readme/playground.webp) |
+| ![Lock screen, control center and tab bar rebuilt from library primitives](docs/media/readme/ios.webp) | ![Material sliders that export an attach() config](docs/media/readme/playground.webp) |
 
 ## Packages
 
@@ -74,7 +74,9 @@ import { attach } from '@surdeddd/liquidglass-core'
 
 const glass = attach(document.querySelector('.panel'), {
   preset: 'frosted',
+  ior: 1.5,
   dispersion: 0.3,
+  motionLight: true,
   physics: { wobble: 0.8 }
 })
 
@@ -108,6 +110,9 @@ import { LiquidGlass } from '@surdeddd/liquidglass-react'
 
 ## Highlights
 
+- **Real lens optics** — a convex squircle dome refracted by Snell's law (`ior`, default 1.5): optically flat interior with a subtle whole-body magnification (`magnify`) and all the bending concentrated in a rim band that tracks your corner radius, exactly like iOS 26.
+- **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on every backend, including the default Chromium path.
+- **Living specular bezel** — a two-tone rim highlight that follows the pointer (or device tilt with `motionLight: true`) instead of a painted-on gradient.
 - **Tiered rendering** — capability probe picks the best backend per browser; fidelity improves as browsers ship new APIs, your code never changes.
 - **Metaballs** — lenses sharing a `merge` group melt into each other through an SDF smooth-min shader on one shared canvas.
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
