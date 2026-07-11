@@ -1,5 +1,16 @@
 # @surdeddd/liquidglass-react
 
+## 0.2.0
+
+### Minor Changes
+
+- cd956a0: Real iOS 26 lens optics: Snell refraction through a convex squircle dome (`ior`), flat interior with whole-body magnification (`magnify`), rim band auto-sized from the corner radius (`bevelWidth: 'auto'`), edge-only chromatic aberration on the default SVG backends, a pointer/device-motion driven two-tone specular bezel (`motionLight`), turbulence frost and brightness wired into the filter chains, and the same profile ported to the WebGL shader.
+
+### Patch Changes
+
+- Updated dependencies [cd956a0]
+  - @surdeddd/liquidglass-core@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
