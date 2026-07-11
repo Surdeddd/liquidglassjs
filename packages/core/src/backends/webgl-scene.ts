@@ -1,7 +1,10 @@
 import { colorWithOpacity } from '../color'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer } from '../gl/renderer'
+import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
+
+const TOUCHED = ['background', 'border-radius', 'box-shadow', 'isolation', 'position']
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
@@ -11,13 +14,14 @@ class WebglSceneInstance implements BackendInstance {
   #canvas: HTMLCanvasElement
   #renderer: GlRenderer
   #image: HTMLImageElement | null = null
-  #hadInlinePosition = false
+  #restore: () => void
   #host: HTMLElement
 
   constructor(surface: BackendSurface, host: HTMLElement, canvas: HTMLCanvasElement, renderer: GlRenderer) {
     this.#host = host
     this.#canvas = canvas
     this.#renderer = renderer
+    this.#restore = captureInlineStyles(host, TOUCHED)
     this.#applyHostStyles(surface)
     this.#loadImage(surface)
     this.#draw(surface)
@@ -36,18 +40,12 @@ class WebglSceneInstance implements BackendInstance {
   destroy(): void {
     this.#renderer.destroy()
     this.#canvas.remove()
-    const style = this.#host.style
-    style.removeProperty('background')
-    style.removeProperty('border-radius')
-    style.removeProperty('box-shadow')
-    style.removeProperty('isolation')
-    if (!this.#hadInlinePosition) style.removeProperty('position')
+    this.#restore()
   }
 
   #applyHostStyles(surface: BackendSurface): void {
     const { material } = surface
     const style = this.#host.style
-    this.#hadInlinePosition = style.getPropertyValue('position') !== ''
     style.setProperty('background', colorWithOpacity(material.tint, 0))
     if (typeof material.radius === 'number') {
       style.setProperty('border-radius', `${material.radius}px`)

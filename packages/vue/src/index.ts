@@ -4,6 +4,7 @@ import {
   attach,
   detach,
   getInstance,
+  resetMissingOptions,
   type LiquidGlassHandle,
   type LiquidGlassOptions,
   type LiquidGlassPreset
@@ -29,7 +30,7 @@ export const LiquidGlass = defineComponent({
     })
     watch(
       merged,
-      next => handle?.set(next),
+      (next, prev) => handle?.set(resetMissingOptions(prev, next)),
       { deep: true }
     )
     expose({ glass: () => handle })
@@ -42,7 +43,7 @@ export const vLiquidGlass: ObjectDirective<Element, LiquidGlassOptions | undefin
     attach(el, binding.value ?? {})
   },
   updated(el, binding) {
-    getInstance(el)?.set(binding.value ?? {})
+    getInstance(el)?.set(resetMissingOptions(binding.oldValue ?? undefined, binding.value ?? {}))
   },
   unmounted(el) {
     detach(el)

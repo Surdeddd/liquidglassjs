@@ -2,6 +2,7 @@ import { colorWithOpacity } from '../color'
 import { generateLensMap, resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
+import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -36,9 +37,19 @@ function surfaceSize(surface: BackendSurface): { width: number; height: number }
   return { width: box.width, height: box.height }
 }
 
+const TOUCHED = [
+  'backdrop-filter',
+  '-webkit-backdrop-filter',
+  'background',
+  'border-radius',
+  'box-shadow',
+  'clip-path'
+]
+
 class CssSvgInstance implements BackendInstance {
   #id: string
   #filter: SVGFilterElement
+  #restore: () => void
   #chain: LensChainNodes | null = null
   #chainKey = ''
   #band = 0
@@ -57,6 +68,7 @@ class CssSvgInstance implements BackendInstance {
     this.#filter.setAttribute('color-interpolation-filters', 'sRGB')
     defs.appendChild(this.#filter)
 
+    this.#restore = captureInlineStyles(surface.element, TOUCHED)
     this.#applyStyles(surface)
     this.#refresh(surface, true)
   }
@@ -72,6 +84,7 @@ class CssSvgInstance implements BackendInstance {
 
   destroy(): void {
     this.#filter.remove()
+    this.#restore()
   }
 
   debug(): { band: number } {
@@ -150,17 +163,6 @@ class CssSvgInstance implements BackendInstance {
   }
 }
 
-function clearStyles(element: Element): void {
-  if (!isStyleable(element)) return
-  const style = element.style
-  style.removeProperty('backdrop-filter')
-  style.removeProperty('-webkit-backdrop-filter')
-  style.removeProperty('background')
-  style.removeProperty('border-radius')
-  style.removeProperty('box-shadow')
-  style.removeProperty('clip-path')
-}
-
 export const cssSvgBackend: Backend = {
   id: 'css-svg',
   priority: 30,
@@ -182,7 +184,6 @@ export const cssSvgBackend: Backend = {
       },
       destroy() {
         instance.destroy()
-        clearStyles(surface.element)
       },
       debug() {
         return instance.debug()

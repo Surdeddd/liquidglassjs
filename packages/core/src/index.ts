@@ -1,4 +1,5 @@
 export { attach, detach, getInstance } from './engine'
+export { isOptionKey, OPTION_KEYS, resetMissingOptions } from './options'
 export { colorWithOpacity } from './color'
 export {
   adaptTintToTone,
@@ -54,4 +55,6 @@ export type {
   MaterialParams
 } from './types'
 
-export const VERSION = '0.0.0'
+declare const __LG_VERSION__: string
+
+export const VERSION = typeof __LG_VERSION__ === 'string' ? __LG_VERSION__ : '0.0.0-dev'

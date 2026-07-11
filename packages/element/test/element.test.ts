@@ -65,4 +65,39 @@ describe('liquid-glass element', () => {
     expect(a.getAttribute('backend')).toBe('webgl-overlay')
     group.remove()
   })
+
+  it('groups children when defined under a custom tag', async () => {
+    define('x-glass')
+    const group = document.createElement('x-glass-group')
+    const a = document.createElement('x-glass')
+    const b = document.createElement('x-glass')
+    group.append(a, b)
+    document.body.appendChild(group)
+    await new Promise(resolve => queueMicrotask(() => resolve(undefined)))
+    expect(a.getAttribute('merge')).toBe(b.getAttribute('merge'))
+    expect(a.getAttribute('merge')).toMatch(/^lg-group-/)
+    group.remove()
+  })
+
+  it('resets numeric attributes to defaults on removal', () => {
+    define()
+    const el = document.createElement('liquid-glass') as HTMLElement & {
+      glass?: { set(options: object): void }
+    }
+    el.setAttribute('backend', 'css-fallback')
+    el.setAttribute('physics', 'false')
+    el.setAttribute('ior', '1.8')
+    document.body.appendChild(el)
+    const calls: object[] = []
+    const glass = el.glass
+    if (!glass) throw new Error('no handle')
+    const original = glass.set.bind(glass)
+    glass.set = (options: object) => {
+      calls.push(options)
+      original(options)
+    }
+    el.removeAttribute('ior')
+    expect(calls).toContainEqual({ ior: undefined })
+    el.remove()
+  })
 })

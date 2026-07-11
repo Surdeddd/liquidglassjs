@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
@@ -18,10 +19,8 @@ export default tseslint.config(
     files: ['scripts/**'],
     languageOptions: {
       globals: {
-        console: 'readonly',
-        process: 'readonly',
-        window: 'readonly',
-        document: 'readonly'
+        ...globals.node,
+        ...globals.browser
       }
     }
   }

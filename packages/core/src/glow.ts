@@ -1,3 +1,5 @@
+import { captureInlineStyles } from './style-restore'
+
 export interface GlowHandle {
   press(x: number, y: number): void
   release(): void
@@ -22,6 +24,7 @@ export function mountGlow(host: HTMLElement): GlowHandle {
     'background',
     'radial-gradient(140px circle at var(--lg-glow-x, 50%) var(--lg-glow-y, 50%), rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.05) 55%, transparent 75%)'
   )
+  const restore = captureInlineStyles(host, ['position'])
   if (typeof getComputedStyle === 'function') {
     const position = getComputedStyle(host).position
     if (position === 'static' || position === '') {
@@ -43,6 +46,7 @@ export function mountGlow(host: HTMLElement): GlowHandle {
     },
     destroy() {
       el.remove()
+      restore()
     }
   }
 }

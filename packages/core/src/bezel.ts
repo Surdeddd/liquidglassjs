@@ -1,3 +1,5 @@
+import { captureInlineStyles } from './style-restore'
+
 export interface BezelHandle {
   update(angleDeg: number): void
   destroy(): void
@@ -34,12 +36,11 @@ export function mountBezel(host: HTMLElement, specular: number): BezelHandle {
   style.setProperty('clip-path', 'inherit')
   style.setProperty('-webkit-clip-path', 'inherit')
 
-  let madePositioned = false
+  const restore = captureInlineStyles(host, ['position', '--lg-light-angle'])
   if (typeof getComputedStyle === 'function') {
     const position = getComputedStyle(host).position
     if (position === 'static' || position === '') {
       host.style.setProperty('position', 'relative')
-      madePositioned = true
     }
   }
   host.appendChild(el)
@@ -55,7 +56,7 @@ export function mountBezel(host: HTMLElement, specular: number): BezelHandle {
     destroy() {
       el.remove()
       host.style.removeProperty('--lg-light-angle')
-      if (madePositioned) host.style.removeProperty('position')
+      restore()
     }
   }
 }

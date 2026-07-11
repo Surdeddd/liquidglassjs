@@ -29,16 +29,18 @@ export interface MaterialParams {
   shape: LiquidGlassShape
 }
 
-export interface LiquidGlassOptions extends Partial<MaterialParams> {
-  preset?: LiquidGlassPreset
-  backend?: BackendId | 'auto'
-  backdrop?: Element | string | null
-  sceneImage?: string | null
-  physics?: boolean | { press?: boolean; hover?: boolean; wobble?: number }
-  merge?: string | null
-  mergeStrength?: number
-  adaptive?: boolean
-  motionLight?: boolean
+type Resettable<T> = { [P in keyof T]?: T[P] | undefined }
+
+export interface LiquidGlassOptions extends Resettable<MaterialParams> {
+  preset?: LiquidGlassPreset | undefined
+  backend?: BackendId | 'auto' | undefined
+  backdrop?: Element | string | null | undefined
+  sceneImage?: string | null | undefined
+  physics?: boolean | { press?: boolean; hover?: boolean; wobble?: number } | undefined
+  merge?: string | null | undefined
+  mergeStrength?: number | undefined
+  adaptive?: boolean | undefined
+  motionLight?: boolean | undefined
 }
 
 export interface LiquidGlassHandle {

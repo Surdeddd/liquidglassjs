@@ -1,6 +1,9 @@
 import { colorWithOpacity } from '../color'
 import { squircleClipPath } from '../displacement'
+import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
+
+const TOUCHED = ['background', 'backdrop-filter', '-webkit-backdrop-filter', 'border-radius', 'clip-path']
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
@@ -24,16 +27,6 @@ function apply(surface: BackendSurface): void {
   }
 }
 
-function clear(element: Element): void {
-  if (!isStyleable(element)) return
-  const style = element.style
-  style.removeProperty('background')
-  style.removeProperty('backdrop-filter')
-  style.removeProperty('-webkit-backdrop-filter')
-  style.removeProperty('border-radius')
-  style.removeProperty('clip-path')
-}
-
 export const cssFallbackBackend: Backend = {
   id: 'css-fallback',
   priority: 0,
@@ -41,6 +34,7 @@ export const cssFallbackBackend: Backend = {
     return true
   },
   mount(surface) {
+    const restore = captureInlineStyles(surface.element, TOUCHED)
     apply(surface)
     const instance: BackendInstance = {
       update(next) {
@@ -48,7 +42,7 @@ export const cssFallbackBackend: Backend = {
       },
       sync() {},
       destroy() {
-        clear(surface.element)
+        restore()
       }
     }
     return instance

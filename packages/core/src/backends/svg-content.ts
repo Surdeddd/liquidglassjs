@@ -2,9 +2,21 @@ import { colorWithOpacity } from '../color'
 import { generateLensMap, resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
+import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
+
+const TOUCHED = [
+  'backdrop-filter',
+  '-webkit-backdrop-filter',
+  'background',
+  'border-radius',
+  'box-shadow',
+  'isolation',
+  'clip-path',
+  'position'
+]
 
 let uid = 0
 let defsRoot: SVGDefsElement | null = null
@@ -48,12 +60,13 @@ class SvgContentInstance implements BackendInstance {
   #source: Element | null = null
   #mutationObserver: MutationObserver | null = null
   #cloneFrame = 0
-  #hadInlinePosition = false
+  #restore: (() => void) | null = null
   #lastWidth = 0
   #lastHeight = 0
 
   constructor(surface: BackendSurface, defs: SVGDefsElement) {
     this.#defs = defs
+    this.#restore = captureInlineStyles(surface.element, TOUCHED)
     this.#applyBaseStyles(surface)
     this.#syncLayer(surface)
   }
@@ -71,27 +84,13 @@ class SvgContentInstance implements BackendInstance {
 
   destroy(): void {
     this.#teardownLayer()
-    const host = this.#host
-    if (!host || !isStyleable(host)) return
-    const style = host.style
-    style.removeProperty('backdrop-filter')
-    style.removeProperty('-webkit-backdrop-filter')
-    style.removeProperty('background')
-    style.removeProperty('border-radius')
-    style.removeProperty('box-shadow')
-    style.removeProperty('isolation')
-    style.removeProperty('clip-path')
-    if (!this.#hadInlinePosition) style.removeProperty('position')
+    this.#restore?.()
   }
 
-  #host: Element | null = null
-
   #applyBaseStyles(surface: BackendSurface): void {
-    this.#host = surface.element
     if (!isStyleable(surface.element)) return
     const { material } = surface
     const style = surface.element.style
-    this.#hadInlinePosition = style.getPropertyValue('position') !== ''
     const filter = `blur(${material.blur}px) saturate(${material.saturation}) brightness(${material.brightness})`
     style.setProperty('backdrop-filter', filter)
     style.setProperty('-webkit-backdrop-filter', filter)

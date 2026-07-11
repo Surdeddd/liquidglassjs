@@ -2,6 +2,7 @@ import { colorWithOpacity } from '../color'
 import { buildLuminanceGrid, setLuminanceGrid } from '../contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
+import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const DEFAULT_MERGE_K = 30
@@ -359,16 +360,14 @@ function applyBaseStyles(surface: BackendSurface): void {
   }
 }
 
-function clearBaseStyles(element: Element): void {
-  if (!isStyleable(element)) return
-  const style = element.style
-  style.removeProperty('backdrop-filter')
-  style.removeProperty('-webkit-backdrop-filter')
-  style.removeProperty('background')
-  style.removeProperty('border-radius')
-  style.removeProperty('position')
-  style.removeProperty('z-index')
-}
+const TOUCHED = [
+  'backdrop-filter',
+  '-webkit-backdrop-filter',
+  'background',
+  'border-radius',
+  'position',
+  'z-index'
+]
 
 export const webglOverlayBackend: Backend = {
   id: 'webgl-overlay',
@@ -377,6 +376,7 @@ export const webglOverlayBackend: Backend = {
     return capabilities.webgl2
   },
   mount(surface) {
+    const restore = captureInlineStyles(surface.element, TOUCHED)
     applyBaseStyles(surface)
     const manager = OverlayManager.acquire()
     if (!manager) {
@@ -386,7 +386,7 @@ export const webglOverlayBackend: Backend = {
         },
         sync() {},
         destroy() {
-          clearBaseStyles(surface.element)
+          restore()
         }
       }
       return fallback
@@ -402,7 +402,7 @@ export const webglOverlayBackend: Backend = {
       },
       destroy() {
         manager.remove(surface)
-        clearBaseStyles(surface.element)
+        restore()
       }
     }
   }

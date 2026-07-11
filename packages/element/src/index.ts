@@ -90,23 +90,11 @@ function createElementClass(): CustomElementConstructor {
       if (name === 'scene-image') instance.set({ sceneImage: value })
       if (name === 'physics') instance.set({ physics: physicsFrom(value) })
       if (name === 'merge') instance.set({ merge: value })
-      if (name === 'merge-strength') {
-        const mergeStrength = numberFrom(value)
-        if (mergeStrength !== undefined) instance.set({ mergeStrength })
-      }
+      if (name === 'merge-strength') instance.set({ mergeStrength: numberFrom(value) })
       if (name === 'shape') instance.set({ shape: value === 'squircle' ? 'squircle' : 'rounded' })
-      if (name === 'ior') {
-        const ior = numberFrom(value)
-        if (ior !== undefined) instance.set({ ior })
-      }
-      if (name === 'magnify') {
-        const magnify = numberFrom(value)
-        if (magnify !== undefined) instance.set({ magnify })
-      }
-      if (name === 'thickness') {
-        const thickness = numberFrom(value)
-        if (thickness !== undefined) instance.set({ thickness })
-      }
+      if (name === 'ior') instance.set({ ior: numberFrom(value) })
+      if (name === 'magnify') instance.set({ magnify: numberFrom(value) })
+      if (name === 'thickness') instance.set({ thickness: numberFrom(value) })
       if (name === 'motion-light') instance.set({ motionLight: value !== null })
     }
   }
@@ -114,7 +102,7 @@ function createElementClass(): CustomElementConstructor {
 
 let groupUid = 0
 
-function createGroupClass(): CustomElementConstructor {
+function createGroupClass(glassTag: string): CustomElementConstructor {
   return class LiquidGlassGroupElement extends HTMLElement {
     static observedAttributes = ['spacing']
 
@@ -142,7 +130,7 @@ function createGroupClass(): CustomElementConstructor {
     #apply(): void {
       const spacing = Number(this.getAttribute('spacing'))
       const strength = Number.isFinite(spacing) && spacing > 0 ? spacing : 40
-      for (const glass of this.querySelectorAll('liquid-glass')) {
+      for (const glass of this.querySelectorAll(glassTag)) {
         glass.setAttribute('merge', this.#group)
         glass.setAttribute('merge-strength', String(strength))
         if (!glass.hasAttribute('backend')) glass.setAttribute('backend', 'webgl-overlay')
@@ -155,7 +143,7 @@ export function define(tag = 'liquid-glass'): void {
   if (typeof customElements === 'undefined') return
   if (!customElements.get(tag)) customElements.define(tag, createElementClass())
   const groupTag = `${tag}-group`
-  if (!customElements.get(groupTag)) customElements.define(groupTag, createGroupClass())
+  if (!customElements.get(groupTag)) customElements.define(groupTag, createGroupClass(tag))
 }
 
 export * from '@surdeddd/liquidglass-core'

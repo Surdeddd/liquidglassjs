@@ -1,5 +1,20 @@
 # @surdeddd/liquidglass
 
+## 0.6.0
+
+### Minor Changes
+
+- Lifecycle and API hardening
+
+  - destroy() now restores the exact inline styles the element had before attach — every backend, physics, bezel and glow snapshot user values (including priority) instead of blindly removing properties
+  - set() re-selects the backend when switching back to `auto`, tracks live `prefers-reduced-motion` changes, and resubscribes the light driver when `motionLight` changes
+  - passing `undefined` for any option resets it to its default; option types now accept explicit `undefined`
+  - React, Vue and Svelte adapters reset options dropped between renders instead of merging them forever
+  - the React component forwards plain HTML props (id, aria-\*, event handlers, title) to the rendered element
+  - `define('x-glass')` groups now target the custom tag, and removing numeric attributes (`ior`, `magnify`, `thickness`, `merge-strength`) returns them to defaults
+  - subpath entries (`/element`, `/react`, `/vue`, `/svelte`) share one core runtime with the root entry in both ESM and CJS — no more duplicated registries when mixing imports
+  - exported `VERSION` now reports the real package version; npm tarball includes the README; the release workflow verifies build, types, lint and tests before publishing
+
 ## 0.5.0
 
 ### Minor Changes

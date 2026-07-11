@@ -24,7 +24,7 @@ await record('metaballs', async page => {
   await page.goto(`${BASE}/?rec=1`)
   await page.evaluate(() => {
     document.documentElement.style.scrollBehavior = 'auto'
-    history.scrollRestoration = 'manual'
+    globalThis.history.scrollRestoration = 'manual'
   })
   await page.waitForTimeout(1200)
   const stage = page.locator('.merge-stage')

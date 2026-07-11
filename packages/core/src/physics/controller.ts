@@ -1,3 +1,4 @@
+import { captureInlineStyles } from '../style-restore'
 import { Spring } from './spring'
 
 export interface PhysicsConfig {
@@ -34,6 +35,7 @@ export class PhysicsController {
   #config: PhysicsConfig
   #base: string
   #hadInlineTransform: boolean
+  #restore: () => void
   #scaleX: Spring
   #scaleY: Spring
   #tx: Spring
@@ -91,6 +93,7 @@ export class PhysicsController {
     this.#config = config
     this.#hooks = hooks
     this.#hadInlineTransform = element.style.transform !== ''
+    this.#restore = captureInlineStyles(element, ['transform', 'display'])
     const computed = typeof getComputedStyle === 'function' ? getComputedStyle(element) : null
     this.#base = computed && computed.transform !== 'none' ? computed.transform : ''
     if (computed && computed.display === 'inline') {
@@ -129,7 +132,7 @@ export class PhysicsController {
       cancelAnimationFrame(this.#frame)
       this.#frame = 0
     }
-    if (!this.#hadInlineTransform) element.style.removeProperty('transform')
+    this.#restore()
   }
 
   #configureScale(stiffness: number, damping: number): void {

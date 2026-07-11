@@ -1,6 +1,13 @@
 import { createElement, forwardRef, useEffect, useLayoutEffect, useRef } from 'react'
-import type { CSSProperties, ReactNode, Ref, RefObject } from 'react'
-import { attach, getInstance, type LiquidGlassHandle, type LiquidGlassOptions } from '@surdeddd/liquidglass-core'
+import type { CSSProperties, HTMLAttributes, ReactNode, Ref, RefObject } from 'react'
+import {
+  attach,
+  getInstance,
+  isOptionKey,
+  resetMissingOptions,
+  type LiquidGlassHandle,
+  type LiquidGlassOptions
+} from '@surdeddd/liquidglass-core'
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
@@ -35,29 +42,39 @@ export function useLiquidGlass(
 
   useEffect(() => {
     if (!handleRef.current || shallowEqual(applied.current, options)) return
+    handleRef.current.set(resetMissingOptions(applied.current, options))
     applied.current = options
-    handleRef.current.set(options)
   })
 }
 
-export interface LiquidGlassProps extends LiquidGlassOptions {
-  as?: keyof HTMLElementTagNameMap
-  className?: string
-  style?: CSSProperties
-  children?: ReactNode
-}
+export type LiquidGlassProps = LiquidGlassOptions &
+  Omit<HTMLAttributes<HTMLElement>, 'className' | 'style' | 'children'> & {
+    as?: keyof HTMLElementTagNameMap
+    className?: string
+    style?: CSSProperties
+    children?: ReactNode
+  }
 
 export const LiquidGlass = forwardRef<HTMLElement, LiquidGlassProps>(function LiquidGlass(
-  { as = 'div', className, style, children, ...options },
+  { as = 'div', className, style, children, ...rest },
   forwardedRef
 ) {
+  const options: LiquidGlassOptions = {}
+  const domProps: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(rest)) {
+    if (isOptionKey(key)) {
+      ;(options as Record<string, unknown>)[key] = value
+    } else {
+      domProps[key] = value
+    }
+  }
   const elementRef = useRef<HTMLElement | null>(null)
   useLiquidGlass(elementRef, options)
   const setRef = (node: HTMLElement | null): void => {
     elementRef.current = node
     assignRef(forwardedRef, node)
   }
-  return createElement(as, { ref: setRef, className, style }, children)
+  return createElement(as, { ...domProps, ref: setRef, className, style }, children)
 })
 
 function assignRef(ref: Ref<HTMLElement> | undefined, node: HTMLElement | null): void {
