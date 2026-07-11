@@ -43,6 +43,10 @@ test('engine renders glass through a backend', async ({ page, browserName }) => 
   })
   if (browserName === 'chromium') {
     expect(filter).toContain('url(')
+  } else if (filter === 'none') {
+    await expect(
+      page.locator('liquid-glass').first().locator('[data-liquid-glass-layer="refract"]')
+    ).toBeAttached()
   } else {
     expect(filter).toContain('blur')
   }

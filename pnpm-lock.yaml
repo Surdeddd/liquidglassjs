@@ -91,6 +91,43 @@ importers:
         specifier: workspace:^
         version: link:../core
 
+  packages/liquidglass:
+    dependencies:
+      '@surdeddd/liquidglass-core':
+        specifier: workspace:^
+        version: link:../core
+      react:
+        specifier: '>=18 <20'
+        version: 19.2.7
+    devDependencies:
+      '@surdeddd/liquidglass-element':
+        specifier: workspace:*
+        version: link:../element
+      '@surdeddd/liquidglass-react':
+        specifier: workspace:*
+        version: link:../react
+      '@surdeddd/liquidglass-svelte':
+        specifier: workspace:*
+        version: link:../svelte
+      '@surdeddd/liquidglass-vue':
+        specifier: workspace:*
+        version: link:../vue
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.17
+      svelte:
+        specifier: ^5.0.0
+        version: 5.56.4(@typescript-eslint/types@8.63.0)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.39(typescript@5.9.3)
+
   packages/react:
     dependencies:
       '@surdeddd/liquidglass-core':
@@ -3223,6 +3260,12 @@ snapshots:
       '@vue/shared': 3.5.39
       csstype: 3.2.3
 
+  '@vue/server-renderer@3.5.39(vue@3.5.39(typescript@5.9.3))':
+    dependencies:
+      '@vue/compiler-ssr': 3.5.39
+      '@vue/shared': 3.5.39
+      vue: 3.5.39(typescript@5.9.3)
+
   '@vue/server-renderer@3.5.39(vue@3.5.39(typescript@7.0.2))':
     dependencies:
       '@vue/compiler-ssr': 3.5.39
@@ -4224,6 +4267,16 @@ snapshots:
       happy-dom: 20.10.6
     transitivePeerDependencies:
       - msw
+
+  vue@3.5.39(typescript@5.9.3):
+    dependencies:
+      '@vue/compiler-dom': 3.5.39
+      '@vue/compiler-sfc': 3.5.39
+      '@vue/runtime-dom': 3.5.39
+      '@vue/server-renderer': 3.5.39(vue@3.5.39(typescript@5.9.3))
+      '@vue/shared': 3.5.39
+    optionalDependencies:
+      typescript: 5.9.3
 
   vue@3.5.39(typescript@7.0.2):
     dependencies:

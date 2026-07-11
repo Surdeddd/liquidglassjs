@@ -3,7 +3,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["@surdeddd/liquidglass-*"]],
+  "linked": [["@surdeddd/liquidglass-*", "@surdeddd/liquidglass"]],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",

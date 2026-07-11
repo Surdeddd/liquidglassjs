@@ -22,6 +22,20 @@ for (const [name, exportName] of targets) {
   }
 }
 
+const metaEntries = [
+  ['index', 'attach'],
+  ['element', 'define'],
+  ['react', 'LiquidGlass'],
+  ['vue', 'LiquidGlass'],
+  ['svelte', 'liquidGlass']
+]
+for (const [entry, exportName] of metaEntries) {
+  const mod = await import(resolve(root, 'packages', 'liquidglass', 'dist', `${entry}.js`))
+  if (typeof mod[exportName] === 'undefined') {
+    throw new Error(`@surdeddd/liquidglass/${entry}: missing export ${exportName}`)
+  }
+}
+
 const core = await import(resolve(root, 'packages', 'core', 'dist', 'index.js'))
 const caps = core.probeCapabilities()
 if (caps.backdropFilter !== false || caps.webgl2 !== false) {

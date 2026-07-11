@@ -215,16 +215,41 @@ class SvgContentInstance implements BackendInstance {
     if (!clone || !this.#source || !isStyleable(clone)) return
     const sourceBox = this.#source.getBoundingClientRect()
     const glassBox = surface.element.getBoundingClientRect()
-    const borderLeft = surface.element.clientLeft
-    const borderTop = surface.element.clientTop
+    const x = sourceBox.left - glassBox.left - surface.element.clientLeft
+    const y = sourceBox.top - glassBox.top - surface.element.clientTop
     const style = clone.style
-    style.inset = ''
-    style.position = 'absolute'
-    style.left = `${sourceBox.left - glassBox.left - borderLeft}px`
-    style.top = `${sourceBox.top - glassBox.top - borderTop}px`
-    style.width = `${sourceBox.width}px`
-    style.height = `${sourceBox.height}px`
+    if (style.position !== 'absolute') {
+      style.inset = ''
+      style.position = 'absolute'
+      style.left = '0'
+      style.top = '0'
+      style.willChange = 'transform'
+    }
+    const next = `translate(${x}px, ${y}px)`
+    if (style.transform !== next) style.transform = next
+    const w = `${sourceBox.width}px`
+    const h = `${sourceBox.height}px`
+    if (style.width !== w) style.width = w
+    if (style.height !== h) style.height = h
+
+    const host = surface.element as HTMLElement
+    const covered =
+      sourceBox.left <= glassBox.left + 1 &&
+      sourceBox.top <= glassBox.top + 1 &&
+      sourceBox.right >= glassBox.right - 1 &&
+      sourceBox.bottom >= glassBox.bottom - 1
+    if (covered !== this.#hostFilterOff) {
+      this.#hostFilterOff = covered
+      if (covered) {
+        host.style.setProperty('backdrop-filter', 'none')
+        host.style.setProperty('-webkit-backdrop-filter', 'none')
+      } else {
+        this.#applyBaseStyles(surface)
+      }
+    }
   }
+
+  #hostFilterOff = false
 
   #refreshMap(surface: BackendSurface, force: boolean): void {
     if (!this.#filter) return

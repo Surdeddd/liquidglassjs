@@ -69,6 +69,22 @@ the browser can do and routes each surface to the best available backend — und
 
 ## Quick start
 
+One install, every framework — pick your entry:
+
+```sh
+npm i @surdeddd/liquidglass
+```
+
+```ts
+import { attach } from '@surdeddd/liquidglass'
+import { LiquidGlass } from '@surdeddd/liquidglass/react'
+import { LiquidGlass } from '@surdeddd/liquidglass/vue'
+import { liquidGlass } from '@surdeddd/liquidglass/svelte'
+import { define } from '@surdeddd/liquidglass/element'
+```
+
+Scoped per-framework packages stay available if you prefer them:
+
 ```ts
 import { attach } from '@surdeddd/liquidglass-core'
 

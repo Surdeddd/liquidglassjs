@@ -1,0 +1,116 @@
+{
+  "name": "@surdeddd/liquidglass",
+  "version": "0.0.0",
+  "description": "Liquid Glass for the whole web in one package: core engine plus /react, /vue, /svelte and /element entries",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./element": {
+      "import": {
+        "types": "./dist/element.d.ts",
+        "default": "./dist/element.js"
+      },
+      "require": {
+        "types": "./dist/element.d.cts",
+        "default": "./dist/element.cjs"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    },
+    "./vue": {
+      "import": {
+        "types": "./dist/vue.d.ts",
+        "default": "./dist/vue.js"
+      },
+      "require": {
+        "types": "./dist/vue.d.cts",
+        "default": "./dist/vue.cjs"
+      }
+    },
+    "./svelte": {
+      "import": {
+        "types": "./dist/svelte.d.ts",
+        "default": "./dist/svelte.js"
+      },
+      "require": {
+        "types": "./dist/svelte.d.cts",
+        "default": "./dist/svelte.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "tsup"
+  },
+  "keywords": [
+    "liquid-glass",
+    "glassmorphism",
+    "refraction",
+    "backdrop-filter",
+    "react",
+    "vue",
+    "svelte",
+    "web-component"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Surdeddd/liquidglassjs.git",
+    "directory": "packages/liquidglass"
+  },
+  "dependencies": {
+    "@surdeddd/liquidglass-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": ">=18 <20",
+    "svelte": "^4.0.0 || ^5.0.0",
+    "vue": "^3.4.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@surdeddd/liquidglass-element": "workspace:*",
+    "@surdeddd/liquidglass-react": "workspace:*",
+    "@surdeddd/liquidglass-svelte": "workspace:*",
+    "@surdeddd/liquidglass-vue": "workspace:*",
+    "@types/react": "^19.0.0",
+    "svelte": "^5.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vue": "^3.5.13"
+  }
+}
