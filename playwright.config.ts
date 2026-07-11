@@ -28,7 +28,17 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } }
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    {
+      name: 'mobile-safari',
+      use: { ...devices['iPhone 15'] },
+      testIgnore: ['**/visual.spec.ts', '**/perf-audit.spec.ts']
+    },
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 7'] },
+      testIgnore: ['**/visual.spec.ts', '**/perf-audit.spec.ts']
+    }
   ],
   webServer: [server('demo', 4173), server('docs', 4175)]
 })

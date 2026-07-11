@@ -11,6 +11,7 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   dts: {
     resolve: [
+      '@surdeddd/liquidglass-core',
       '@surdeddd/liquidglass-element',
       '@surdeddd/liquidglass-react',
       '@surdeddd/liquidglass-vue',
@@ -20,10 +21,11 @@ export default defineConfig({
   clean: true,
   treeshake: true,
   noExternal: [
+    '@surdeddd/liquidglass-core',
     '@surdeddd/liquidglass-element',
     '@surdeddd/liquidglass-react',
     '@surdeddd/liquidglass-vue',
     '@surdeddd/liquidglass-svelte'
   ],
-  external: ['@surdeddd/liquidglass-core', 'react', 'vue', 'svelte']
+  external: ['react', 'vue', 'svelte']
 })

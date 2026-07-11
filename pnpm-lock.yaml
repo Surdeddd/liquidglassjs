@@ -56,9 +56,9 @@ importers:
 
   apps/docs:
     dependencies:
-      '@surdeddd/liquidglass-element':
-        specifier: workspace:^
-        version: link:../../packages/element
+      '@surdeddd/liquidglass':
+        specifier: workspace:*
+        version: link:../../packages/liquidglass
 
   apps/react18-smoke:
     dependencies:
@@ -93,13 +93,13 @@ importers:
 
   packages/liquidglass:
     dependencies:
-      '@surdeddd/liquidglass-core':
-        specifier: workspace:^
-        version: link:../core
       react:
         specifier: '>=18 <20'
         version: 19.2.7
     devDependencies:
+      '@surdeddd/liquidglass-core':
+        specifier: workspace:*
+        version: link:../core
       '@surdeddd/liquidglass-element':
         specifier: workspace:*
         version: link:../element

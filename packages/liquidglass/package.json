@@ -1,6 +1,6 @@
 {
   "name": "@surdeddd/liquidglass",
-  "version": "0.0.0",
+  "version": "0.3.0",
   "description": "Liquid Glass for the whole web in one package: core engine plus /react, /vue, /svelte and /element entries",
   "type": "module",
   "license": "MIT",
@@ -83,9 +83,7 @@
     "url": "git+https://github.com/Surdeddd/liquidglassjs.git",
     "directory": "packages/liquidglass"
   },
-  "dependencies": {
-    "@surdeddd/liquidglass-core": "workspace:^"
-  },
+  "dependencies": {},
   "peerDependencies": {
     "react": ">=18 <20",
     "svelte": "^4.0.0 || ^5.0.0",
@@ -111,6 +109,7 @@
     "svelte": "^5.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "@surdeddd/liquidglass-core": "workspace:*"
   }
 }
