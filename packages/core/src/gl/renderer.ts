@@ -63,8 +63,9 @@ in vec2 v_local;
 out vec4 outColor;
 
 float sdBox(vec2 p, vec2 halfSize, float r) {
-  vec2 q = abs(p) - halfSize + r;
-  return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+  float rr = min(r, min(halfSize.x, halfSize.y));
+  vec2 q = abs(p) - halfSize + rr;
+  return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rr;
 }
 
 float smin(float a, float b, float k) {

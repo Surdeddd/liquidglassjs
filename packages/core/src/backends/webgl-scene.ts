@@ -1,18 +1,10 @@
 import { colorWithOpacity } from '../color'
+import { resolveRadiusPx } from '../displacement'
 import { GlRenderer } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
-}
-
-function effectiveRadius(surface: BackendSurface): number {
-  if (typeof surface.material.radius === 'number') return surface.material.radius
-  if (isStyleable(surface.element) && typeof getComputedStyle === 'function') {
-    const parsed = parseFloat(getComputedStyle(surface.element).borderRadius)
-    if (Number.isFinite(parsed)) return parsed
-  }
-  return 0
 }
 
 class WebglSceneInstance implements BackendInstance {
@@ -92,7 +84,14 @@ class WebglSceneInstance implements BackendInstance {
       [
         {
           quad,
-          shapes: [{ rect: quad, radius: effectiveRadius(surface) * dpr }],
+          shapes: [
+            {
+              rect: quad,
+              radius:
+                resolveRadiusPx(surface.material.radius, surface.element, hostBox.width, hostBox.height) *
+                dpr
+            }
+          ],
           material: surface.material,
           mergeK: 1
         }

@@ -18,7 +18,7 @@
   </head>
   <body>
     <div class="wp" data-wall="aurora" data-wall-seed="7" aria-hidden="true"></div>
-    <div class="grain" aria-hidden="true"></div>
+    <div class="grain" data-liquid-glass-ignore aria-hidden="true"></div>
 
     <liquid-glass class="nav" preset="clear" physics="false" motion-light>
       <span class="nav-logo">🫧 liquidglass<span class="nav-logo-dim">js</span></span>
@@ -93,8 +93,8 @@
         </p>
         <div class="stage merge-stage">
           <div class="wall" data-wall="sea" data-wall-seed="3" aria-hidden="true"></div>
-          <liquid-glass class="m-blob m-blob-a" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
-          <liquid-glass class="m-blob m-blob-b" backend="webgl-overlay" merge="landing" preset="clear" physics="false"></liquid-glass>
+          <liquid-glass class="m-blob m-blob-a" backend="webgl-overlay" merge="landing" merge-strength="64" preset="clear" ior="1.8" physics="false"></liquid-glass>
+          <liquid-glass class="m-blob m-blob-b" backend="webgl-overlay" merge="landing" merge-strength="64" preset="clear" ior="1.8" physics="false"></liquid-glass>
         </div>
         <p class="section-lead dock-lead">
           The same trick powers the tab bar: the pill rides a spring and bulges through the dock as it
@@ -102,8 +102,8 @@
         </p>
         <div class="dock-stage">
           <div class="dock">
-            <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" preset="clear" physics="false"></liquid-glass>
-            <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" preset="clear" physics="false"></liquid-glass>
+            <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
+            <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
             <nav class="dock-tabs">
               <button type="button" data-dock="0" class="active">glass</button>
               <button type="button" data-dock="1">physics</button>

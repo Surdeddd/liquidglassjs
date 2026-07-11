@@ -1,5 +1,5 @@
 import { colorWithOpacity } from '../color'
-import { generateLensMap, resolveBandPx, squircleClipPath } from '../displacement'
+import { generateLensMap, resolveBandPx, resolveRadiusPx, squircleClipPath } from '../displacement'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
 import type { Backend, BackendInstance, BackendSurface } from './types'
@@ -27,15 +27,6 @@ function ensureDefs(): SVGDefsElement | null {
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
-}
-
-function effectiveRadius(surface: BackendSurface): number {
-  if (typeof surface.material.radius === 'number') return surface.material.radius
-  if (isStyleable(surface.element) && typeof getComputedStyle === 'function') {
-    const parsed = parseFloat(getComputedStyle(surface.element).borderRadius)
-    if (Number.isFinite(parsed)) return parsed
-  }
-  return 0
 }
 
 function surfaceSize(surface: BackendSurface): { width: number; height: number } {
@@ -251,7 +242,7 @@ class SvgContentInstance implements BackendInstance {
         `${Math.round(Math.min(width, height) * 0.36)}px`
       )
     }
-    const radius = effectiveRadius(surface)
+    const radius = resolveRadiusPx(material.radius, surface.element, width, height)
     this.#band = resolveBandPx(material.bevelWidth, radius, width, height)
     const map = generateLensMap({
       width,

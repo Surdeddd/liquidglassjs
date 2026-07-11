@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeOffsets, generateLensMap, sdfRoundedRect } from '../src/displacement'
+import { computeOffsets, generateLensMap, resolveRadiusPx, sdfRoundedRect } from '../src/displacement'
 
 describe('sdfRoundedRect', () => {
   it('is negative inside the shape', () => {
@@ -108,6 +108,36 @@ describe('computeOffsets (lens model)', () => {
   it('supports the squircle shape', () => {
     const [dx] = offsetAt({ ...base, shape: 'squircle' as never }, 2, 50)
     expect(dx).toBeLessThan(0)
+  })
+})
+
+describe('resolveRadiusPx', () => {
+  it('converts percentage border-radius against the min side', () => {
+    const el = document.createElement('div')
+    el.style.borderRadius = '50%'
+    document.body.appendChild(el)
+    expect(resolveRadiusPx('auto', el, 150, 150)).toBe(75)
+    expect(resolveRadiusPx('auto', el, 200, 100)).toBe(50)
+    el.remove()
+  })
+
+  it('clamps oversized radii to half the min side', () => {
+    const el = document.createElement('div')
+    el.style.borderRadius = '999px'
+    document.body.appendChild(el)
+    expect(resolveRadiusPx('auto', el, 130, 84)).toBe(42)
+    expect(resolveRadiusPx(999, el, 130, 84)).toBe(42)
+    el.remove()
+  })
+
+  it('parses pixel values and defaults to zero', () => {
+    const el = document.createElement('div')
+    el.style.borderRadius = '18px'
+    document.body.appendChild(el)
+    expect(resolveRadiusPx('auto', el, 240, 120)).toBe(18)
+    el.style.borderRadius = ''
+    expect(resolveRadiusPx('auto', el, 240, 120)).toBe(0)
+    el.remove()
   })
 })
 

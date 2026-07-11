@@ -165,6 +165,29 @@ export interface LensMap {
   maxOffset: number
 }
 
+export function resolveRadiusPx(
+  radius: number | 'auto',
+  element: Element,
+  width: number,
+  height: number
+): number {
+  const half = Math.min(width, height) / 2
+  if (typeof radius === 'number') return Math.max(0, Math.min(radius, half))
+  if (
+    typeof HTMLElement !== 'undefined' &&
+    element instanceof HTMLElement &&
+    typeof getComputedStyle === 'function'
+  ) {
+    const raw = getComputedStyle(element).borderRadius.split(' ')[0] ?? ''
+    const parsed = parseFloat(raw)
+    if (Number.isFinite(parsed)) {
+      const px = raw.endsWith('%') ? (parsed / 100) * Math.min(width, height) : parsed
+      return Math.max(0, Math.min(px, half))
+    }
+  }
+  return 0
+}
+
 const MIN_AUTO_BAND = 12
 
 export function resolveBandPx(

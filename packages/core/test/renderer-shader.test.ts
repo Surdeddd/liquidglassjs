@@ -17,4 +17,8 @@ describe('gl lens shader', () => {
     expect(FRAGMENT_SRC).toContain('u_magnify')
     expect(FRAGMENT_SRC).toContain('u_center')
   })
+
+  it('clamps the rounded-box corner radius to the half size', () => {
+    expect(FRAGMENT_SRC).toContain('min(r, min(halfSize.x, halfSize.y))')
+  })
 })

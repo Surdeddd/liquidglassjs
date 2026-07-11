@@ -437,15 +437,16 @@ main {
 .dock-tabs button {
   background: none;
   border: 0;
-  color: var(--ink-dim);
+  color: rgba(238, 241, 249, 0.72);
   font-family: var(--mono);
   font-size: 13px;
   cursor: pointer;
+  text-shadow: 0 1px 8px rgba(4, 6, 12, 0.6);
   transition: color 0.3s ease;
 }
 
 .dock-tabs button.active {
-  color: var(--ink);
+  color: #fff;
 }
 
 .adaptive-grid {

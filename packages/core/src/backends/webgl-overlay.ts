@@ -1,4 +1,5 @@
 import { colorWithOpacity } from '../color'
+import { resolveRadiusPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -9,15 +10,6 @@ const SNAPSHOT_DEBOUNCE_MS = 300
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
-}
-
-function effectiveRadius(surface: BackendSurface): number {
-  if (typeof surface.material.radius === 'number') return surface.material.radius
-  if (isStyleable(surface.element) && typeof getComputedStyle === 'function') {
-    const parsed = parseFloat(getComputedStyle(surface.element).borderRadius)
-    if (Number.isFinite(parsed)) return parsed
-  }
-  return 0
 }
 
 function dpr(): number {
@@ -197,7 +189,9 @@ class OverlayManager {
         filter: node =>
           !(
             node instanceof Element &&
-            (node.hasAttribute('data-liquid-glass') || node.hasAttribute('data-liquid-glass-overlay'))
+            (node.hasAttribute('data-liquid-glass') ||
+              node.hasAttribute('data-liquid-glass-overlay') ||
+              node.hasAttribute('data-liquid-glass-ignore'))
           )
       })
       this.#renderer.setTexture(snapshot)
@@ -230,7 +224,7 @@ class OverlayManager {
           width: box.width,
           height: box.height
         },
-        radius: effectiveRadius(surface)
+        radius: resolveRadiusPx(surface.material.radius, surface.element, box.width, box.height)
       }
       if (surface.merge) {
         const key = surface.merge

@@ -44,6 +44,7 @@ function createElementClass(): CustomElementConstructor {
       'scene-image',
       'physics',
       'merge',
+      'merge-strength',
       'shape',
       'ior',
       'magnify',
@@ -53,6 +54,7 @@ function createElementClass(): CustomElementConstructor {
     connectedCallback(): void {
       const ior = numberFrom(this.getAttribute('ior'))
       const magnify = numberFrom(this.getAttribute('magnify'))
+      const mergeStrength = numberFrom(this.getAttribute('merge-strength'))
       attach(this, {
         preset: presetFrom(this.getAttribute('preset')),
         backdrop: this.getAttribute('backdrop'),
@@ -63,6 +65,7 @@ function createElementClass(): CustomElementConstructor {
         shape: this.getAttribute('shape') === 'squircle' ? 'squircle' : 'rounded',
         ...(ior !== undefined ? { ior } : {}),
         ...(magnify !== undefined ? { magnify } : {}),
+        ...(mergeStrength !== undefined ? { mergeStrength } : {}),
         motionLight: this.hasAttribute('motion-light')
       })
     }
@@ -84,6 +87,10 @@ function createElementClass(): CustomElementConstructor {
       if (name === 'scene-image') instance.set({ sceneImage: value })
       if (name === 'physics') instance.set({ physics: physicsFrom(value) })
       if (name === 'merge') instance.set({ merge: value })
+      if (name === 'merge-strength') {
+        const mergeStrength = numberFrom(value)
+        if (mergeStrength !== undefined) instance.set({ mergeStrength })
+      }
       if (name === 'shape') instance.set({ shape: value === 'squircle' ? 'squircle' : 'rounded' })
       if (name === 'ior') {
         const ior = numberFrom(value)
