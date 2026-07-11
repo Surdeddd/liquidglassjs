@@ -1,5 +1,11 @@
 # @surdeddd/liquidglass
 
+## 0.5.0
+
+### Minor Changes
+
+- ac037f0: morphGlass(from, to): spring-driven glassEffectID-style transition — one glass control hands its geometry to another and the material rides the spring between them; instant under prefers-reduced-motion.
+
 ## 0.4.0
 
 ### Minor Changes

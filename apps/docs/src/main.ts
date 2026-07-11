@@ -1,6 +1,7 @@
 import {
   attach,
   define,
+  morphGlass,
   mountScrollEdge,
   resolveMaterial,
   Spring,
@@ -90,13 +91,31 @@ const paramInputs = [...document.querySelectorAll<HTMLInputElement>('[data-param
 
 const pgState: LiquidGlassOptions = { preset: 'clear', adaptive: false, physics: false }
 
+if (location.hash.startsWith('#pg=')) {
+  try {
+    Object.assign(pgState, JSON.parse(decodeURIComponent(location.hash.slice(4))))
+  } catch {
+    history.replaceState(null, '', '#playground')
+  }
+}
+
+function shareableState(): Record<string, unknown> {
+  const entries = Object.entries(pgState).filter(([key]) => key !== 'adaptive' && key !== 'physics')
+  return Object.fromEntries(entries)
+}
+
+let pgTouched = false
+
 function renderSnippet(): void {
   if (!snippetNode) return
-  const entries = Object.entries(pgState).filter(([key]) => key !== 'adaptive' && key !== 'physics')
+  const entries = Object.entries(shareableState())
   const lines = entries.map(
     ([key, value]) => `  ${key}: ${typeof value === 'string' ? `'${value}'` : String(value)}`
   )
   snippetNode.textContent = `import { attach } from '@surdeddd/liquidglass'\n\nattach(element, {\n${lines.join(',\n')}\n})`
+  if (pgTouched) {
+    history.replaceState(null, '', `#pg=${encodeURIComponent(JSON.stringify(shareableState()))}`)
+  }
 }
 
 function syncInputs(material: MaterialParams): void {
@@ -122,6 +141,7 @@ if (pgLens) {
       const key = input.dataset['param'] as keyof LiquidGlassOptions | undefined
       if (!key) return
       const value = input.type === 'range' ? parseFloat(input.value) : input.value
+      pgTouched = true
       Object.assign(pgState, { [key]: value })
       handle.set({ [key]: value })
       const output = input.closest('label')?.querySelector('output')
@@ -132,6 +152,7 @@ if (pgLens) {
 
   for (const button of presetButtons) {
     button.addEventListener('click', () => {
+      pgTouched = true
       const preset = (button.dataset['preset'] ?? 'clear') as LiquidGlassPreset
       for (const key of Object.keys(pgState)) {
         if (key !== 'preset' && key !== 'adaptive' && key !== 'physics') {
@@ -149,6 +170,7 @@ if (pgLens) {
 
   const motionToggle = document.querySelector<HTMLInputElement>('[data-motion-light]')
   motionToggle?.addEventListener('change', () => {
+    pgTouched = true
     if (motionToggle.checked) {
       pgState.motionLight = true
       handle.set({ motionLight: true })
@@ -161,6 +183,28 @@ if (pgLens) {
 
   syncInputs(resolveMaterial(pgState))
   renderSnippet()
+}
+
+const morphBtn = document.querySelector<HTMLElement>('[data-morph-btn]')
+const morphPanel = document.querySelector<HTMLElement>('[data-morph-panel]')
+if (morphBtn && morphPanel) {
+  let open = false
+  let busy = false
+  const toggle = async (): Promise<void> => {
+    if (busy) return
+    busy = true
+    if (open) {
+      morphBtn.style.visibility = 'visible'
+      await morphGlass(morphPanel, morphBtn)
+    } else {
+      morphPanel.style.visibility = 'visible'
+      await morphGlass(morphBtn, morphPanel)
+    }
+    open = !open
+    busy = false
+  }
+  morphBtn.addEventListener('click', () => void toggle())
+  morphPanel.addEventListener('click', () => void toggle())
 }
 
 const dockPill = document.querySelector<HTMLElement>('.dock-pill')

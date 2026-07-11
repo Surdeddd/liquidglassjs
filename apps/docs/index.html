@@ -102,6 +102,19 @@
           The same trick powers the tab bar: the pill rides a spring and bulges through the dock as it
           passes.
         </p>
+        <p class="section-lead dock-lead">
+          And whole controls morph: hand one glass its sibling and the material rides a spring
+          between them.
+        </p>
+        <div class="stage morph-stage">
+          <div class="wall" data-wall="dusk" data-wall-seed="27" aria-hidden="true"></div>
+          <liquid-glass class="morph-btn" preset="clear" physics="false" data-morph-btn motion-light><span>open</span></liquid-glass>
+          <liquid-glass class="morph-panel" preset="clear" physics="false" data-morph-panel motion-light>
+            <span class="morph-panel-title">liquid menu</span>
+            <span class="morph-panel-row">refraction · dispersion · glow</span>
+            <span class="morph-panel-row morph-panel-hint">tap to morph back</span>
+          </liquid-glass>
+        </div>
         <div class="dock-stage">
           <div class="dock">
             <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
