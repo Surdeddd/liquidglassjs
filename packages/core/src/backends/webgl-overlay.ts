@@ -95,6 +95,7 @@ class OverlayManager {
           if (target instanceof Element && target.closest('[data-liquid-glass], [data-liquid-glass-overlay]')) {
             continue
           }
+          if (!this.#touchesSurfaces(target)) continue
           this.scheduleSnapshot()
           return
         }
@@ -107,6 +108,27 @@ class OverlayManager {
       })
     }
     this.scheduleSnapshot()
+  }
+
+  #touchesSurfaces(target: Node): boolean {
+    if (!(target instanceof Element)) return true
+    const el = target
+    if (typeof el.getBoundingClientRect !== 'function') return true
+    const box = el.getBoundingClientRect()
+    if (box.width === 0 && box.height === 0) return true
+    const reach = 240
+    for (const surface of this.#surfaces) {
+      const glass = surface.element.getBoundingClientRect()
+      if (
+        box.left < glass.right + reach &&
+        box.right > glass.left - reach &&
+        box.top < glass.bottom + reach &&
+        box.bottom > glass.top - reach
+      ) {
+        return true
+      }
+    }
+    return false
   }
 
   add(surface: BackendSurface): void {

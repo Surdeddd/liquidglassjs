@@ -17,8 +17,13 @@ let lastY = 0
 
 function flush(): void {
   frame = 0
+  const vh = typeof window === 'undefined' ? 0 : window.innerHeight
+  const vw = typeof window === 'undefined' ? 0 : window.innerWidth
   for (const client of clients) {
     const rect = client.host.getBoundingClientRect()
+    if (rect.bottom < -80 || rect.top > vh + 80 || rect.right < -80 || rect.left > vw + 80) {
+      continue
+    }
     const cx = rect.left + rect.width / 2
     const cy = rect.top + rect.height / 2
     client.update(pointerAngle(cx, cy, lastX, lastY))

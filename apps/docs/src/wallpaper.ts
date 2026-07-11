@@ -108,15 +108,35 @@ export function paintWallpaper(
     ctx.stroke()
   }
 
-  el.style.backgroundImage = `url(${canvas.toDataURL('image/png')})`
+  el.style.backgroundImage = `url(${canvas.toDataURL('image/jpeg', 0.86)})`
   el.style.backgroundSize = 'cover'
   el.style.backgroundPosition = 'center'
 }
 
 export function paintAllWallpapers(root: ParentNode = document): void {
+  const deferred: HTMLElement[] = []
   for (const el of root.querySelectorAll<HTMLElement>('[data-wall]')) {
-    const palette = (el.dataset['wall'] || 'aurora') as keyof typeof PALETTES
-    const seed = Number(el.dataset['wallSeed'] ?? 7)
-    paintWallpaper(el, palette, seed)
+    const box = el.getBoundingClientRect()
+    const visible = box.bottom > -200 && box.top < window.innerHeight + 200
+    if (visible) paintOne(el)
+    else deferred.push(el)
   }
+  if (deferred.length === 0) return
+  const idle =
+    typeof requestIdleCallback === 'function'
+      ? requestIdleCallback
+      : (fn: () => void) => setTimeout(fn, 120)
+  const next = (): void => {
+    const el = deferred.shift()
+    if (!el) return
+    paintOne(el)
+    idle(next)
+  }
+  idle(next)
+}
+
+function paintOne(el: HTMLElement): void {
+  const palette = (el.dataset['wall'] || 'aurora') as keyof typeof PALETTES
+  const seed = Number(el.dataset['wallSeed'] ?? 7)
+  paintWallpaper(el, palette, seed)
 }

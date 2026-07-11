@@ -44,9 +44,13 @@ export function mountBezel(host: HTMLElement, specular: number): BezelHandle {
   }
   host.appendChild(el)
 
+  let lastAngle = Number.NaN
   return {
     update(angleDeg: number) {
-      host.style.setProperty('--lg-light-angle', `${Math.round(angleDeg * 10) / 10}deg`)
+      const rounded = Math.round(angleDeg * 2) / 2
+      if (Math.abs(rounded - lastAngle) < 0.5) return
+      lastAngle = rounded
+      host.style.setProperty('--lg-light-angle', `${rounded}deg`)
     },
     destroy() {
       el.remove()
