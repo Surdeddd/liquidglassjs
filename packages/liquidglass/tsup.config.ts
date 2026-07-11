@@ -21,7 +21,7 @@ export default defineConfig([
   {
     ...shared,
     entry: { index: 'src/index.ts' },
-    dts: { resolve: WORKSPACE },
+    dts: { resolve: WORKSPACE, compilerOptions: { paths: {} } },
     noExternal: WORKSPACE
   },
   {
@@ -39,7 +39,8 @@ export default defineConfig([
         vue: 'src/dts/vue.ts',
         svelte: 'src/dts/svelte.ts'
       },
-      resolve: WORKSPACE
+      resolve: WORKSPACE,
+      compilerOptions: { paths: {} }
     },
     noExternal: WORKSPACE,
     treeshake: false,

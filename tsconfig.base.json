@@ -14,6 +14,13 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@surdeddd/liquidglass-core": ["./packages/core/src/index.ts"],
+      "@surdeddd/liquidglass-element": ["./packages/element/src/index.ts"],
+      "@surdeddd/liquidglass-react": ["./packages/react/src/index.ts"],
+      "@surdeddd/liquidglass-vue": ["./packages/vue/src/index.ts"],
+      "@surdeddd/liquidglass-svelte": ["./packages/svelte/src/index.ts"]
+    }
   }
 }

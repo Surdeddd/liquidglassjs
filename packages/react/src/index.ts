@@ -1,5 +1,14 @@
 import { createElement, forwardRef, useEffect, useLayoutEffect, useRef } from 'react'
-import type { CSSProperties, HTMLAttributes, ReactNode, Ref, RefObject } from 'react'
+import type {
+  CSSProperties,
+  ForwardRefExoticComponent,
+  HTMLAttributes,
+  PropsWithoutRef,
+  ReactNode,
+  Ref,
+  RefAttributes,
+  RefObject
+} from 'react'
 import {
   attach,
   getInstance,
@@ -55,7 +64,9 @@ export type LiquidGlassProps = LiquidGlassOptions &
     children?: ReactNode
   }
 
-export const LiquidGlass = forwardRef<HTMLElement, LiquidGlassProps>(function LiquidGlass(
+export const LiquidGlass: ForwardRefExoticComponent<
+  PropsWithoutRef<LiquidGlassProps> & RefAttributes<HTMLElement>
+> = forwardRef<HTMLElement, LiquidGlassProps>(function LiquidGlass(
   { as = 'div', className, style, children, ...rest },
   forwardedRef
 ) {
