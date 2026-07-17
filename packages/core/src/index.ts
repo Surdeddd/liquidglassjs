@@ -1,5 +1,6 @@
 export { attach, detach, getInstance } from './engine'
 export { isOptionKey, OPTION_KEYS, resetMissingOptions } from './options'
+export { frameNow, onFrame, onViewport } from './scheduler'
 export { colorWithOpacity } from './color'
 export {
   adaptTintToTone,

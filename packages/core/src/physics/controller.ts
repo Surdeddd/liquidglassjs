@@ -1,3 +1,4 @@
+import { onFrame } from '../scheduler'
 import { captureInlineStyles } from '../style-restore'
 import { Spring } from './spring'
 
@@ -40,8 +41,7 @@ export class PhysicsController {
   #scaleY: Spring
   #tx: Spring
   #ty: Spring
-  #frame = 0
-  #lastTime = 0
+  #offFrame: (() => void) | null = null
 
   #onDown = (event: PointerEvent): void => {
     if (!this.#config.press) return
@@ -128,10 +128,8 @@ export class PhysicsController {
     element.removeEventListener('pointercancel', this.#onUp)
     element.removeEventListener('pointermove', this.#onMove)
     element.removeEventListener('pointerleave', this.#onLeave)
-    if (this.#frame && typeof cancelAnimationFrame === 'function') {
-      cancelAnimationFrame(this.#frame)
-      this.#frame = 0
-    }
+    this.#offFrame?.()
+    this.#offFrame = null
     this.#restore()
   }
 
@@ -159,14 +157,12 @@ export class PhysicsController {
   }
 
   #wake(): void {
-    if (this.#frame || typeof requestAnimationFrame !== 'function') return
-    this.#lastTime = 0
-    const loop = (time: number): void => {
-      const dt = this.#lastTime ? (time - this.#lastTime) / 1000 : 1 / 60
-      this.#lastTime = time
-      const active = this.tick(dt)
-      this.#frame = active ? requestAnimationFrame(loop) : 0
-    }
-    this.#frame = requestAnimationFrame(loop)
+    if (this.#offFrame) return
+    this.#offFrame = onFrame(dt => {
+      if (!this.tick(dt)) {
+        this.#offFrame?.()
+        this.#offFrame = null
+      }
+    })
   }
 }

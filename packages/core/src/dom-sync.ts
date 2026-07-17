@@ -1,3 +1,5 @@
+import { onViewport } from './scheduler'
+
 export interface SurfaceRect {
   x: number
   y: number
@@ -17,13 +19,9 @@ export class SurfaceTracker {
   #listener: SurfaceListener
   #resizeObserver: ResizeObserver | null = null
   #intersectionObserver: IntersectionObserver | null = null
-  #frame = 0
+  #offViewport: (() => void) | null = null
   #running = false
   #state: SurfaceState = { rect: { x: 0, y: 0, width: 0, height: 0 }, visible: true }
-
-  #onViewportChange = (): void => {
-    this.#schedule()
-  }
 
   constructor(element: Element, listener: SurfaceListener) {
     this.#element = element
@@ -38,7 +36,7 @@ export class SurfaceTracker {
     if (this.#running || typeof window === 'undefined') return
     this.#running = true
     if (typeof ResizeObserver !== 'undefined') {
-      this.#resizeObserver = new ResizeObserver(() => this.#schedule())
+      this.#resizeObserver = new ResizeObserver(() => this.#measure())
       this.#resizeObserver.observe(this.#element)
     }
     if (typeof IntersectionObserver !== 'undefined') {
@@ -51,8 +49,7 @@ export class SurfaceTracker {
       })
       this.#intersectionObserver.observe(this.#element)
     }
-    window.addEventListener('scroll', this.#onViewportChange, { passive: true, capture: true })
-    window.addEventListener('resize', this.#onViewportChange, { passive: true })
+    this.#offViewport = onViewport(() => this.#measure())
     this.#measure()
   }
 
@@ -63,20 +60,8 @@ export class SurfaceTracker {
     this.#resizeObserver = null
     this.#intersectionObserver?.disconnect()
     this.#intersectionObserver = null
-    window.removeEventListener('scroll', this.#onViewportChange, true)
-    window.removeEventListener('resize', this.#onViewportChange)
-    if (this.#frame && typeof cancelAnimationFrame === 'function') {
-      cancelAnimationFrame(this.#frame)
-    }
-    this.#frame = 0
-  }
-
-  #schedule(): void {
-    if (this.#frame || typeof requestAnimationFrame !== 'function') return
-    this.#frame = requestAnimationFrame(() => {
-      this.#frame = 0
-      this.#measure()
-    })
+    this.#offViewport?.()
+    this.#offViewport = null
   }
 
   #measure(): void {

@@ -1,3 +1,5 @@
+import { onFrame } from './scheduler'
+
 export function pointerAngle(cx: number, cy: number, px: number, py: number): number {
   return (Math.atan2(px - cx, cy - py) * 180) / Math.PI
 }
@@ -11,12 +13,11 @@ interface LightClient {
 const clients = new Set<LightClient>()
 let pointerBound = false
 let motionBound = false
-let frame = 0
+let flushPending = false
 let lastX = 0
 let lastY = 0
 
 function flush(): void {
-  frame = 0
   const vh = typeof window === 'undefined' ? 0 : window.innerHeight
   const vw = typeof window === 'undefined' ? 0 : window.innerWidth
   for (const client of clients) {
@@ -33,11 +34,17 @@ function flush(): void {
 function onPointerMove(event: PointerEvent | MouseEvent): void {
   lastX = event.clientX
   lastY = event.clientY
-  if (frame || typeof requestAnimationFrame !== 'function') {
-    if (!frame) flush()
+  if (flushPending) return
+  if (typeof requestAnimationFrame !== 'function') {
+    flush()
     return
   }
-  frame = requestAnimationFrame(flush)
+  flushPending = true
+  const off = onFrame(() => {
+    off()
+    flushPending = false
+    flush()
+  })
 }
 
 function onOrientation(event: DeviceOrientationEvent): void {
@@ -70,10 +77,6 @@ function releaseListeners(): void {
   if (motionBound) {
     window.removeEventListener('deviceorientation', onOrientation)
     motionBound = false
-  }
-  if (frame && typeof cancelAnimationFrame === 'function') {
-    cancelAnimationFrame(frame)
-    frame = 0
   }
 }
 
