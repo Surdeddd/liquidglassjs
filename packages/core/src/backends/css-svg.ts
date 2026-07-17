@@ -2,6 +2,7 @@ import { colorWithOpacity } from '../color'
 import { generateLensMap, resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
+import { getQuality } from '../quality'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -142,13 +143,13 @@ class CssSvgInstance implements BackendInstance {
     })
     if (!map) return
     const scale = 2 * map.maxOffset * material.refraction * 2
-    const chainKey = `${material.dispersion > 0.001 ? 3 : 1}|${material.frost > 0}|${material.blur}|${material.saturation}|${material.brightness}|${material.dispersion}`
+    const chainKey = `${material.dispersion > 0.001 && getQuality().caPasses === 3 ? 3 : 1}|${material.frost > 0}|${material.blur}|${material.saturation}|${material.brightness}|${material.dispersion}`
     if (!this.#chain || chainKey !== this.#chainKey) {
       this.#chain = buildLensChain({
         filter: this.#filter,
         material,
         scale,
-        passes: material.dispersion > 0.001 ? 3 : 1
+        passes: material.dispersion > 0.001 && getQuality().caPasses === 3 ? 3 : 1
       })
       this.#chainKey = chainKey
       this.#lastMapKey = ''

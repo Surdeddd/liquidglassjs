@@ -17,8 +17,9 @@ import { cssSvgBackend } from './backends/css-svg'
 import { svgContentBackend } from './backends/svg-content'
 import { webglOverlayBackend } from './backends/webgl-overlay'
 import { webglSceneBackend } from './backends/webgl-scene'
-import { registerBackend, selectBackend } from './backends/registry'
+import { getBackend, registerBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
+import { watchFps } from './quality'
 import { SurfaceTracker } from './dom-sync'
 import { MATERIAL_DEFAULTS, resolveMaterial } from './material'
 import { PhysicsController, resolvePhysics } from './physics/controller'
@@ -54,7 +55,33 @@ function createPhysics(
   if (typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement)) return null
   const config = resolvePhysics(options.physics)
   if (!config) return null
+  const explicitHover =
+    typeof options.physics === 'object' && options.physics !== null && 'hover' in options.physics
+  if (
+    config.hover &&
+    !explicitHover &&
+    typeof matchMedia === 'function' &&
+    matchMedia('(pointer: coarse)').matches
+  ) {
+    config.hover = false
+  }
   return new PhysicsController(element, config, hooks)
+}
+
+function degradeTarget(capabilities: ReturnType<typeof probeCapabilities>): Backend {
+  const cssSvg = getBackend('css-svg')
+  if (cssSvg?.isSupported(capabilities)) return cssSvg
+  return cssFallbackBackend
+}
+
+const degradeTargets = new Set<() => void>()
+let watchdogArmed = false
+let globallyDegraded = false
+
+export function resetDegradation(): void {
+  globallyDegraded = false
+  watchdogArmed = false
+  degradeTargets.clear()
 }
 
 export function attach(element: Element, options: LiquidGlassOptions = {}): LiquidGlassHandle {
@@ -68,7 +95,18 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   let pressed = false
   const capabilities = probeCapabilities()
   let reducedMotion = capabilities.reducedMotion
-  let backend: Backend = selectBackend(capabilities, current.backend ?? 'auto')
+  const pickBackend = (): Backend => {
+    const selected = selectBackend(capabilities, current.backend ?? 'auto')
+    if (
+      globallyDegraded &&
+      (current.backend ?? 'auto') === 'auto' &&
+      selected.id === 'webgl-overlay'
+    ) {
+      return degradeTarget(capabilities)
+    }
+    return selected
+  }
+  let backend: Backend = pickBackend()
   let tone: BackdropTone | null = null
   let lastToneSample = 0
 
@@ -205,6 +243,26 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   })
   tracker.start()
 
+  const applyDegrade = (): void => {
+    if ((current.backend ?? 'auto') !== 'auto') return
+    if (backend.id !== 'webgl-overlay') return
+    const replacement = degradeTarget(capabilities)
+    if (replacement.id === backend.id) return
+    instance.destroy()
+    backend = replacement
+    instance = backend.mount(surface)
+    element.setAttribute('data-liquid-glass-degraded', 'true')
+    markElement()
+  }
+  degradeTargets.add(applyDegrade)
+  if (!watchdogArmed && typeof window !== 'undefined') {
+    watchdogArmed = true
+    watchFps(() => {
+      globallyDegraded = true
+      for (const fn of [...degradeTargets]) fn()
+    })
+  }
+
   const unsubscribers: Array<() => void> = [
     watchMedia('(prefers-reduced-motion: reduce)', matches => {
       reducedMotion = matches
@@ -235,7 +293,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       surface.merge = current.merge ?? null
       surface.mergeStrength = current.mergeStrength ?? null
       applyMaterial()
-      const replacement = selectBackend(capabilities, current.backend ?? 'auto')
+      const replacement = pickBackend()
       if (replacement.id !== backend.id) {
         instance.destroy()
         backend = replacement
@@ -251,6 +309,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     },
     destroy() {
       tracker.stop()
+      degradeTargets.delete(applyDegrade)
       for (const unsubscribe of unsubscribers) unsubscribe()
       physics?.destroy()
       physics = null

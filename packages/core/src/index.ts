@@ -1,6 +1,8 @@
 export { attach, detach, getInstance } from './engine'
 export { isOptionKey, OPTION_KEYS, resetMissingOptions } from './options'
 export { frameNow, onFrame, onViewport } from './scheduler'
+export { configure, deviceTier, getQuality, resetQuality, watchFps } from './quality'
+export type { QualityProfile } from './quality'
 export { colorWithOpacity } from './color'
 export {
   adaptTintToTone,

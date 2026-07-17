@@ -1,6 +1,7 @@
 import { colorWithOpacity } from '../color'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer } from '../gl/renderer'
+import { getQuality } from '../quality'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -70,7 +71,7 @@ class WebglSceneInstance implements BackendInstance {
   }
 
   #draw(surface: BackendSurface): void {
-    const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2)
+    const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, getQuality().maxDpr)
     const hostBox = this.#host.getBoundingClientRect()
     if (hostBox.width < 1 || hostBox.height < 1) return
     this.#renderer.resize(Math.round(hostBox.width * dpr), Math.round(hostBox.height * dpr))

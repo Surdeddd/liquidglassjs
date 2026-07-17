@@ -2,20 +2,20 @@ import { colorWithOpacity } from '../color'
 import { buildLuminanceGrid, setLuminanceGrid } from '../contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
+import { getQuality } from '../quality'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const DEFAULT_MERGE_K = 30
 
 const MAX_SNAPSHOT_SIDE = 4096
-const SNAPSHOT_DEBOUNCE_MS = 300
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
 }
 
 function dpr(): number {
-  return Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2)
+  return Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, getQuality().maxDpr)
 }
 
 const ANCHOR_MARGIN = 72
@@ -184,7 +184,7 @@ class OverlayManager {
     this.#snapshotTimer = setTimeout(() => {
       this.#snapshotTimer = null
       void this.#snapshot()
-    }, SNAPSHOT_DEBOUNCE_MS)
+    }, getQuality().snapshotThrottleMs)
   }
 
   scheduleRender(): void {

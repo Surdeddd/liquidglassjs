@@ -1,4 +1,5 @@
 import { interiorZoomOffset, lensProfile } from './optics'
+import { getQuality } from './quality'
 import type { LensOptions } from './optics'
 
 export interface DisplacementSpec {
@@ -65,8 +66,6 @@ export function squircleClipPath(exponent = 4, segments = 64): string {
   return `polygon(${points.join(', ')})`
 }
 
-const MAX_MAP_SIDE = 600
-
 export const MAP_PAD = 0.2
 
 export interface MapOptions {
@@ -93,7 +92,7 @@ interface OffsetField {
 export function computeOffsets(opts: MapOptions): OffsetField {
   const scale = Math.min(
     1,
-    MAX_MAP_SIDE / (Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2))
+    getQuality().mapSide / (Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2))
   )
   const ew = opts.width * scale
   const eh = opts.height * scale
