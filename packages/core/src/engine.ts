@@ -20,6 +20,7 @@ import { webglSceneBackend } from './backends/webgl-scene'
 import { getBackend, registerBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
 import { watchFps } from './quality'
+import { createEmitter } from './events'
 import { SurfaceTracker } from './dom-sync'
 import { MATERIAL_DEFAULTS, resolveMaterial } from './material'
 import { PhysicsController, resolvePhysics } from './physics/controller'
@@ -107,6 +108,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     return selected
   }
   let backend: Backend = pickBackend()
+  const emitter = createEmitter()
   let tone: BackdropTone | null = null
   let lastToneSample = 0
 
@@ -122,6 +124,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
 
   const applyMaterial = (): void => {
+    const previousTone = tone
     let material = resolveMaterial(current)
     if (readReducedTransparency()) {
       material = applyReducedTransparency(material)
@@ -155,6 +158,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       tone = null
     }
     surface.material = material
+    if (tone !== previousTone) emitter.emit('tonechange', tone ?? '')
     if (tone) element.setAttribute('data-liquid-glass-tone', tone)
     else element.removeAttribute('data-liquid-glass-tone')
   }
@@ -172,6 +176,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   const pressHooks: PhysicsHooks = {
     onPress(x, y) {
       pressed = true
+      emitter.emit('press', '')
       element.setAttribute('data-liquid-glass-pressed', 'true')
       applyMaterial()
       instance.update(surface)
@@ -182,6 +187,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     },
     onRelease() {
       pressed = false
+      emitter.emit('release', '')
       element.removeAttribute('data-liquid-glass-pressed')
       applyMaterial()
       instance.update(surface)
@@ -253,6 +259,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     instance = backend.mount(surface)
     element.setAttribute('data-liquid-glass-degraded', 'true')
     markElement()
+    emitter.emit('degrade', backend.id)
+    emitter.emit('backendchange', backend.id)
   }
   degradeTargets.add(applyDegrade)
   if (!watchdogArmed && typeof window !== 'undefined') {
@@ -281,6 +289,9 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     get backend() {
       return backend.id
     },
+    on(event, cb) {
+      return emitter.on(event, cb)
+    },
     set(next) {
       current = { ...current, ...next }
       const merged = current as Record<string, unknown>
@@ -298,6 +309,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
         instance.destroy()
         backend = replacement
         instance = backend.mount(surface)
+        emitter.emit('backendchange', backend.id)
       }
       if ('physics' in next) {
         physics?.destroy()
@@ -321,6 +333,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       glow = null
       instance.destroy()
       instances.delete(element)
+      emitter.clear()
       element.removeAttribute('data-liquid-glass-pressed')
       element.removeAttribute('data-liquid-glass')
       element.removeAttribute('data-liquid-glass-backend')

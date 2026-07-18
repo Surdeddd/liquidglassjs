@@ -40,4 +40,26 @@ surfaces.forEach((mod, i) => {
   }
 })
 
+const globalJs = readFileSync('dist/liquidglass.global.js', 'utf8')
+if (!globalJs.includes('LiquidGlass')) {
+  throw new Error('dist/liquidglass.global.js must define the LiquidGlass global')
+}
+const vm = await import('node:vm')
+const sandbox = { window: undefined }
+vm.createContext(sandbox)
+vm.runInContext(`${globalJs}\nglobalThis.__lg = LiquidGlass`, sandbox)
+const globalApi = sandbox.__lg
+if (typeof globalApi?.attach !== 'function' || typeof globalApi?.autoAttach !== 'function') {
+  throw new Error('LiquidGlass global must expose attach and autoAttach')
+}
+if (!rootEsm.VERSION || rootEsm.VERSION === '0.0.0-dev') {
+  throw new Error('dist VERSION must be injected at build time')
+}
+for (const entry of ['index', 'element']) {
+  const esm = readFileSync(`dist/${entry === 'index' ? 'index' : 'element'}.js`, 'utf8')
+  if (entry === 'index' && !esm.includes('onmessage')) {
+    throw new Error('lens worker source must be inlined into dist/index.js')
+  }
+}
+
 console.log(`liquidglass dist ok: VERSION ${root.VERSION}, subpath entries share ./index`)

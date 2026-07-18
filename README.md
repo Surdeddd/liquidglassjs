@@ -75,6 +75,16 @@ React, Vue and Svelte are optional peers — install only the framework you alre
 npm i @surdeddd/liquidglass
 ```
 
+No build step — one script tag from a CDN:
+
+```html
+<div data-liquid-glass-auto='{"preset":"frosted"}'>glass</div>
+<script src="https://unpkg.com/@surdeddd/liquidglass"></script>
+<script>
+  LiquidGlass.autoAttach()
+</script>
+```
+
 ```ts
 import { attach } from '@surdeddd/liquidglass'
 

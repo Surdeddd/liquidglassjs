@@ -43,9 +43,12 @@ export interface LiquidGlassOptions extends Resettable<MaterialParams> {
   motionLight?: boolean | undefined
 }
 
+export type LiquidGlassEventName = 'backendchange' | 'tonechange' | 'press' | 'release' | 'degrade'
+
 export interface LiquidGlassHandle {
   readonly element: Element
   readonly backend: BackendId
   set(options: LiquidGlassOptions): void
+  on(event: LiquidGlassEventName, cb: (detail: string) => void): () => void
   destroy(): void
 }

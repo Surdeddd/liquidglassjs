@@ -1,4 +1,7 @@
 export { attach, detach, getInstance } from './engine'
+export { autoAttach } from './auto'
+export { createEmitter } from './events'
+export type { LiquidGlassEvent, LiquidGlassEventCb } from './events'
 export { isOptionKey, OPTION_KEYS, resetMissingOptions } from './options'
 export { frameNow, onFrame, onViewport } from './scheduler'
 export { configure, deviceTier, getQuality, resetQuality, watchFps } from './quality'
@@ -51,6 +54,7 @@ export type { MorphOptions } from './morph'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
   BackendId,
+  LiquidGlassEventName,
   LiquidGlassHandle,
   LiquidGlassOptions,
   LiquidGlassPreset,

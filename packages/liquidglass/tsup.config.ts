@@ -77,5 +77,15 @@ export default defineConfig([
         }
       }
     ]
+  },
+  {
+    ...shared,
+    entry: { liquidglass: 'src/index.ts' },
+    format: ['iife'],
+    globalName: 'LiquidGlass',
+    minify: true,
+    outExtension: () => ({ js: '.global.js' }),
+    noExternal: WORKSPACE,
+    esbuildPlugins: [workerTextPlugin]
   }
 ])
