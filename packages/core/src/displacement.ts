@@ -213,36 +213,66 @@ export function resolveBandPx(
 const lensMapCache = new Map<string, LensMap>()
 const LENS_MAP_CACHE_MAX = 32
 
-export function generateLensMap(opts: MapOptions): LensMap | null {
-  if (opts.width < 1 || opts.height < 1) return null
-  const key = `${opts.width}|${opts.height}|${opts.radius}|${opts.shape}|${opts.band}|${opts.ior}|${opts.thickness}|${opts.magnify}`
-  const hit = lensMapCache.get(key)
-  if (hit) return hit
+export interface LensPixels {
+  pixels: Uint8ClampedArray
+  width: number
+  height: number
+  maxOffset: number
+}
+
+export function lensMapKey(opts: MapOptions): string {
+  return `${opts.width}|${opts.height}|${opts.radius}|${opts.shape}|${opts.band}|${opts.ior}|${opts.thickness}|${opts.magnify}`
+}
+
+export function renderLensPixels(opts: MapOptions): LensPixels {
   const { data, width, height, scale, maxOffset } = computeOffsets(opts)
-  const entry: LensMap = { url: null, maxOffset }
+  const pixels = new Uint8ClampedArray(width * height * 4)
+  const norm = maxOffset * scale || 1
+  for (let p = 0, i = 0; p < data.length; p += 2, i += 4) {
+    pixels[i] = 128 + Math.round((data[p]! / norm) * 127)
+    pixels[i + 1] = 128 + Math.round((data[p + 1]! / norm) * 127)
+    pixels[i + 2] = 128
+    pixels[i + 3] = 255
+  }
+  return { pixels, width, height, maxOffset }
+}
+
+export function encodeLensMap(rendered: LensPixels): LensMap {
+  const entry: LensMap = { url: null, maxOffset: rendered.maxOffset }
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
+    canvas.width = rendered.width
+    canvas.height = rendered.height
     const context = context2d(canvas)
     if (context && typeof context.createImageData === 'function') {
-      const image = context.createImageData(width, height)
-      const norm = maxOffset * scale || 1
-      for (let p = 0, i = 0; p < data.length; p += 2, i += 4) {
-        image.data[i] = 128 + Math.round((data[p]! / norm) * 127)
-        image.data[i + 1] = 128 + Math.round((data[p + 1]! / norm) * 127)
-        image.data[i + 2] = 128
-        image.data[i + 3] = 255
-      }
+      const image = context.createImageData(rendered.width, rendered.height)
+      image.data.set(rendered.pixels)
       context.putImageData(image, 0, 0)
       entry.url = canvas.toDataURL('image/png')
     }
   }
+  return entry
+}
+
+export function cacheLensMap(key: string, entry: LensMap): void {
   if (lensMapCache.size >= LENS_MAP_CACHE_MAX) {
     const oldest = lensMapCache.keys().next().value
     if (oldest !== undefined) lensMapCache.delete(oldest)
   }
   lensMapCache.set(key, entry)
+}
+
+export function cachedLensMap(key: string): LensMap | undefined {
+  return lensMapCache.get(key)
+}
+
+export function generateLensMap(opts: MapOptions): LensMap | null {
+  if (opts.width < 1 || opts.height < 1) return null
+  const key = lensMapKey(opts)
+  const hit = lensMapCache.get(key)
+  if (hit) return hit
+  const entry = encodeLensMap(renderLensPixels(opts))
+  cacheLensMap(key, entry)
   return entry
 }
 

@@ -19,7 +19,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup --config tsup.worker.config.ts && tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

@@ -1,5 +1,24 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, type Options } from 'tsup'
 import pkg from './package.json'
+
+const workerBundle = new URL('../core/dist-worker/lens-worker.global.js', import.meta.url)
+
+type EsbuildPlugin = NonNullable<Options['esbuildPlugins']>[number]
+
+const workerTextPlugin: EsbuildPlugin = {
+  name: 'lens-worker-text',
+  setup(build) {
+    build.onResolve({ filter: /^virtual:lens-worker$/ }, () => ({
+      path: 'virtual:lens-worker',
+      namespace: 'lens-worker'
+    }))
+    build.onLoad({ filter: /.*/, namespace: 'lens-worker' }, () => ({
+      contents: readFileSync(workerBundle, 'utf8'),
+      loader: 'text'
+    }))
+  }
+}
 
 const WORKSPACE = [
   '@surdeddd/liquidglass-core',
@@ -22,7 +41,8 @@ export default defineConfig([
     ...shared,
     entry: { index: 'src/index.ts' },
     dts: { resolve: WORKSPACE, compilerOptions: { paths: {} } },
-    noExternal: WORKSPACE
+    noExternal: WORKSPACE,
+    esbuildPlugins: [workerTextPlugin]
   },
   {
     ...shared,
@@ -45,6 +65,7 @@ export default defineConfig([
     noExternal: WORKSPACE,
     treeshake: false,
     esbuildPlugins: [
+      workerTextPlugin,
       {
         name: 'share-core-with-root-entry',
         setup(build) {

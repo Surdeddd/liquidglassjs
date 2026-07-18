@@ -1,5 +1,6 @@
 import { colorWithOpacity } from '../color'
-import { generateLensMap, resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
+import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
+import { requestLensMap } from '../worker/host'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
 import { getQuality } from '../quality'
@@ -56,7 +57,8 @@ class CssSvgInstance implements BackendInstance {
   #band = 0
   #lastWidth = 0
   #lastHeight = 0
-  #lastMapKey = ''
+  #lastMapKey = ' ' 
+  #mapToken = 0
 
   constructor(surface: BackendSurface, defs: SVGDefsElement) {
     this.#id = `lg-${++uid}`
@@ -131,36 +133,43 @@ class CssSvgInstance implements BackendInstance {
     }
     const radius = resolveRadiusPx(material.radius, surface.element, width, height)
     this.#band = resolveBandPx(material.bevelWidth, radius, width, height)
-    const map = generateLensMap({
-      width,
-      height,
-      radius,
-      shape: material.shape,
-      band: this.#band,
-      ior: material.ior,
-      thickness: resolveThicknessPx(material.thickness, width, height),
-      magnify: material.magnify
-    })
-    if (!map) return
-    const scale = 2 * map.maxOffset * material.refraction * 2
-    const chainKey = `${material.dispersion > 0.001 && getQuality().caPasses === 3 ? 3 : 1}|${material.frost > 0}|${material.blur}|${material.saturation}|${material.brightness}|${material.dispersion}`
-    if (!this.#chain || chainKey !== this.#chainKey) {
-      this.#chain = buildLensChain({
-        filter: this.#filter,
-        material,
-        scale,
-        passes: material.dispersion > 0.001 && getQuality().caPasses === 3 ? 3 : 1
-      })
-      this.#chainKey = chainKey
-      this.#lastMapKey = ''
-    } else {
-      this.#chain.setScale(scale)
-    }
-    const mapKey = map.url ?? ''
-    if (map.url && mapKey !== this.#lastMapKey) {
-      this.#chain.feImage.setAttribute('href', map.url)
-      this.#lastMapKey = mapKey
-    }
+    const token = ++this.#mapToken
+    requestLensMap(
+      {
+        width,
+        height,
+        radius,
+        shape: material.shape,
+        band: this.#band,
+        ior: material.ior,
+        thickness: resolveThicknessPx(material.thickness, width, height),
+        magnify: material.magnify
+      },
+      map => {
+        if (token !== this.#mapToken) return
+        const { material: latest } = surface
+        const passes = latest.dispersion > 0.001 && getQuality().caPasses === 3 ? 3 : 1
+        const scale = 2 * map.maxOffset * latest.refraction * 2
+        const chainKey = `${passes}|${latest.frost > 0}|${latest.blur}|${latest.saturation}|${latest.brightness}|${latest.dispersion}`
+        if (!this.#chain || chainKey !== this.#chainKey) {
+          this.#chain = buildLensChain({
+            filter: this.#filter,
+            material: latest,
+            scale,
+            passes
+          })
+          this.#chainKey = chainKey
+          this.#lastMapKey = ''
+        } else {
+          this.#chain.setScale(scale)
+        }
+        const mapKey = map.url ?? ''
+        if (map.url && mapKey !== this.#lastMapKey) {
+          this.#chain.feImage.setAttribute('href', map.url)
+          this.#lastMapKey = mapKey
+        }
+      }
+    )
   }
 }
 

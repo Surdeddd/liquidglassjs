@@ -6,6 +6,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      '**/dist-worker/**',
       '**/node_modules/**',
       'memory-bank/**',
       'playwright-report/**',
