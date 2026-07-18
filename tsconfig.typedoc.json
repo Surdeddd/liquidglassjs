@@ -2,7 +2,8 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@surdeddd/liquidglass-core": ["./packages/core/src/index.ts"]
+      "@surdeddd/liquidglass-core": ["./packages/core/src/index.ts"],
+      "virtual:lens-worker": ["./packages/core/src/worker/virtual-source.ts"]
     }
   },
   "include": ["packages/*/src"]
