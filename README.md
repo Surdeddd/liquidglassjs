@@ -4,7 +4,7 @@ Liquid Glass for the whole web — one engine, every browser, every framework.
 
 [![CI](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml/badge.svg)](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@surdeddd/liquidglass)](https://www.npmjs.com/package/@surdeddd/liquidglass)
-[![size](https://img.shields.io/badge/engine-19.3kB_brotli-blue)](https://github.com/Surdeddd/liquidglassjs/tree/main/packages/core)
+[![size](https://img.shields.io/badge/engine-21.7kB_brotli-blue)](https://github.com/Surdeddd/liquidglassjs/tree/main/packages/core)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Surdeddd/liquidglassjs/blob/main/LICENSE)
 
 Real refraction over live DOM — not a screenshot, not Chromium-only. Living spring physics,

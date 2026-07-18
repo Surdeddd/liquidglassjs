@@ -1,5 +1,17 @@
 # @surdeddd/liquidglass
 
+## 0.7.0
+
+### Minor Changes
+
+- Performance, adaptivity and DX overhaul
+
+  - one shared frame scheduler drives every tracker, physics controller and the light hub: a page full of glass now costs a single scroll listener and a single rAF loop (was one of each per element); steady-scroll long tasks drop ~30% with far smaller worst-case spikes
+  - lens refraction maps are computed in a Worker spawned from an inlined source, keeping Snell math off the main thread, with a synchronous in-thread fallback when Workers or CSP are unavailable
+  - adaptive quality: the engine resolves a device tier (map resolution, chromatic-aberration passes, DPR cap, snapshot throttle) from hardware signals, exposes `configure()` for overrides, and an fps watchdog demotes auto-selected webgl-overlay instances to the css tier once if the page cannot hold 45fps; touch devices skip the hover magnet automatically
+  - new DX surface: `handle.on('backendchange' | 'tonechange' | 'press' | 'release' | 'degrade')`, `autoAttach()` scanning `[data-liquid-glass-auto]` with live add/remove tracking, and a CDN global build (`dist/liquidglass.global.js`, unpkg/jsdelivr) — glass with one script tag and zero build steps
+  - core reorganized into `runtime/`, `quality/`, `fx/` modules with a documented dependency direction (docs/architecture.md); public API unchanged
+
 ## 0.6.1
 
 ### Patch Changes
