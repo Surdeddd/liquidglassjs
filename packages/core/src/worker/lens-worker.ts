@@ -1,5 +1,5 @@
 import { renderLensPixels, type MapOptions } from '../displacement'
-import { configure } from '../quality'
+import { configure } from '../quality/profile'
 
 interface LensRequest {
   id: number

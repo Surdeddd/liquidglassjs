@@ -1,5 +1,5 @@
 import { interiorZoomOffset, lensProfile } from './optics'
-import { getQuality } from './quality'
+import { getQuality } from './quality/profile'
 import type { LensOptions } from './optics'
 
 export interface DisplacementSpec {

@@ -1,8 +1,8 @@
 import { colorWithOpacity } from '../color'
-import { buildLuminanceGrid, setLuminanceGrid } from '../contrast'
+import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
-import { getQuality } from '../quality'
+import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 

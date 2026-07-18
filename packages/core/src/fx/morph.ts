@@ -1,4 +1,4 @@
-import { Spring } from './physics/spring'
+import { Spring } from '../physics/spring'
 
 export interface MorphOptions {
   stiffness?: number

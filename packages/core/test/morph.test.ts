@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { morphGlass } from '../src/morph'
+import { morphGlass } from '../src/fx/morph'
 
 function rect(left: number, top: number, width: number, height: number): () => DOMRect {
   return () =>

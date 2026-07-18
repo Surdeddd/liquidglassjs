@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { attach } from '../src/engine'
-import { backdropLuminance, setLuminanceGrid } from '../src/contrast'
+import { backdropLuminance, setLuminanceGrid } from '../src/quality/contrast'
 
 afterEach(() => {
   setLuminanceGrid(null)

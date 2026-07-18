@@ -1,4 +1,4 @@
-import { captureInlineStyles } from './style-restore'
+import { captureInlineStyles } from '../style-restore'
 
 export interface GlowHandle {
   press(x: number, y: number): void

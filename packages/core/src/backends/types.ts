@@ -1,5 +1,5 @@
-import type { SurfaceState } from '../dom-sync'
-import type { Capabilities } from '../probe'
+import type { SurfaceState } from '../runtime/dom-sync'
+import type { Capabilities } from '../quality/probe'
 import type { BackendId, LiquidGlassPreset, MaterialParams } from '../types'
 
 export interface BackendSurface {

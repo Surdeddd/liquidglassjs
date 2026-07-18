@@ -3,7 +3,7 @@ import { cssSvgBackend } from '../src/backends/css-svg'
 import type { BackendSurface } from '../src/backends/types'
 import { computeOffsets, resolveBandPx } from '../src/displacement'
 import { resolveMaterial } from '../src/material'
-import { NO_CAPABILITIES } from '../src/probe'
+import { NO_CAPABILITIES } from '../src/quality/probe'
 
 function makeSurface(options: Parameters<typeof resolveMaterial>[0] = { preset: 'frosted' }): BackendSurface {
   const element = document.createElement('div')

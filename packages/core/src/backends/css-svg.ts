@@ -3,7 +3,7 @@ import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } 
 import { requestLensMap } from '../worker/host'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
-import { getQuality } from '../quality'
+import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 

@@ -1,4 +1,4 @@
-import { onFrame } from '../scheduler'
+import { onFrame } from '../runtime/scheduler'
 import { captureInlineStyles } from '../style-restore'
 import { Spring } from './spring'
 

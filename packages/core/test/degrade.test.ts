@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { attach, registerBackend } from '../src/index'
 import type { Backend, BackendId } from '../src/index'
 import { resetDegradation } from '../src/engine'
-import { _pushFrameSample, resetQuality } from '../src/quality'
+import { _pushFrameSample, resetQuality } from '../src/quality/profile'
 
 const fakeOverlay: Backend = {
   id: 'webgl-overlay' as BackendId,

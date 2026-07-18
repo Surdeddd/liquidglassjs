@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { SurfaceTracker } from '../src/dom-sync'
+import { SurfaceTracker } from '../src/runtime/dom-sync'
 
 describe('SurfaceTracker', () => {
   it('starts and stops without throwing', () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cssFallbackBackend } from '../src/backends/css-fallback'
 import { registerBackend, selectBackend } from '../src/backends/registry'
 import type { Backend } from '../src/backends/types'
-import { NO_CAPABILITIES } from '../src/probe'
+import { NO_CAPABILITIES } from '../src/quality/probe'
 
 registerBackend(cssFallbackBackend)
 

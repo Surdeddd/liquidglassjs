@@ -1,4 +1,4 @@
-import { onFrame } from './scheduler'
+import { onFrame } from '../runtime/scheduler'
 
 export function pointerAngle(cx: number, cy: number, px: number, py: number): number {
   return (Math.atan2(px - cx, cy - py) * 180) / Math.PI

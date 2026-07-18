@@ -1,4 +1,4 @@
-import { onFrame } from './scheduler'
+import { onFrame } from '../runtime/scheduler'
 
 export interface QualityProfile {
   mapSide: number

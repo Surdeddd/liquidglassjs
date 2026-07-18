@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { attach } from '../src/engine'
-import { mountGlow } from '../src/glow'
+import { mountGlow } from '../src/fx/glow'
 import { resolveThicknessPx } from '../src/displacement'
 
 describe('mountGlow', () => {

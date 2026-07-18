@@ -1,7 +1,7 @@
 import { colorWithOpacity } from '../color'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer } from '../gl/renderer'
-import { getQuality } from '../quality'
+import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 

@@ -9,7 +9,7 @@ import {
   type LensPixels,
   type MapOptions
 } from '../displacement'
-import { getQuality } from '../quality'
+import { getQuality } from '../quality/profile'
 
 interface PendingRequest {
   key: string

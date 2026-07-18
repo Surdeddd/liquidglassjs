@@ -4,8 +4,8 @@ import type { Backend, BackendId } from '../src/index'
 
 const lightCalls = vi.hoisted(() => [] as Array<{ motion: boolean }>)
 
-vi.mock('../src/light', async importOriginal => {
-  const mod = await importOriginal<typeof import('../src/light')>()
+vi.mock('../src/fx/light', async importOriginal => {
+  const mod = await importOriginal<typeof import('../src/fx/light')>()
   return {
     ...mod,
     registerLight(client: { motion: boolean }) {

@@ -1,5 +1,5 @@
 import { resolveBandPx } from '../displacement'
-import { globalLightDir } from '../light'
+import { globalLightDir } from '../fx/light'
 import type { MaterialParams } from '../types'
 
 export interface GlRect {

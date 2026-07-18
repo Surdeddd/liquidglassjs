@@ -3,7 +3,7 @@ import { webglSceneBackend } from '../src/backends/webgl-scene'
 import type { BackendSurface } from '../src/backends/types'
 import { parseTint } from '../src/gl/renderer'
 import { resolveMaterial } from '../src/material'
-import { NO_CAPABILITIES } from '../src/probe'
+import { NO_CAPABILITIES } from '../src/quality/probe'
 
 function makeSurface(): BackendSurface {
   const element = document.createElement('div')

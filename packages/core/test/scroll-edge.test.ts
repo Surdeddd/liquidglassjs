@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mountScrollEdge } from '../src/scroll-edge'
+import { mountScrollEdge } from '../src/fx/scroll-edge'
 
 describe('mountScrollEdge', () => {
   it('mounts a fixed dissolving strip on the body top', () => {

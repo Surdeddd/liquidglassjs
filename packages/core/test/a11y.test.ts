@@ -5,7 +5,7 @@ import {
   parseColor,
   relativeLuminance,
   sampleTone
-} from '../src/a11y'
+} from '../src/quality/a11y'
 import { MATERIAL_DEFAULTS } from '../src/material'
 
 describe('parseColor', () => {

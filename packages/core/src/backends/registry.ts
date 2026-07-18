@@ -1,4 +1,4 @@
-import type { Capabilities } from '../probe'
+import type { Capabilities } from '../quality/probe'
 import type { BackendId } from '../types'
 import type { Backend } from './types'
 

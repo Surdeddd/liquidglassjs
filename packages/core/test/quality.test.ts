@@ -7,7 +7,7 @@ import {
   resetQuality,
   watchFps,
   _pushFrameSample
-} from '../src/quality'
+} from '../src/quality/profile'
 
 afterEach(() => {
   resetQuality()

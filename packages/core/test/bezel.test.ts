@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { mountBezel } from '../src/bezel'
-import { pointerAngle } from '../src/light'
+import { mountBezel } from '../src/fx/bezel'
+import { pointerAngle } from '../src/fx/light'
 
 describe('mountBezel', () => {
   it('mounts an aria-hidden ring overlay with a rotatable two-tone gradient', () => {

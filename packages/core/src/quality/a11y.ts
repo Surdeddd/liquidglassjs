@@ -1,4 +1,4 @@
-import type { MaterialParams } from './types'
+import type { MaterialParams } from '../types'
 
 export type BackdropTone = 'light' | 'dark'
 

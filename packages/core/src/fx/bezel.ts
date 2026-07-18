@@ -1,4 +1,4 @@
-import { captureInlineStyles } from './style-restore'
+import { captureInlineStyles } from '../style-restore'
 
 export interface BezelHandle {
   update(angleDeg: number): void

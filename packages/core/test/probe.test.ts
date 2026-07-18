@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { probeCapabilities, resetCapabilitiesCache } from '../src/probe'
+import { probeCapabilities, resetCapabilitiesCache } from '../src/quality/probe'
 
 afterEach(() => {
   resetCapabilitiesCache()

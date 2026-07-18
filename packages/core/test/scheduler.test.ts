@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { onFrame, onViewport } from '../src/scheduler'
+import { onFrame, onViewport } from '../src/runtime/scheduler'
 
 function twoFrames(): Promise<void> {
   return new Promise(resolve =>

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { svgContentBackend } from '../src/backends/svg-content'
 import type { BackendSurface } from '../src/backends/types'
 import { resolveMaterial } from '../src/material'
-import { NO_CAPABILITIES } from '../src/probe'
+import { NO_CAPABILITIES } from '../src/quality/probe'
 
 function makeSurface(backdrop: Element | null): BackendSurface {
   const element = document.createElement('div')
