@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Playground
+    url: https://liquidglassjs.vercel.app/#playground
+    about: Try the option live before filing — most rendering questions are a material setting.
+  - name: Browser support and fidelity matrix
+    url: https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md
+    about: What each engine gets, and which features a backend cannot do at all.
+  - name: Security report
+    url: https://github.com/Surdeddd/liquidglassjs/security/advisories/new
+    about: Report a vulnerability privately instead of opening an issue.

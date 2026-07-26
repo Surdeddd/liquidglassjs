@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -42,4 +43,23 @@ if (caps.backdropFilter !== false || caps.webgl2 !== false) {
   throw new Error('probeCapabilities must report no capabilities without a DOM')
 }
 
-console.log('ssr smoke ok: all packages import cleanly without a DOM')
+const stop = core.autoAttach()
+if (typeof stop !== 'function') {
+  throw new Error('autoAttach must return a stop function without a DOM')
+}
+stop()
+
+if (typeof core.readReducedMotion() !== 'boolean' || typeof core.readForcedColors() !== 'boolean') {
+  throw new Error('media readers must answer without a DOM')
+}
+
+const require = createRequire(import.meta.url)
+for (const [entry, exportName] of metaEntries) {
+  const file = resolve(root, 'packages', 'liquidglass', 'dist', `${entry}.cjs`)
+  const mod = require(file)
+  if (typeof mod[exportName] === 'undefined') {
+    throw new Error(`@surdeddd/liquidglass/${entry} (cjs): missing export ${exportName}`)
+  }
+}
+
+console.log('ssr smoke ok: esm and cjs entries load, autoAttach is inert without a DOM')

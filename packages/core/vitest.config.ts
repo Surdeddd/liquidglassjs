@@ -7,6 +7,18 @@ export default defineConfig({
     }
   },
   test: {
-    environment: 'happy-dom'
+    environment: 'happy-dom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'json-summary'],
+      include: ['src/**/*.ts'],
+      exclude: ['src/worker/lens-worker.ts'],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70
+      }
+    }
   }
 })

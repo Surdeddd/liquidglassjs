@@ -1,0 +1,61 @@
+name: Bug report
+description: Something renders or behaves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Five backends can render the same surface, so the backend chip below decides where to look.
+        Read it from the element: `document.querySelector('[data-liquid-glass]').dataset.liquidGlassBackend`.
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: "@surdeddd/liquidglass 0.7.0"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Safari 18.2 on macOS 15
+    validations:
+      required: true
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Resolved backend
+      description: The value of data-liquid-glass-backend on the affected element
+      options:
+        - css-svg
+        - svg-content
+        - webgl-overlay
+        - webgl-scene
+        - css-fallback
+        - not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+    validations:
+      required: true
+
+  - type: input
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A link to a StackBlitz, CodeSandbox or repository
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Console output, a screenshot, the options you passed to attach()

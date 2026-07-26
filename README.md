@@ -79,7 +79,7 @@ No build step — one script tag from a CDN:
 
 ```html
 <div data-liquid-glass-auto='{"preset":"frosted"}'>glass</div>
-<script src="https://unpkg.com/@surdeddd/liquidglass"></script>
+<script src="https://unpkg.com/@surdeddd/liquidglass@0.7.0/dist/liquidglass.global.js"></script>
 <script>
   LiquidGlass.autoAttach()
 </script>
@@ -124,6 +124,75 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 <div use:liquidGlass={{ preset: 'frosted' }}>…</div>
 ```
 
+On Safari and Firefox the engine refracts a designated element rather than the whole page. It picks
+the nearest ancestor that paints a background on its own; pass `backdrop` when you want a specific
+one — it is also the cheaper choice, because that element gets cloned into the refraction layer.
+
+```ts
+attach(panel, { backdrop: '.hero-art' })
+```
+
+## Options
+
+Every option is optional and can be changed at runtime through `set()`. Numeric values are clamped
+to the range shown; anything non-finite falls back to the default.
+
+| Option | Type | Default | Range | Notes |
+| --- | --- | --- | --- | --- |
+| `preset` | `'clear' \| 'frosted' \| 'tinted'` | `'clear'` | — | Starting point for every material value below |
+| `blur` | number | 2 / 10 / 8 per preset | 0–100 | Backdrop blur in px |
+| `saturation` | number | 1.4 | 0–3 | Backdrop saturation multiplier |
+| `brightness` | number | 1 | 0–3 | Backdrop brightness multiplier |
+| `tint` | string | `#ffffff` | hex or `rgb()` | Set it explicitly to opt out of adaptive tinting |
+| `tintOpacity` | number | 0.06–0.28 per preset | 0–1 | Tint alpha |
+| `refraction` | number | 0.45–0.65 per preset | 0–1 | Strength of the rim bend |
+| `ior` | number | 1.5 | 1–2.5 | Index of refraction; 1 bends nothing |
+| `magnify` | number | 0.015 | 0–0.1 | Whole-body magnification |
+| `thickness` | number \| `'auto'` | `'auto'` | 0–100 | Glass depth in px |
+| `bevelWidth` | number \| `'auto'` | `'auto'` | 0–200 | Rim band width; `auto` tracks the corner radius |
+| `bevelDepth` | number | 0.6 | 0–1 | Rim profile curvature |
+| `dispersion` | number | 0.15 | 0–1 | Chromatic split at the rim — Chromium and WebGL tiers only |
+| `specular` | number | 0.6 | 0–1 | Bezel highlight strength; 0 removes the bezel layer |
+| `frost` | number | 0–0.35 per preset | 0–1 | Grain displacement |
+| `radius` | number \| `'auto'` | `'auto'` | ≥ 0 | `auto` reads the element's border-radius |
+| `shape` | `'rounded' \| 'squircle'` | `'rounded'` | — | Squircle also clips the host |
+| `backend` | `BackendId \| 'auto'` | `'auto'` | — | Honoured only if the tier is supported |
+| `backdrop` | `Element \| string \| null` | `null` | — | Refraction source for `svg-content` |
+| `sceneImage` | string \| null | `null` | — | Texture for `webgl-scene` |
+| `physics` | boolean \| `{ press, hover, wobble }` | `true` | `wobble` 0–1 | Disabled entirely under reduced motion |
+| `merge` | string \| null | `null` | — | Metaball group name; needs `webgl-overlay` |
+| `mergeStrength` | number | 40 | px | Distance at which group members melt together |
+| `adaptive` | boolean | `true` | — | Backdrop tone sampling and automatic tint flip |
+| `motionLight` | boolean | `false` | — | Drive the bezel highlight from device orientation |
+
+## Runtime and events
+
+```ts
+const glass = attach(el, { preset: 'frosted' })
+
+glass.on('backendchange', id => console.log('now rendering with', id))
+glass.on('tonechange', tone => root.classList.toggle('on-light', tone === 'light'))
+glass.on('press', () => {})
+glass.on('release', () => {})
+glass.on('degrade', id => console.log('fps watchdog dropped to', id))
+```
+
+Every subscription returns its own unsubscribe function. Beyond the handle:
+
+| API | What it does |
+| --- | --- |
+| `autoAttach(root?)` | Attaches every `[data-liquid-glass-auto]` element and keeps watching for new ones. Returns a stop function; inert without a DOM |
+| `configure({ mapSide, caPasses, maxDpr, snapshotThrottleMs })` | Overrides the quality profile the device tier picked |
+| `deviceTier()` / `getQuality()` | Reads what the engine decided for this device |
+| `probeCapabilities()` | The capability snapshot behind backend selection |
+| `mountScrollEdge(el, { position })` | Progressive blur edge for floating bars |
+| `morphGlass(from, to)` | Hands one control's geometry to another on a spring |
+| `getInstance(el)` / `detach(el)` | Reach or tear down a surface you did not keep a handle to |
+
+The resolved state is also on the element, which makes it inspectable in devtools:
+`data-liquid-glass` (preset), `data-liquid-glass-backend`, `data-liquid-glass-tone`,
+`data-liquid-glass-pressed`, `data-liquid-glass-degraded`.
+
 ## Highlights
 
 - **Real lens optics** — a convex squircle dome refracted by Snell's law (`ior`, default 1.5): optically flat interior with a subtle whole-body magnification (`magnify`) and all the bending concentrated in a rim band that tracks your corner radius, exactly like iOS 26.
@@ -137,6 +206,36 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 - **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
 - **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden.
 - **Fast** — 10 lenses at 105 fps on Apple silicon (bench script included); render-on-demand everywhere, no idle loops.
+
+## Troubleshooting
+
+**Safari or Firefox shows flat blur.** Those engines refract a cloned source rather than the live
+backdrop. The engine falls back to the nearest ancestor that paints a background — if every ancestor
+is transparent, nothing can be cloned. Pass `backdrop` explicitly.
+
+**`merge` does nothing.** Metaball merging exists only on `webgl-overlay`. Under `backend: 'auto'`
+the engine now switches to it when a `merge` group is set and WebGL2 is available; if WebGL2 is
+missing, the group is dropped and the engine logs it once. `<liquid-glass-group>` sets the backend
+for its children.
+
+**Strict CSP blocks the worker.** Lens maps are generated in a worker spawned from a `Blob` URL, so
+allow `worker-src blob:`. Without it the library silently generates maps on the main thread — same
+output, more main-thread work.
+
+**Next.js / Nuxt / SvelteKit.** Every entry imports cleanly on the server and `attach()` is a
+client-side call; run it from an effect. `autoAttach()` is safe to call anywhere — it returns an
+inert stop function when there is no DOM.
+
+**Images vanish inside a metaball group.** The `webgl-overlay` tier rasterizes the page to a
+texture, so cross-origin images without CORS headers and webfonts that cannot be inlined do not make
+it into the snapshot.
+
+**Reduced transparency or Windows High Contrast.** The surface switches to an opaque material
+(refraction and dispersion off, tint raised). This is deliberate, and it follows the OS setting live.
+
+**Text over glass is unreadable.** `adaptive` samples the backdrop and flips the default tint, but it
+cannot resolve a luminance over an unpainted or image-only backdrop. Use the `tonechange` event or
+the `data-liquid-glass-tone` attribute to style text yourself, or set `tint` explicitly.
 
 ## Development
 
