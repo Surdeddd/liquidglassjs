@@ -4,11 +4,21 @@
   "description": "Liquid Glass for the whole web in one package: core engine plus /react, /vue, /svelte and /element entries",
   "type": "module",
   "license": "MIT",
+  "author": "Maksim Kravcov",
+  "homepage": "https://liquidglassjs.vercel.app",
+  "bugs": {
+    "url": "https://github.com/Surdeddd/liquidglassjs/issues"
+  },
   "sideEffects": false,
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
@@ -61,18 +71,25 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
   ],
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "cp ../../README.md README.md && pnpm run build && node ../../scripts/check-liquidglass-dist.mjs"
+    "test": "node ../../scripts/check-liquidglass-dist.mjs",
+    "prepublishOnly": "cp ../../README.md README.md && cp ../../LICENSE LICENSE && pnpm run build && node ../../scripts/check-liquidglass-dist.mjs"
   },
   "keywords": [
     "liquid-glass",
     "glassmorphism",
     "refraction",
     "backdrop-filter",
+    "ios26",
+    "svg-filter",
+    "webgl",
+    "frosted-glass",
     "react",
     "vue",
     "svelte",

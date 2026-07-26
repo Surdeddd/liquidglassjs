@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-worker/
 build/
 coverage/
 *.tsbuildinfo
@@ -21,8 +22,7 @@ Thumbs.db
 .idea/
 *.swp
 
-.env
-.env.*
+.env*
 !.env.example
 *.local
 
@@ -30,15 +30,9 @@ Thumbs.db
 
 memory-bank/
 GOAL.md
-.vercel
-.env*
 
-# agent/plugin artifacts — never commit
 .claude/
 .superpowers/
 .playwright-mcp/
 .remember/
 docs/superpowers/
-
-packages/liquidglass/README.md
-dist-worker/

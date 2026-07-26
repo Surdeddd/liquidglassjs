@@ -11,7 +11,8 @@ export default tseslint.config(
       'memory-bank/**',
       'playwright-report/**',
       'test-results/**',
-      '.vercel/**'
+      '.vercel/**',
+      '**/.*/**'
     ]
   },
   js.configs.recommended,

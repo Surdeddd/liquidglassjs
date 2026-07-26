@@ -11,5 +11,5 @@
   "tsconfig": "tsconfig.typedoc.json",
   "out": "apps/docs/dist/api",
   "cleanOutputDir": true,
-  "includeVersion": true
+  "includeVersion": false
 }

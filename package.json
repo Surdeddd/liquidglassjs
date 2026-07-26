@@ -13,6 +13,7 @@
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
     "test": "pnpm -r --filter \"./packages/*\" --filter react18-smoke run test",
+    "bench": "node scripts/fps-bench.mjs",
     "e2e": "playwright test",
     "ssr": "node scripts/ssr-smoke.mjs",
     "size": "size-limit",
@@ -22,8 +23,24 @@
   },
   "size-limit": [
     {
+      "name": "engine (core entry)",
       "path": "packages/core/dist/index.js",
       "limit": "24 kB"
+    },
+    {
+      "name": "published esm entry",
+      "path": "packages/liquidglass/dist/index.js",
+      "limit": "24 kB"
+    },
+    {
+      "name": "cdn global build",
+      "path": "packages/liquidglass/dist/liquidglass.global.js",
+      "limit": "24 kB"
+    },
+    {
+      "name": "snapshot chunk (lazy)",
+      "path": "packages/liquidglass/dist/es-*.js",
+      "limit": "8 kB"
     }
   ],
   "pnpm": {
