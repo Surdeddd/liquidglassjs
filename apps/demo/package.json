@@ -11,5 +11,10 @@
   },
   "dependencies": {
     "@surdeddd/liquidglass-element": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.1",
+    "motion": "^12.42.2",
+    "three": "^0.185.1"
   }
 }

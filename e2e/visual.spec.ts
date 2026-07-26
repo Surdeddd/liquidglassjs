@@ -2,9 +2,10 @@ import { expect, test } from '@playwright/test'
 
 test.describe('lens optics visual regression', () => {
   test('rim bends stripes and interior stays flat', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/?static=1')
     const panel = page.locator('liquid-glass[preset="clear"][backdrop=".stripes"]').first()
     await panel.waitFor()
+    await panel.scrollIntoViewIfNeeded()
     await page.waitForTimeout(600)
     const box = await panel.boundingBox()
     if (!box) throw new Error('clear panel not laid out')
@@ -24,9 +25,10 @@ test.describe('lens optics visual regression', () => {
   })
 
   test('squircle rim renders the bezel ring', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/?static=1')
     const panel = page.locator('liquid-glass[shape="squircle"]').first()
     await panel.waitFor()
+    await panel.scrollIntoViewIfNeeded()
     await page.waitForTimeout(600)
     const box = await panel.boundingBox()
     if (!box) throw new Error('squircle panel not laid out')

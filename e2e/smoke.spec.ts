@@ -3,20 +3,23 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(9)
-  await expect(panels.first()).toHaveAttribute('data-liquid-glass', 'frosted')
+  await expect(panels).toHaveCount(10)
+  await expect(page.locator('liquid-glass.panel--frosted')).toHaveAttribute(
+    'data-liquid-glass',
+    'frosted'
+  )
 })
 
 test('preset attribute drives the engine', async ({ page }) => {
   await page.goto('/')
-  const panel = page.locator('liquid-glass').first()
+  const panel = page.locator('liquid-glass.panel--frosted')
   await panel.evaluate(el => el.setAttribute('preset', 'tinted'))
   await expect(panel).toHaveAttribute('data-liquid-glass', 'tinted')
 })
 
 test('engine picks the best backend per browser', async ({ page, browserName }) => {
   await page.goto('/')
-  const panel = page.locator('liquid-glass').first()
+  const panel = page.locator('liquid-glass.panel--frosted')
   const expected = browserName === 'chromium' ? 'css-svg' : 'svg-content'
   await expect(panel).toHaveAttribute('data-liquid-glass-backend', expected)
 })
@@ -36,7 +39,7 @@ test('safari and firefox refract through a backdrop copy layer', async ({ page, 
 
 test('engine renders glass through a backend', async ({ page, browserName }) => {
   await page.goto('/')
-  const panel = page.locator('liquid-glass').first()
+  const panel = page.locator('liquid-glass.panel--frosted')
   const filter = await panel.evaluate(el => {
     const computed = getComputedStyle(el)
     return computed.backdropFilter || computed.getPropertyValue('-webkit-backdrop-filter')
@@ -45,7 +48,7 @@ test('engine renders glass through a backend', async ({ page, browserName }) => 
     expect(filter).toContain('url(')
   } else if (filter === 'none') {
     await expect(
-      page.locator('liquid-glass').first().locator('[data-liquid-glass-layer="refract"]')
+      page.locator('liquid-glass.panel--frosted').locator('[data-liquid-glass-layer="refract"]')
     ).toBeAttached()
   } else {
     expect(filter).toContain('blur')
@@ -56,7 +59,7 @@ test('engine renders glass through a backend', async ({ page, browserName }) => 
 
 test('webgl-scene renders into a canvas layer', async ({ page }) => {
   await page.goto('/')
-  const lens = page.locator('liquid-glass.hero-lens')
+  const lens = page.locator('liquid-glass.scene-lens')
   await expect(lens).toHaveAttribute('data-liquid-glass-backend', /webgl-scene|svg-content/)
   const backend = await lens.getAttribute('data-liquid-glass-backend')
   test.skip(backend !== 'webgl-scene', 'runtime lacks webgl2, tier fallback engaged')
@@ -70,7 +73,7 @@ test('webgl-scene renders into a canvas layer', async ({ page }) => {
 
 test('webgl-overlay shares one viewport canvas', async ({ page }) => {
   await page.goto('/')
-  const lens = page.locator('liquid-glass.panel[backend="webgl-overlay"]')
+  const lens = page.locator('liquid-glass.blob-a')
   await expect(lens).toHaveAttribute('data-liquid-glass-backend', /webgl-overlay|svg-content/)
   const backend = await lens.getAttribute('data-liquid-glass-backend')
   test.skip(backend !== 'webgl-overlay', 'runtime lacks webgl2, tier fallback engaged')
@@ -88,8 +91,8 @@ test('adaptive contrast flags the backdrop tone', async ({ page }) => {
   await page.goto('/')
   const lightLens = page.locator('liquid-glass.light-lens')
   await expect(lightLens).toHaveAttribute('data-liquid-glass-tone', 'light')
-  const stripedPanel = page.locator('liquid-glass.panel').first()
-  await expect(stripedPanel).not.toHaveAttribute('data-liquid-glass-tone', /.+/)
+  const stripedPanel = page.locator('liquid-glass.panel--frosted')
+  await expect(stripedPanel).toHaveAttribute('data-liquid-glass-tone', 'dark')
 })
 
 test('injected engine layers stay hidden from assistive tech', async ({ page }) => {
@@ -130,7 +133,8 @@ test('squircle shape clips the surface with a superellipse', async ({ page }) =>
 
 test('press squashes the glass with spring physics', async ({ page }) => {
   await page.goto('/')
-  const panel = page.locator('liquid-glass').first()
+  const panel = page.locator('liquid-glass.panel--frosted')
+  await panel.scrollIntoViewIfNeeded()
   const box = await panel.boundingBox()
   if (!box) throw new Error('panel not laid out')
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
@@ -144,7 +148,8 @@ test('press squashes the glass with spring physics', async ({ page }) => {
 test('reduced motion disables physics', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
-  const panel = page.locator('liquid-glass').first()
+  const panel = page.locator('liquid-glass.panel--frosted')
+  await panel.scrollIntoViewIfNeeded()
   const box = await panel.boundingBox()
   if (!box) throw new Error('panel not laid out')
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)

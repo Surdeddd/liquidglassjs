@@ -3,30 +3,149 @@
   box-sizing: border-box;
 }
 
+:root {
+  --ink: #05070c;
+  --cyan: #5ce1ff;
+  --amber: #ffb45c;
+  --paper: rgba(255, 255, 255, 0.72);
+}
+
 body {
   min-height: 100vh;
   font-family: system-ui, sans-serif;
   color: #fff;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364, #6a3093, #a044ff);
-  background-size: 400% 400%;
-  animation: drift 18s ease infinite;
+  background: var(--ink);
 }
 
-@keyframes drift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+.scene-host {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.scene-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 main {
-  max-width: 960px;
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 4rem 2rem;
+  padding: 0 2rem 6rem;
 }
 
-h1 {
-  margin-bottom: 2rem;
-  font-weight: 600;
+[data-reveal] {
+  will-change: opacity, transform;
+}
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.wordmark {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  font-size: clamp(3.5rem, 15vw, 11rem);
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+}
+
+.wordmark span {
+  display: block;
+  background-image: repeating-linear-gradient(
+    -38deg,
+    var(--cyan) 0 6px,
+    rgba(92, 225, 255, 0.15) 6px 13px,
+    var(--amber) 13px 19px,
+    rgba(255, 180, 92, 0.12) 19px 26px
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.wordmark span:last-child {
+  letter-spacing: 0.02em;
+}
+
+.hero-lens-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hero-lens-carriage {
+  will-change: transform;
+}
+
+.hero-lens {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 150px;
+  transform: translateY(-50%);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 0.95rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 6rem 0 1.5rem;
+}
+
+.section-head h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-head p {
+  font-size: 0.9rem;
+  color: var(--paper);
 }
 
 .stage {
@@ -45,7 +164,8 @@ h1 {
       45deg,
       rgba(255, 255, 255, 0.22) 0 10px,
       transparent 10px 32px
-    );
+    ),
+    linear-gradient(135deg, #0f2027, #203a43, #2c5364, #6a3093, #a044ff);
 }
 
 .panels {
@@ -55,8 +175,41 @@ h1 {
   gap: 1.5rem;
 }
 
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 1.1rem;
+}
+
+.scene-stage {
+  position: relative;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0b1220, #123b52 45%, #3a1f6b);
+}
+
+.scene-lens {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 340px;
+  height: 170px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 0.9rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
 .light-card {
-  margin-top: 2.5rem;
   padding: 2.5rem 2rem;
   border-radius: 16px;
   background: #f4f5f7;
@@ -68,13 +221,13 @@ h1 {
 
 .merge-stage {
   position: relative;
-  margin-top: 2.5rem;
   height: 220px;
   border-radius: 16px;
   overflow: hidden;
   background:
     radial-gradient(circle at 70% 40%, rgba(255, 190, 90, 0.6) 0 70px, transparent 71px),
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 0 10px, transparent 10px 30px);
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 0 10px, transparent 10px 30px),
+    linear-gradient(120deg, #12233a, #35236b);
 }
 
 .blob {
@@ -100,35 +253,8 @@ h1 {
   to { left: calc(18% + 260px); }
 }
 
-.hero-scene {
-  position: relative;
-  margin-top: 2.5rem;
-  height: 260px;
-  border-radius: 16px;
-  background-size: 100% 100%;
-}
-
-.hero-lens {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 320px;
-  height: 150px;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  font-size: 1.1rem;
-}
-
-.panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 160px;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: 1.1rem;
+@media (prefers-reduced-motion: reduce) {
+  .blob-b {
+    animation: none;
+  }
 }
