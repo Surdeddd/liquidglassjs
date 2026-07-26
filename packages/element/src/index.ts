@@ -3,6 +3,9 @@ import {
   detach,
   getInstance,
   type BackendId,
+  type LiquidGlassEventName,
+  type LiquidGlassHandle,
+  type LiquidGlassOptions,
   type LiquidGlassPreset
 } from '@surdeddd/liquidglass-core'
 
@@ -17,85 +20,125 @@ const BACKENDS: readonly BackendId[] = [
   'webgpu'
 ]
 
-function presetFrom(value: string | null): LiquidGlassPreset {
-  return PRESETS.includes(value as LiquidGlassPreset) ? (value as LiquidGlassPreset) : 'clear'
+const EVENTS: readonly LiquidGlassEventName[] = [
+  'press',
+  'release',
+  'tonechange',
+  'backendchange',
+  'degrade'
+]
+
+type Parser = (value: string | null, present: boolean) => unknown
+
+const numberOrAuto: Parser = value => {
+  if (value === null) return undefined
+  if (value === 'auto') return 'auto'
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
 }
 
-function backendFrom(value: string | null): BackendId | 'auto' {
-  return BACKENDS.includes(value as BackendId) ? (value as BackendId) : 'auto'
-}
-
-function physicsFrom(value: string | null): boolean {
-  return value !== 'false' && value !== 'off'
-}
-
-function numberFrom(value: string | null): number | undefined {
+const number: Parser = value => {
   if (value === null) return undefined
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
+const text: Parser = value => value
+
+const flag: Parser = (_value, present) => present
+
+const enabled: Parser = value => value !== 'false' && value !== 'off'
+
+const ATTRIBUTES: Record<string, { option: keyof LiquidGlassOptions; parse: Parser }> = {
+  preset: {
+    option: 'preset',
+    parse: value => (PRESETS.includes(value as LiquidGlassPreset) ? value : 'clear')
+  },
+  backend: {
+    option: 'backend',
+    parse: value => (BACKENDS.includes(value as BackendId) ? value : 'auto')
+  },
+  backdrop: { option: 'backdrop', parse: text },
+  'scene-image': { option: 'sceneImage', parse: text },
+  shape: { option: 'shape', parse: value => (value === 'squircle' ? 'squircle' : 'rounded') },
+  physics: { option: 'physics', parse: enabled },
+  merge: { option: 'merge', parse: text },
+  'merge-strength': { option: 'mergeStrength', parse: number },
+  adaptive: { option: 'adaptive', parse: enabled },
+  'motion-light': { option: 'motionLight', parse: flag },
+  blur: { option: 'blur', parse: number },
+  saturation: { option: 'saturation', parse: number },
+  brightness: { option: 'brightness', parse: number },
+  tint: { option: 'tint', parse: text },
+  'tint-opacity': { option: 'tintOpacity', parse: number },
+  refraction: { option: 'refraction', parse: number },
+  ior: { option: 'ior', parse: number },
+  magnify: { option: 'magnify', parse: number },
+  thickness: { option: 'thickness', parse: numberOrAuto },
+  'bevel-width': { option: 'bevelWidth', parse: numberOrAuto },
+  'bevel-depth': { option: 'bevelDepth', parse: number },
+  dispersion: { option: 'dispersion', parse: number },
+  specular: { option: 'specular', parse: number },
+  frost: { option: 'frost', parse: number },
+  radius: { option: 'radius', parse: numberOrAuto }
+}
+
+const ATTRIBUTE_NAMES = Object.keys(ATTRIBUTES)
+
+const ALWAYS_ON = new Set(['preset', 'backend', 'shape', 'physics', 'adaptive', 'motion-light'])
+
+function readOptions(el: HTMLElement): LiquidGlassOptions {
+  const options: Record<string, unknown> = {}
+  for (const name of ATTRIBUTE_NAMES) {
+    const entry = ATTRIBUTES[name]!
+    const present = el.hasAttribute(name)
+    if (!present && !ALWAYS_ON.has(name)) continue
+    const value = entry.parse(el.getAttribute(name), present)
+    if (value !== undefined) options[entry.option] = value
+  }
+  return options as LiquidGlassOptions
+}
+
 function createElementClass(): CustomElementConstructor {
   return class LiquidGlassElement extends HTMLElement {
-    static observedAttributes = [
-      'preset',
-      'backdrop',
-      'backend',
-      'scene-image',
-      'physics',
-      'merge',
-      'merge-strength',
-      'shape',
-      'ior',
-      'magnify',
-      'thickness',
-      'motion-light'
-    ]
+    static observedAttributes = ATTRIBUTE_NAMES
+
+    #unsubscribers: Array<() => void> = []
 
     connectedCallback(): void {
-      const ior = numberFrom(this.getAttribute('ior'))
-      const magnify = numberFrom(this.getAttribute('magnify'))
-      const thickness = numberFrom(this.getAttribute('thickness'))
-      const mergeStrength = numberFrom(this.getAttribute('merge-strength'))
-      attach(this, {
-        preset: presetFrom(this.getAttribute('preset')),
-        backdrop: this.getAttribute('backdrop'),
-        backend: backendFrom(this.getAttribute('backend')),
-        sceneImage: this.getAttribute('scene-image'),
-        physics: physicsFrom(this.getAttribute('physics')),
-        merge: this.getAttribute('merge'),
-        shape: this.getAttribute('shape') === 'squircle' ? 'squircle' : 'rounded',
-        ...(ior !== undefined ? { ior } : {}),
-        ...(magnify !== undefined ? { magnify } : {}),
-        ...(thickness !== undefined ? { thickness } : {}),
-        ...(mergeStrength !== undefined ? { mergeStrength } : {}),
-        motionLight: this.hasAttribute('motion-light')
-      })
+      const handle = attach(this, readOptions(this))
+      this.#unsubscribers = EVENTS.map(name =>
+        handle.on(name, detail => {
+          this.dispatchEvent(
+            new CustomEvent(`liquid-glass:${name}`, {
+              detail: detail === '' ? null : detail,
+              bubbles: true,
+              composed: true
+            })
+          )
+        })
+      )
     }
 
     disconnectedCallback(): void {
+      for (const unsubscribe of this.#unsubscribers) unsubscribe()
+      this.#unsubscribers = []
       detach(this)
     }
 
-    get glass() {
+    get glass(): LiquidGlassHandle | undefined {
       return getInstance(this)
+    }
+
+    get options(): LiquidGlassOptions {
+      return readOptions(this)
     }
 
     attributeChangedCallback(name: string, _oldValue: string | null, value: string | null): void {
       const instance = getInstance(this)
-      if (!instance) return
-      if (name === 'preset') instance.set({ preset: presetFrom(value) })
-      if (name === 'backdrop') instance.set({ backdrop: value })
-      if (name === 'backend') instance.set({ backend: backendFrom(value) })
-      if (name === 'scene-image') instance.set({ sceneImage: value })
-      if (name === 'physics') instance.set({ physics: physicsFrom(value) })
-      if (name === 'merge') instance.set({ merge: value })
-      if (name === 'merge-strength') instance.set({ mergeStrength: numberFrom(value) })
-      if (name === 'shape') instance.set({ shape: value === 'squircle' ? 'squircle' : 'rounded' })
-      if (name === 'ior') instance.set({ ior: numberFrom(value) })
-      if (name === 'magnify') instance.set({ magnify: numberFrom(value) })
-      if (name === 'thickness') instance.set({ thickness: numberFrom(value) })
-      if (name === 'motion-light') instance.set({ motionLight: value !== null })
+      const entry = ATTRIBUTES[name]
+      if (!instance || !entry) return
+      instance.set({ [entry.option]: entry.parse(value, value !== null) } as LiquidGlassOptions)
     }
   }
 }
@@ -130,9 +173,14 @@ function createGroupClass(glassTag: string): CustomElementConstructor {
     #apply(): void {
       const spacing = Number(this.getAttribute('spacing'))
       const strength = Number.isFinite(spacing) && spacing > 0 ? spacing : 40
+      const strengthValue = String(strength)
       for (const glass of this.querySelectorAll(glassTag)) {
-        glass.setAttribute('merge', this.#group)
-        glass.setAttribute('merge-strength', String(strength))
+        if (glass.getAttribute('merge') !== this.#group) {
+          glass.setAttribute('merge', this.#group)
+        }
+        if (glass.getAttribute('merge-strength') !== strengthValue) {
+          glass.setAttribute('merge-strength', strengthValue)
+        }
         if (!glass.hasAttribute('backend')) glass.setAttribute('backend', 'webgl-overlay')
       }
     }

@@ -79,6 +79,61 @@ describe('liquid-glass element', () => {
     group.remove()
   })
 
+  it('exposes the whole option surface through attributes', () => {
+    define()
+    const el = document.createElement('liquid-glass') as HTMLElement & {
+      options?: Record<string, unknown>
+    }
+    el.setAttribute('dispersion', '0.4')
+    el.setAttribute('blur', '12')
+    el.setAttribute('tint', '#00ff00')
+    el.setAttribute('tint-opacity', '0.5')
+    el.setAttribute('frost', '0.25')
+    el.setAttribute('radius', 'auto')
+    el.setAttribute('bevel-width', '18')
+    el.setAttribute('adaptive', 'false')
+    document.body.appendChild(el)
+    expect(el.options).toMatchObject({
+      dispersion: 0.4,
+      blur: 12,
+      tint: '#00ff00',
+      tintOpacity: 0.5,
+      frost: 0.25,
+      radius: 'auto',
+      bevelWidth: 18,
+      adaptive: false
+    })
+    el.remove()
+  })
+
+  it('re-emits engine events as dom events', () => {
+    define()
+    const el = document.createElement('liquid-glass')
+    document.body.appendChild(el)
+    const seen: string[] = []
+    el.addEventListener('liquid-glass:press', () => seen.push('press'))
+    el.addEventListener('liquid-glass:release', () => seen.push('release'))
+    el.dispatchEvent(new PointerEvent('pointerdown', { clientX: 3, clientY: 3 }))
+    el.dispatchEvent(new PointerEvent('pointerup'))
+    expect(seen).toEqual(['press', 'release'])
+    el.remove()
+  })
+
+  it('stops emitting dom events once removed', () => {
+    define()
+    const el = document.createElement('liquid-glass')
+    document.body.appendChild(el)
+    let count = 0
+    el.addEventListener('liquid-glass:press', () => {
+      count += 1
+    })
+    el.dispatchEvent(new PointerEvent('pointerdown', { clientX: 1, clientY: 1 }))
+    expect(count).toBe(1)
+    el.remove()
+    el.dispatchEvent(new PointerEvent('pointerdown', { clientX: 1, clientY: 1 }))
+    expect(count).toBe(1)
+  })
+
   it('resets numeric attributes to defaults on removal', () => {
     define()
     const el = document.createElement('liquid-glass') as HTMLElement & {

@@ -159,11 +159,26 @@ questions inspectable in devtools:
 | `data-liquid-glass` | the active preset |
 | `data-liquid-glass-backend` | the backend actually rendering |
 | `data-liquid-glass-tone` | sampled backdrop tone, absent when unresolved |
+| `data-liquid-glass-pressed` | present while the physics controller holds a press |
 | `data-liquid-glass-degraded` | present after the fps watchdog demoted this instance |
+
+Mark any element you do not want captured in an overlay snapshot or cloned into a refraction layer
+with `data-liquid-glass-ignore`.
 
 ```js
 handle.on('backendchange', id => console.log('now rendering with', id))
 ```
+
+The web component mirrors the same events onto the DOM, so framework-free pages can listen without
+touching the handle:
+
+```js
+document.addEventListener('liquid-glass:backendchange', event => console.log(event.detail))
+```
+
+**GPU context loss.** When the browser drops the WebGL context — a GPU process restart, a driver
+reset, too many live contexts — the WebGL tiers stop drawing rather than freezing a stale frame, and
+re-upload their texture when the context is restored.
 
 ## What CI verifies
 

@@ -21,11 +21,18 @@ function ensureDefs(): SVGDefsElement | null {
   svg.setAttribute('aria-hidden', 'true')
   svg.style.position = 'absolute'
   svg.style.left = '-9999px'
+  svg.setAttribute('data-liquid-glass-ignore', '')
   const defs = document.createElementNS(SVG_NS, 'defs')
   svg.appendChild(defs)
   document.body.appendChild(svg)
   defsRoot = defs
   return defs
+}
+
+function releaseDefs(): void {
+  if (!defsRoot || defsRoot.childElementCount > 0) return
+  defsRoot.ownerSVGElement?.remove()
+  defsRoot = null
 }
 
 function isStyleable(element: Element): element is HTMLElement {
@@ -89,6 +96,7 @@ class CssSvgInstance implements BackendInstance {
     this.#mapToken++
     this.#filter.remove()
     this.#restore()
+    releaseDefs()
   }
 
   debug(): { band: number } {

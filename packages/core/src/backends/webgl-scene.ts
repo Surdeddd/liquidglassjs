@@ -138,6 +138,7 @@ export const webglSceneBackend: Backend = {
       return { update() {}, sync() {}, destroy() {} }
     }
     const instance = new WebglSceneInstance(surface, surface.element, canvas, renderer)
+    renderer.onContextRestored(() => instance.update(surface))
     return {
       update(next) {
         instance.update(next)

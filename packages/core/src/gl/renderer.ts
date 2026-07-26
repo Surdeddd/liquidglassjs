@@ -253,14 +253,45 @@ export class GlRenderer {
   #shapeData = new Float32Array(MAX_SHAPES * 4)
   #radiusData = new Float32Array(MAX_SHAPES)
 
+  #contextLost = false
+  #onRestored: (() => void) | null = null
+
+  #onContextLost = (event: Event): void => {
+    event.preventDefault()
+    this.#contextLost = true
+    this.#texture = null
+  }
+
+  #onContextRestored = (): void => {
+    this.#contextLost = false
+    this.#onRestored?.()
+  }
+
+  #buffer: WebGLBuffer | null = null
+
   private constructor(
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
-    locations: Map<UniformName, WebGLUniformLocation | null>
+    locations: Map<UniformName, WebGLUniformLocation | null>,
+    buffer: WebGLBuffer | null
   ) {
     this.#gl = gl
     this.#program = program
     this.#locations = locations
+    this.#buffer = buffer
+    const canvas = gl.canvas
+    if (canvas instanceof HTMLCanvasElement) {
+      canvas.addEventListener('webglcontextlost', this.#onContextLost)
+      canvas.addEventListener('webglcontextrestored', this.#onContextRestored)
+    }
+  }
+
+  get contextLost(): boolean {
+    return this.#contextLost
+  }
+
+  onContextRestored(cb: () => void): void {
+    this.#onRestored = cb
   }
 
   static create(canvas: HTMLCanvasElement): GlRenderer | null {
@@ -273,13 +304,27 @@ export class GlRenderer {
     if (!gl) return null
     const vert = compile(gl, gl.VERTEX_SHADER, VERT)
     const frag = compile(gl, gl.FRAGMENT_SHADER, FRAG)
-    if (!vert || !frag) return null
+    if (!vert || !frag) {
+      if (vert) gl.deleteShader(vert)
+      if (frag) gl.deleteShader(frag)
+      return null
+    }
     const program = gl.createProgram()
-    if (!program) return null
+    if (!program) {
+      gl.deleteShader(vert)
+      gl.deleteShader(frag)
+      return null
+    }
     gl.attachShader(program, vert)
     gl.attachShader(program, frag)
     gl.linkProgram(program)
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null
+    gl.deleteShader(vert)
+    gl.deleteShader(frag)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      gl.deleteProgram(program)
+      gl.getExtension('WEBGL_lose_context')?.loseContext()
+      return null
+    }
     const buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW)
@@ -292,7 +337,7 @@ export class GlRenderer {
     }
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-    return new GlRenderer(gl, program, locations)
+    return new GlRenderer(gl, program, locations, buffer)
   }
 
   setTexture(source: TexImageSource): void {
@@ -323,7 +368,7 @@ export class GlRenderer {
 
   render(draws: GlDraw[], texRect: GlRect): void {
     const gl = this.#gl
-    if (!this.#texture || this.#width === 0) return
+    if (this.#contextLost || !this.#texture || this.#width === 0) return
     gl.useProgram(this.#program)
     gl.clearColor(0, 0, 0, 0)
     gl.clear(gl.COLOR_BUFFER_BIT)
@@ -387,6 +432,13 @@ export class GlRenderer {
 
   destroy(): void {
     const gl = this.#gl
+    const canvas = gl.canvas
+    if (canvas instanceof HTMLCanvasElement) {
+      canvas.removeEventListener('webglcontextlost', this.#onContextLost)
+      canvas.removeEventListener('webglcontextrestored', this.#onContextRestored)
+    }
+    this.#onRestored = null
+    if (this.#buffer) gl.deleteBuffer(this.#buffer)
     if (this.#texture) gl.deleteTexture(this.#texture)
     gl.deleteProgram(this.#program)
     gl.getExtension('WEBGL_lose_context')?.loseContext()

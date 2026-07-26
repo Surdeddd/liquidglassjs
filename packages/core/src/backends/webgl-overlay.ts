@@ -69,8 +69,10 @@ class OverlayManager {
       canvas.remove()
       return null
     }
-    OverlayManager.#instance = new OverlayManager(canvas, renderer)
-    return OverlayManager.#instance
+    const manager = new OverlayManager(canvas, renderer)
+    renderer.onContextRestored(() => manager.scheduleSnapshot())
+    OverlayManager.#instance = manager
+    return manager
   }
 
   #canvas: HTMLCanvasElement
@@ -208,13 +210,14 @@ class OverlayManager {
   }
 
   async #snapshot(): Promise<void> {
-    if (this.#snapshotting) {
-      this.#snapshotDirty = true
+    if (this.#snapshotting || this.#destroyed) {
+      this.#snapshotDirty = !this.#destroyed
       return
     }
     this.#snapshotting = true
     try {
       const { toCanvas } = await import('html-to-image')
+      if (this.#destroyed) return
       const body = document.body
       const scale = Math.min(
         1,
@@ -232,6 +235,7 @@ class OverlayManager {
               node.hasAttribute('data-liquid-glass-ignore'))
           )
       })
+      if (this.#destroyed) return
       this.#renderer.setTexture(snapshot)
       setLuminanceGrid(buildLuminanceGrid(snapshot, body.scrollWidth, body.scrollHeight))
       this.scheduleRender()
@@ -333,7 +337,10 @@ class OverlayManager {
     })
   }
 
+  #destroyed = false
+
   #teardown(): void {
+    this.#destroyed = true
     setLuminanceGrid(null)
     this.#offViewport?.()
     this.#offViewport = null
@@ -350,7 +357,7 @@ class OverlayManager {
     }
     this.#renderer.destroy()
     this.#canvas.remove()
-    OverlayManager.#instance = null
+    if (OverlayManager.#instance === this) OverlayManager.#instance = null
   }
 }
 
