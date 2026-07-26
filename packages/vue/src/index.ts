@@ -20,13 +20,18 @@ export const LiquidGlass = defineComponent({
   setup(props, { slots, expose }) {
     const el = ref<HTMLElement | null>(null)
     let handle: LiquidGlassHandle | null = null
+    let attached: HTMLElement | null = null
     const merged = (): LiquidGlassOptions => ({ preset: props.preset, ...props.options })
-    onMounted(() => {
-      if (el.value) handle = attach(el.value, merged())
-    })
-    onBeforeUnmount(() => {
+    const bind = (next: HTMLElement | null): void => {
+      if (next === attached) return
       handle?.destroy()
-      handle = null
+      handle = next ? attach(next, merged()) : null
+      attached = next
+    }
+    onMounted(() => bind(el.value))
+    watch(el, next => bind(next), { flush: 'post' })
+    onBeforeUnmount(() => {
+      bind(null)
     })
     watch(
       merged,

@@ -220,8 +220,20 @@ export interface LensPixels {
   maxOffset: number
 }
 
+const SIZE_BUCKET = 8
+const DETAIL_BUCKET = 0.5
+
+function bucket(value: number, step: number): number {
+  return Math.round(value / step) * step
+}
+
 export function lensMapKey(opts: MapOptions): string {
-  return `${opts.width}|${opts.height}|${opts.radius}|${opts.shape}|${opts.band}|${opts.ior}|${opts.thickness}|${opts.magnify}`
+  const w = bucket(opts.width, SIZE_BUCKET)
+  const h = bucket(opts.height, SIZE_BUCKET)
+  const radius = bucket(opts.radius, DETAIL_BUCKET)
+  const band = bucket(opts.band, DETAIL_BUCKET)
+  const thickness = bucket(opts.thickness, DETAIL_BUCKET)
+  return `${w}|${h}|${radius}|${opts.shape}|${band}|${opts.ior}|${thickness}|${opts.magnify}`
 }
 
 export function renderLensPixels(opts: MapOptions): LensPixels {
@@ -255,6 +267,7 @@ export function encodeLensMap(rendered: LensPixels): LensMap {
 }
 
 export function cacheLensMap(key: string, entry: LensMap): void {
+  lensMapCache.delete(key)
   if (lensMapCache.size >= LENS_MAP_CACHE_MAX) {
     const oldest = lensMapCache.keys().next().value
     if (oldest !== undefined) lensMapCache.delete(oldest)
@@ -263,13 +276,17 @@ export function cacheLensMap(key: string, entry: LensMap): void {
 }
 
 export function cachedLensMap(key: string): LensMap | undefined {
-  return lensMapCache.get(key)
+  const hit = lensMapCache.get(key)
+  if (hit === undefined) return undefined
+  lensMapCache.delete(key)
+  lensMapCache.set(key, hit)
+  return hit
 }
 
 export function generateLensMap(opts: MapOptions): LensMap | null {
   if (opts.width < 1 || opts.height < 1) return null
   const key = lensMapKey(opts)
-  const hit = lensMapCache.get(key)
+  const hit = cachedLensMap(key)
   if (hit) return hit
   const entry = encodeLensMap(renderLensPixels(opts))
   cacheLensMap(key, entry)

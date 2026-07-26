@@ -11,9 +11,12 @@ export {
   adaptTintToTone,
   applyReducedTransparency,
   parseColor,
+  readForcedColors,
+  readReducedMotion,
   readReducedTransparency,
   relativeLuminance,
   sampleTone,
+  TONE_CROSSOVER,
   watchMedia
 } from './quality/a11y'
 export type { BackdropTone } from './quality/a11y'

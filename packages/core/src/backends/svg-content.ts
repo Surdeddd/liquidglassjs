@@ -217,15 +217,23 @@ class SvgContentInstance implements BackendInstance {
     this.#clone?.remove()
     const clone = this.#source.cloneNode(true) as Element
     for (const glass of clone.querySelectorAll(
-      'liquid-glass, [data-liquid-glass], [data-liquid-glass-layer], [data-liquid-glass-overlay]'
+      'liquid-glass, [data-liquid-glass], [data-liquid-glass-layer], [data-liquid-glass-overlay], [data-liquid-glass-ignore]'
     )) {
       glass.remove()
+    }
+    for (const node of clone.querySelectorAll('[id], [name]')) {
+      node.removeAttribute('id')
+      node.removeAttribute('name')
     }
     if (isStyleable(clone)) {
       clone.style.margin = '0'
       clone.style.pointerEvents = 'none'
+      clone.style.userSelect = 'none'
+      clone.inert = true
     }
+    clone.setAttribute('aria-hidden', 'true')
     clone.removeAttribute('id')
+    clone.removeAttribute('name')
     this.#layer.appendChild(clone)
     this.#clone = clone
     this.#position(surface)

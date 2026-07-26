@@ -1,3 +1,5 @@
+import { relativeLuminance } from './a11y'
+
 export interface LuminanceGrid {
   data: Float32Array
   cols: number
@@ -60,8 +62,7 @@ export function buildLuminanceGrid(
     const data = new Float32Array(cols * rows)
     for (let i = 0; i < data.length; i++) {
       const p = i * 4
-      data[i] =
-        (0.2126 * image.data[p]! + 0.7152 * image.data[p + 1]! + 0.0722 * image.data[p + 2]!) / 255
+      data[i] = relativeLuminance(image.data[p]!, image.data[p + 1]!, image.data[p + 2]!)
     }
     return { data, cols, rows, docWidth, docHeight }
   } catch {

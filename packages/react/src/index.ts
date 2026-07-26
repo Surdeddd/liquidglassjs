@@ -20,12 +20,24 @@ import {
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
-function shallowEqual(a: LiquidGlassOptions | undefined, b: LiquidGlassOptions): boolean {
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
+  if (a instanceof Element || b instanceof Element) return false
+  const aKeys = Object.keys(a as object)
+  const bKeys = Object.keys(b as object)
+  if (aKeys.length !== bKeys.length) return false
+  return bKeys.every(
+    key => (a as Record<string, unknown>)[key] === (b as Record<string, unknown>)[key]
+  )
+}
+
+function sameOptions(a: LiquidGlassOptions | undefined, b: LiquidGlassOptions): boolean {
   if (!a) return false
   const aKeys = Object.keys(a) as (keyof LiquidGlassOptions)[]
   const bKeys = Object.keys(b) as (keyof LiquidGlassOptions)[]
   if (aKeys.length !== bKeys.length) return false
-  return bKeys.every(key => a[key] === b[key])
+  return bKeys.every(key => sameValue(a[key], b[key]))
 }
 
 export function useLiquidGlass(
@@ -33,24 +45,32 @@ export function useLiquidGlass(
   options: LiquidGlassOptions = {}
 ): void {
   const handleRef = useRef<LiquidGlassHandle | null>(null)
+  const nodeRef = useRef<Element | null>(null)
   const initial = useRef(options)
   initial.current = options
   const applied = useRef<LiquidGlassOptions | undefined>(undefined)
 
   useIsomorphicLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    handleRef.current = attach(el, initial.current)
-    applied.current = initial.current
-    return () => {
+    const el = ref.current ?? null
+    if (el === nodeRef.current) return
+    handleRef.current?.destroy()
+    handleRef.current = el ? attach(el, initial.current) : null
+    nodeRef.current = el
+    applied.current = el ? initial.current : undefined
+  })
+
+  useIsomorphicLayoutEffect(
+    () => () => {
       handleRef.current?.destroy()
       handleRef.current = null
+      nodeRef.current = null
       applied.current = undefined
-    }
-  }, [ref])
+    },
+    []
+  )
 
   useEffect(() => {
-    if (!handleRef.current || shallowEqual(applied.current, options)) return
+    if (!handleRef.current || sameOptions(applied.current, options)) return
     handleRef.current.set(resetMissingOptions(applied.current, options))
     applied.current = options
   })

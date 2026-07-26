@@ -1,11 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   adaptTintToTone,
   applyReducedTransparency,
   parseColor,
   relativeLuminance,
-  sampleTone
+  sampleTone,
+  TONE_CROSSOVER
 } from '../src/quality/a11y'
+import { attach } from '../src/engine'
+import { colorWithOpacity } from '../src/color'
 import { MATERIAL_DEFAULTS } from '../src/material'
 
 describe('parseColor', () => {
@@ -84,6 +87,52 @@ describe('applyReducedTransparency', () => {
     expect(material.refraction).toBe(0)
     expect(material.dispersion).toBe(0)
     expect(material.blur).toBeLessThanOrEqual(4)
+  })
+})
+
+describe('forced colors', () => {
+  it('drops the glass to the opaque material while high contrast is active', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('forced-colors'),
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    }))
+    const handle = attach(el, { backend: 'css-fallback', adaptive: false, physics: false })
+    expect(el.style.getPropertyValue('background')).toBe(colorWithOpacity('#ffffff', 0.85))
+    handle.destroy()
+    vi.unstubAllGlobals()
+    el.remove()
+  })
+})
+
+describe('tone crossover', () => {
+  function toneOver(color: string): string | null {
+    const host = document.createElement('div')
+    const parent = document.createElement('div')
+    parent.style.backgroundColor = color
+    parent.appendChild(host)
+    document.body.appendChild(parent)
+    const tone = sampleTone(host, null)
+    parent.remove()
+    return tone
+  }
+
+  it('classifies mid greys the way black-on-white contrast does', () => {
+    expect(toneOver('rgb(128, 128, 128)')).toBe('light')
+    expect(toneOver('rgb(153, 153, 153)')).toBe('light')
+    expect(toneOver('rgb(176, 176, 176)')).toBe('light')
+  })
+
+  it('keeps genuinely dark backdrops dark', () => {
+    expect(toneOver('rgb(60, 60, 60)')).toBe('dark')
+    expect(toneOver('rgb(5, 7, 12)')).toBe('dark')
+  })
+
+  it('puts the crossover where white and black text trade places', () => {
+    expect(relativeLuminance(110, 110, 110)).toBeLessThan(TONE_CROSSOVER)
+    expect(relativeLuminance(125, 125, 125)).toBeGreaterThan(TONE_CROSSOVER)
   })
 })
 

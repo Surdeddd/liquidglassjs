@@ -1,8 +1,11 @@
 import {
   adaptTintToTone,
   applyReducedTransparency,
+  readForcedColors,
+  readReducedMotion,
   readReducedTransparency,
   sampleTone,
+  TONE_CROSSOVER,
   watchMedia,
   type BackdropTone
 } from './quality/a11y'
@@ -27,6 +30,17 @@ import type { LiquidGlassHandle, LiquidGlassOptions } from './types'
 const instances = new WeakMap<Element, LiquidGlassHandle>()
 
 const TONE_SAMPLE_INTERVAL_MS = 250
+
+function samePhysicsOption(a: LiquidGlassOptions['physics'], b: LiquidGlassOptions['physics']): boolean {
+  if (a === b) return true
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  if (aKeys.length !== bKeys.length) return false
+  return bKeys.every(
+    key => (a as Record<string, unknown>)[key] === (b as Record<string, unknown>)[key]
+  )
+}
 
 function resolveBackdrop(backdrop: Element | string | null | undefined): Element | null {
   if (!backdrop) return null
@@ -66,6 +80,7 @@ function degradeTarget(capabilities: ReturnType<typeof probeCapabilities>): Back
 }
 
 const degradeTargets = new Set<() => void>()
+let warnedAboutMerge = false
 let watchdogArmed = false
 let globallyDegraded = false
 let stopWatchdog: (() => void) | null = null
@@ -92,14 +107,15 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   let current: LiquidGlassOptions = { ...options }
   let pressed = false
   const capabilities = probeCapabilities()
-  let reducedMotion = capabilities.reducedMotion
+  let reducedMotion = readReducedMotion()
   const pickBackend = (): Backend => {
-    const selected = selectBackend(capabilities, current.backend ?? 'auto')
-    if (
-      globallyDegraded &&
-      (current.backend ?? 'auto') === 'auto' &&
-      selected.id === 'webgl-overlay'
-    ) {
+    const preference = current.backend ?? 'auto'
+    if (preference === 'auto' && current.merge && !globallyDegraded) {
+      const overlay = getBackend('webgl-overlay')
+      if (overlay?.isSupported(capabilities)) return overlay
+    }
+    const selected = selectBackend(capabilities, preference)
+    if (globallyDegraded && preference === 'auto' && selected.id === 'webgl-overlay') {
       return degradeTarget(capabilities)
     }
     return selected
@@ -123,7 +139,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   const applyMaterial = (): void => {
     const previousTone = tone
     let material = resolveMaterial(current)
-    if (readReducedTransparency()) {
+    if (readReducedTransparency() || readForcedColors()) {
       material = applyReducedTransparency(material)
     }
     if (pressed) {
@@ -142,8 +158,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
         height: box.height
       })
       if (luminance !== null) {
-        if (tone === null || Math.abs(luminance - 0.5) >= 0.06) {
-          tone = luminance > 0.5 ? 'light' : 'dark'
+        if (tone === null || Math.abs(luminance - TONE_CROSSOVER) >= 0.04) {
+          tone = luminance > TONE_CROSSOVER ? 'light' : 'dark'
         }
       } else {
         tone = sampleTone(element, surface.backdrop)
@@ -260,7 +276,9 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     emitter.emit('backendchange', backend.id)
   }
   degradeTargets.add(applyDegrade)
-  if (!watchdogArmed && typeof window !== 'undefined') {
+  const armWatchdog = (): void => {
+    if (watchdogArmed || typeof window === 'undefined') return
+    if (backend.id !== 'webgl-overlay' || (current.backend ?? 'auto') !== 'auto') return
     watchdogArmed = true
     stopWatchdog = watchFps(() => {
       globallyDegraded = true
@@ -269,6 +287,16 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       for (const fn of [...degradeTargets]) fn()
     })
   }
+  armWatchdog()
+
+  const warnUnmergeable = (): void => {
+    if (!current.merge || backend.id === 'webgl-overlay' || warnedAboutMerge) return
+    warnedAboutMerge = true
+    console.warn(
+      `liquidglass: the "${backend.id}" backend cannot merge lenses; the merge group is ignored. Use backend: 'webgl-overlay' or wrap the lenses in <liquid-glass-group>.`
+    )
+  }
+  warnUnmergeable()
 
   const unsubscribers: Array<() => void> = [
     watchMedia('(prefers-reduced-motion: reduce)', matches => {
@@ -278,6 +306,10 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       syncBezel()
     }),
     watchMedia('(prefers-reduced-transparency: reduce)', () => {
+      applyMaterial()
+      instance.update(surface)
+    }),
+    watchMedia('(forced-colors: active)', () => {
       applyMaterial()
       instance.update(surface)
     })
@@ -292,6 +324,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       return emitter.on(event, cb)
     },
     set(next) {
+      const previousPhysics = current.physics
       current = { ...current, ...next }
       const merged = current as Record<string, unknown>
       for (const key of Object.keys(merged)) {
@@ -310,15 +343,21 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
         instance = backend.mount(surface)
         emitter.emit('backendchange', backend.id)
       }
-      if ('physics' in next) {
+      if ('physics' in next && !samePhysicsOption(previousPhysics, current.physics)) {
         physics?.destroy()
         physics = createPhysics(element, current, reducedMotion, pressHooks)
       }
       instance.update(surface)
       syncBezel()
       markElement()
+      armWatchdog()
+      warnUnmergeable()
     },
     destroy() {
+      if (pressed) {
+        pressed = false
+        emitter.emit('release', '')
+      }
       tracker.stop()
       degradeTargets.delete(applyDegrade)
       if (degradeTargets.size === 0) releaseWatchdog()

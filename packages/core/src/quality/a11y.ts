@@ -28,6 +28,8 @@ export function parseColor(color: string): [number, number, number, number] | nu
   return null
 }
 
+export const TONE_CROSSOVER = 0.179
+
 export function relativeLuminance(r: number, g: number, b: number): number {
   const channel = (v: number): number => {
     const s = v / 255
@@ -68,13 +70,21 @@ export function sampleTone(element: Element, backdrop: Element | null): Backdrop
     g = lg * la + g * (1 - la)
     b = lb * la + b * (1 - la)
   }
-  return relativeLuminance(r, g, b) > 0.5 ? 'light' : 'dark'
+  return relativeLuminance(r, g, b) > TONE_CROSSOVER ? 'light' : 'dark'
 }
 
 export function readReducedTransparency(): boolean {
   return (
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-transparency: reduce)').matches
   )
+}
+
+export function readReducedMotion(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+export function readForcedColors(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(forced-colors: active)').matches
 }
 
 export function applyReducedTransparency(material: MaterialParams): MaterialParams {

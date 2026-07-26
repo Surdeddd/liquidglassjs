@@ -3,6 +3,7 @@ import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
+import { onViewport } from '../runtime/scheduler'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -82,6 +83,8 @@ class OverlayManager {
   #mutationObserver: MutationObserver | null = null
   #anchor: GlRect | null = null
 
+  #offViewport: (() => void) | null = null
+
   #onResize = (): void => {
     this.scheduleRender()
   }
@@ -90,6 +93,7 @@ class OverlayManager {
     this.#canvas = canvas
     this.#renderer = renderer
     window.addEventListener('resize', this.#onResize, { passive: true })
+    this.#offViewport = onViewport(() => this.scheduleRender())
     if (typeof MutationObserver !== 'undefined') {
       this.#mutationObserver = new MutationObserver(records => {
         for (const record of records) {
@@ -152,8 +156,16 @@ class OverlayManager {
   #pollFrame = 0
   #pollSignature = ''
 
+  #needsPoll(surface: BackendSurface): boolean {
+    if (surface.merge) return true
+    if (typeof getComputedStyle !== 'function') return false
+    const computed = getComputedStyle(surface.element)
+    if (computed.position === 'fixed' || computed.position === 'sticky') return true
+    return computed.transform !== '' && computed.transform !== 'none'
+  }
+
   #syncPoll(): void {
-    const needsPoll = [...this.#surfaces].some(surface => surface.merge)
+    const needsPoll = [...this.#surfaces].some(surface => this.#needsPoll(surface))
     if (!needsPoll && this.#pollFrame && typeof cancelAnimationFrame === 'function') {
       cancelAnimationFrame(this.#pollFrame)
       this.#pollFrame = 0
@@ -162,10 +174,10 @@ class OverlayManager {
     if (needsPoll && !this.#pollFrame && typeof requestAnimationFrame === 'function') {
       const loop = (): void => {
         this.#pollFrame = 0
-        if (![...this.#surfaces].some(surface => surface.merge)) return
+        const polled = [...this.#surfaces].filter(surface => this.#needsPoll(surface))
+        if (polled.length === 0) return
         let signature = ''
-        for (const surface of this.#surfaces) {
-          if (!surface.merge) continue
+        for (const surface of polled) {
           const box = surface.element.getBoundingClientRect()
           signature += `${box.left.toFixed(1)},${box.top.toFixed(1)},${box.width.toFixed(1)},${box.height.toFixed(1)};`
         }
@@ -323,6 +335,8 @@ class OverlayManager {
 
   #teardown(): void {
     setLuminanceGrid(null)
+    this.#offViewport?.()
+    this.#offViewport = null
     window.removeEventListener('resize', this.#onResize)
     this.#mutationObserver?.disconnect()
     this.#mutationObserver = null

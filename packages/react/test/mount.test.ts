@@ -100,6 +100,55 @@ describe('LiquidGlass react component', () => {
     host.remove()
   })
 
+  it('re-attaches when the mount target node changes', () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const root = createRoot(host)
+    act(() => {
+      root.render(createElement(LiquidGlass, { as: 'div', adaptive: false, physics: false }))
+    })
+    const first = host.querySelector<HTMLElement>('[data-liquid-glass]')
+    expect(first?.tagName.toLowerCase()).toBe('div')
+    act(() => {
+      root.render(createElement(LiquidGlass, { as: 'section', adaptive: false, physics: false }))
+    })
+    const second = host.querySelector<HTMLElement>('[data-liquid-glass]')
+    expect(second?.tagName.toLowerCase()).toBe('section')
+    expect(second).not.toBe(first)
+    expect(first?.hasAttribute('data-liquid-glass')).toBe(false)
+    act(() => {
+      root.unmount()
+    })
+    expect(host.querySelector('[data-liquid-glass]')).toBeNull()
+    host.remove()
+  })
+
+  it('does not restart physics when an inline options object keeps the same values', () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const root = createRoot(host)
+    const render = (): void => {
+      root.render(
+        createElement(LiquidGlass, {
+          adaptive: false,
+          backend: 'css-fallback',
+          physics: { press: true, hover: false }
+        })
+      )
+    }
+    act(render)
+    const glass = host.querySelector<HTMLElement>('[data-liquid-glass]')
+    glass?.dispatchEvent(new PointerEvent('pointerdown', { clientX: 4, clientY: 4 }))
+    expect(glass?.getAttribute('data-liquid-glass-pressed')).toBe('true')
+    act(render)
+    glass?.dispatchEvent(new PointerEvent('pointerup'))
+    expect(glass?.hasAttribute('data-liquid-glass-pressed')).toBe(false)
+    act(() => {
+      root.unmount()
+    })
+    host.remove()
+  })
+
   it('resets options dropped between renders', () => {
     const host = document.createElement('div')
     document.body.appendChild(host)
