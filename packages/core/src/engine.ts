@@ -13,11 +13,7 @@ import { mountGlow } from './fx/glow'
 import type { GlowHandle } from './fx/glow'
 import { registerLight } from './fx/light'
 import { cssFallbackBackend } from './backends/css-fallback'
-import { cssSvgBackend } from './backends/css-svg'
-import { svgContentBackend } from './backends/svg-content'
-import { webglOverlayBackend } from './backends/webgl-overlay'
-import { webglSceneBackend } from './backends/webgl-scene'
-import { getBackend, registerBackend, selectBackend } from './backends/registry'
+import { getBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
 import { watchFps } from './quality/profile'
 import { createEmitter } from './runtime/events'
@@ -27,12 +23,6 @@ import { PhysicsController, resolvePhysics } from './physics/controller'
 import type { PhysicsHooks } from './physics/controller'
 import { probeCapabilities } from './quality/probe'
 import type { LiquidGlassHandle, LiquidGlassOptions } from './types'
-
-registerBackend(cssFallbackBackend)
-registerBackend(cssSvgBackend)
-registerBackend(svgContentBackend)
-registerBackend(webglSceneBackend)
-registerBackend(webglOverlayBackend)
 
 const instances = new WeakMap<Element, LiquidGlassHandle>()
 
@@ -78,10 +68,17 @@ function degradeTarget(capabilities: ReturnType<typeof probeCapabilities>): Back
 const degradeTargets = new Set<() => void>()
 let watchdogArmed = false
 let globallyDegraded = false
+let stopWatchdog: (() => void) | null = null
+
+function releaseWatchdog(): void {
+  stopWatchdog?.()
+  stopWatchdog = null
+  watchdogArmed = false
+}
 
 export function resetDegradation(): void {
   globallyDegraded = false
-  watchdogArmed = false
+  releaseWatchdog()
   degradeTargets.clear()
 }
 
@@ -265,8 +262,10 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   degradeTargets.add(applyDegrade)
   if (!watchdogArmed && typeof window !== 'undefined') {
     watchdogArmed = true
-    watchFps(() => {
+    stopWatchdog = watchFps(() => {
       globallyDegraded = true
+      stopWatchdog = null
+      watchdogArmed = false
       for (const fn of [...degradeTargets]) fn()
     })
   }
@@ -322,15 +321,16 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     destroy() {
       tracker.stop()
       degradeTargets.delete(applyDegrade)
+      if (degradeTargets.size === 0) releaseWatchdog()
       for (const unsubscribe of unsubscribers) unsubscribe()
       physics?.destroy()
       physics = null
       releaseLight?.()
       releaseLight = null
-      bezel?.destroy()
-      bezel = null
       glow?.destroy()
       glow = null
+      bezel?.destroy()
+      bezel = null
       instance.destroy()
       instances.delete(element)
       emitter.clear()
@@ -338,6 +338,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       element.removeAttribute('data-liquid-glass')
       element.removeAttribute('data-liquid-glass-backend')
       element.removeAttribute('data-liquid-glass-tone')
+      element.removeAttribute('data-liquid-glass-degraded')
     }
   }
 

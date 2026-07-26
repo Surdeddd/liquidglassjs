@@ -86,6 +86,7 @@ class CssSvgInstance implements BackendInstance {
   }
 
   destroy(): void {
+    this.#mapToken++
     this.#filter.remove()
     this.#restore()
   }

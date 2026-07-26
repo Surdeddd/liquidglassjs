@@ -1,5 +1,6 @@
 import { colorWithOpacity } from '../color'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
+import { parseColor } from '../quality/a11y'
 import { requestLensMap } from '../worker/host'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
@@ -7,6 +8,24 @@ import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
+
+function paints(node: Element): boolean {
+  const computed = getComputedStyle(node)
+  const color = parseColor(computed.backgroundColor)
+  if (color && color[3] > 0.01) return true
+  return computed.backgroundImage !== '' && computed.backgroundImage !== 'none'
+}
+
+export function resolveContentSource(element: Element): Element | null {
+  if (typeof getComputedStyle !== 'function') return null
+  const doc = element.ownerDocument
+  let node = element.parentElement
+  while (node && node !== doc?.body && node !== doc?.documentElement) {
+    if (paints(node)) return node
+    node = node.parentElement
+  }
+  return null
+}
 
 const TOUCHED = [
   'backdrop-filter',
@@ -117,12 +136,13 @@ class SvgContentInstance implements BackendInstance {
   }
 
   #syncLayer(surface: BackendSurface): void {
-    if (surface.backdrop === this.#source) {
+    const wanted = surface.backdrop ?? resolveContentSource(surface.element)
+    if (wanted === this.#source) {
       this.#position(surface)
       return
     }
     this.#teardownLayer()
-    this.#source = surface.backdrop
+    this.#source = wanted
     if (!this.#source || !isStyleable(surface.element)) return
 
     const id = `lgc-${++uid}`

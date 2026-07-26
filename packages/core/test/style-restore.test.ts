@@ -74,6 +74,17 @@ describe('destroy restores user inline styles', () => {
     el.remove()
   })
 
+  it('leaves nothing inline after a full press cycle mounts the glow', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const handle = attach(el, { backend: 'css-fallback', adaptive: false })
+    el.dispatchEvent(new PointerEvent('pointerdown', { clientX: 5, clientY: 5, bubbles: true }))
+    el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
+    handle.destroy()
+    expect(el.getAttribute('style') ?? '').toBe('')
+    el.remove()
+  })
+
   it('keeps glass styles absent when the user had none', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)

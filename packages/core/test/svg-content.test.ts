@@ -25,7 +25,24 @@ describe('svg-content backend', () => {
     )
   })
 
-  it('applies plain glass styles without a backdrop source', () => {
+  it('refracts the nearest painted ancestor when no backdrop is given', () => {
+    const painted = document.createElement('section')
+    painted.className = 'painted'
+    painted.style.backgroundColor = 'rgb(20, 20, 20)'
+    painted.appendChild(document.createElement('p'))
+    document.body.appendChild(painted)
+    const surface = makeSurface(null)
+    painted.appendChild(surface.element)
+    const instance = svgContentBackend.mount(surface)
+    const layer = surface.element.querySelector('[data-liquid-glass-layer="refract"]')
+    expect((layer as HTMLElement).style.filter).toContain('url(')
+    expect(layer?.firstElementChild?.className).toBe('painted')
+    instance.destroy()
+    expect(surface.element.querySelector('[data-liquid-glass-layer]')).toBeNull()
+    painted.remove()
+  })
+
+  it('stays on plain glass styles when no ancestor paints anything', () => {
     const surface = makeSurface(null)
     const instance = svgContentBackend.mount(surface)
     const style = (surface.element as HTMLElement).style

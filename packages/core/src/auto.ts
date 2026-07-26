@@ -23,14 +23,19 @@ function collect(root: ParentNode): Element[] {
   return found
 }
 
-export function autoAttach(root: ParentNode = document): () => void {
+export function autoAttach(root?: ParentNode): () => void {
   if (typeof document === 'undefined') return () => {}
+  const scope: ParentNode = root ?? document
   const attached = new Set<Element>()
 
   const mount = (el: Element): void => {
     if (attached.has(el)) return
-    attach(el, parseOptions(el.getAttribute(AUTO_ATTR)))
-    attached.add(el)
+    try {
+      attach(el, parseOptions(el.getAttribute(AUTO_ATTR)))
+      attached.add(el)
+    } catch (error) {
+      console.warn('liquidglass: autoAttach skipped an element', el, error)
+    }
   }
 
   const unmount = (el: Element): void => {
@@ -39,7 +44,7 @@ export function autoAttach(root: ParentNode = document): () => void {
     attached.delete(el)
   }
 
-  for (const el of collect(root)) mount(el)
+  for (const el of collect(scope)) mount(el)
 
   let observer: MutationObserver | null = null
   if (typeof MutationObserver !== 'undefined') {
@@ -60,7 +65,7 @@ export function autoAttach(root: ParentNode = document): () => void {
         }
       }
     })
-    observer.observe(root instanceof Document ? root.documentElement : (root as Node), {
+    observer.observe(scope instanceof Document ? scope.documentElement : (scope as Node), {
       childList: true,
       subtree: true
     })

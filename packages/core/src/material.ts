@@ -54,13 +54,20 @@ export function clampMaterial(material: MaterialParams): MaterialParams {
   const result: MaterialParams = { ...material }
   for (const key of MATERIAL_KEYS) {
     const range = NUMERIC_RANGES[key]
+    if (!range) continue
     const value = result[key]
-    if (range && typeof value === 'number') {
-      Object.assign(result, { [key]: Math.min(range[1], Math.max(range[0], value)) })
+    const numeric = typeof value === 'number' ? value : Number(value)
+    if (!Number.isFinite(numeric)) {
+      Object.assign(result, { [key]: MATERIAL_DEFAULTS[key] })
+      continue
     }
+    Object.assign(result, { [key]: Math.min(range[1], Math.max(range[0], numeric)) })
   }
-  if (typeof result.radius === 'number' && result.radius < 0) {
-    result.radius = 0
+  if (typeof result.tint !== 'string') result.tint = MATERIAL_DEFAULTS.tint
+  if (result.shape !== 'squircle') result.shape = 'rounded'
+  if (result.radius !== 'auto') {
+    const radius = Number(result.radius)
+    result.radius = Number.isFinite(radius) ? Math.max(0, radius) : MATERIAL_DEFAULTS.radius
   }
   return result
 }

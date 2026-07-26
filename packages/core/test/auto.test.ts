@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { autoAttach, getInstance } from '../src/index'
 
 function flushObserver(): Promise<void> {
@@ -34,6 +34,17 @@ describe('autoAttach', () => {
     await flushObserver()
     expect(getInstance(el)).toBeUndefined()
     stop()
+  })
+
+  it('is a no-op without a document instead of throwing', () => {
+    vi.stubGlobal('document', undefined)
+    try {
+      const stop = autoAttach()
+      expect(typeof stop).toBe('function')
+      expect(() => stop()).not.toThrow()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('tolerates malformed json options', () => {
