@@ -4,7 +4,7 @@ Liquid Glass for the whole web — one engine, every browser, every framework.
 
 [![CI](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml/badge.svg)](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@surdeddd/liquidglass)](https://www.npmjs.com/package/@surdeddd/liquidglass)
-[![size](https://img.shields.io/badge/engine-21.7kB_brotli-blue)](https://github.com/Surdeddd/liquidglassjs/tree/main/packages/core)
+[![size](https://img.shields.io/bundlephobia/minzip/@surdeddd/liquidglass)](https://bundlephobia.com/package/@surdeddd/liquidglass)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Surdeddd/liquidglassjs/blob/main/LICENSE)
 
 Real refraction over live DOM — not a screenshot, not Chromium-only. Living spring physics,
@@ -127,7 +127,7 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 ## Highlights
 
 - **Real lens optics** — a convex squircle dome refracted by Snell's law (`ior`, default 1.5): optically flat interior with a subtle whole-body magnification (`magnify`) and all the bending concentrated in a rim band that tracks your corner radius, exactly like iOS 26.
-- **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on every backend, including the default Chromium path.
+- **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on the Chromium and WebGL paths ([fidelity matrix](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md#fidelity-matrix)).
 - **Living specular bezel** — a two-tone rim highlight that follows the pointer (or device tilt with `motionLight: true`) instead of a painted-on gradient.
 - **Tiered rendering** — capability probe picks the best backend per browser; fidelity improves as browsers ship new APIs, your code never changes.
 - **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way.
@@ -148,6 +148,9 @@ node scripts/fps-bench.mjs --headed
 
 The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, research notes in
 [docs/research](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).
+
+Engine-by-engine behaviour, the per-backend fidelity matrix and the platform version floors live in
+[docs/browser-support.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md).
 
 ## License
 
