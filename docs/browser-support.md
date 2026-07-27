@@ -132,6 +132,18 @@ DOM-to-image constraints: cross-origin images without CORS headers and webfonts 
 will not appear in the refracted texture. Dirty tracking keeps re-snapshots rare, but the tier is a
 specialty path for merging, not a general-purpose default.
 
+The texture is mapped onto page coordinates, which assumes the rasterizer reproduces the page
+layout exactly. It does not always: a clone can lose auto margins, so a centered `max-width`
+container ends up flush left in the texture. Lenses on that tier then sample the wrong column and
+show whatever sits beyond the shifted content — usually the page background. Measured on a
+1440 × 2780 page whose content is centred at 1080px wide: the texture is the right size, but at
+y = 1150 the striped section ends at x ≈ 1080 instead of x ≈ 1288, and a lens at x = 976…1196 reads
+the page background for most of its width.
+
+Until that mapping is measured rather than assumed, keep `webgl-overlay` lenses out of centered
+`max-width` containers, or give the merge group its own full-width section. The CSS and SVG tiers
+are unaffected — they refract the real backdrop and never rasterize the page.
+
 **WebGPU.** `'webgpu'` is a valid `BackendId` in the type surface, but no WebGPU backend is
 registered yet. Requesting it falls through to normal auto-selection rather than failing.
 
