@@ -3,7 +3,6 @@ import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
-import { onViewport } from '../runtime/scheduler'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -85,8 +84,6 @@ class OverlayManager {
   #mutationObserver: MutationObserver | null = null
   #anchor: GlRect | null = null
 
-  #offViewport: (() => void) | null = null
-
   #onResize = (): void => {
     this.scheduleRender()
   }
@@ -95,7 +92,6 @@ class OverlayManager {
     this.#canvas = canvas
     this.#renderer = renderer
     window.addEventListener('resize', this.#onResize, { passive: true })
-    this.#offViewport = onViewport(() => this.scheduleRender())
     if (typeof MutationObserver !== 'undefined') {
       this.#mutationObserver = new MutationObserver(records => {
         for (const record of records) {
@@ -342,8 +338,6 @@ class OverlayManager {
   #teardown(): void {
     this.#destroyed = true
     setLuminanceGrid(null)
-    this.#offViewport?.()
-    this.#offViewport = null
     window.removeEventListener('resize', this.#onResize)
     this.#mutationObserver?.disconnect()
     this.#mutationObserver = null
