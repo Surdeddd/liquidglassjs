@@ -52,4 +52,47 @@ describe('clampMaterial', () => {
     const material = clampMaterial({ ...MATERIAL_DEFAULTS, radius: 'auto' })
     expect(material.radius).toBe('auto')
   })
+
+  it('replaces non-finite numbers with their defaults', () => {
+    const material = clampMaterial({
+      ...MATERIAL_DEFAULTS,
+      blur: Number.NaN,
+      ior: Number.POSITIVE_INFINITY,
+      dispersion: Number.NaN
+    })
+    expect(material.blur).toBe(MATERIAL_DEFAULTS.blur)
+    expect(material.ior).toBe(MATERIAL_DEFAULTS.ior)
+    expect(material.dispersion).toBe(MATERIAL_DEFAULTS.dispersion)
+  })
+
+  it('coerces numeric strings that arrive from attributes', () => {
+    const material = clampMaterial({
+      ...MATERIAL_DEFAULTS,
+      blur: '12' as unknown as number,
+      frost: 'nope' as unknown as number
+    })
+    expect(material.blur).toBe(12)
+    expect(material.frost).toBe(MATERIAL_DEFAULTS.frost)
+  })
+
+  it('keeps auto thickness and bevel width symbolic', () => {
+    const material = clampMaterial({ ...MATERIAL_DEFAULTS, thickness: 'auto', bevelWidth: 'auto' })
+    expect(material.thickness).toBe('auto')
+    expect(material.bevelWidth).toBe('auto')
+  })
+
+  it('falls back to a string tint and a known shape', () => {
+    const material = clampMaterial({
+      ...MATERIAL_DEFAULTS,
+      tint: 42 as unknown as string,
+      shape: 'blob' as unknown as 'rounded'
+    })
+    expect(material.tint).toBe(MATERIAL_DEFAULTS.tint)
+    expect(material.shape).toBe('rounded')
+  })
+
+  it('drops a non-numeric radius to the default', () => {
+    const material = clampMaterial({ ...MATERIAL_DEFAULTS, radius: 'huge' as unknown as number })
+    expect(material.radius).toBe(MATERIAL_DEFAULTS.radius)
+  })
 })
