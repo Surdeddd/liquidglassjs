@@ -446,8 +446,24 @@ export class GlRenderer {
   }
 }
 
+const TINT_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
+const tintCache = new Map<string, [number, number, number]>()
+const TINT_CACHE_MAX = 32
+
 export function parseTint(color: string): [number, number, number] {
-  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim())
+  const hit = tintCache.get(color)
+  if (hit) return hit
+  const parsed = parseTintUncached(color)
+  if (tintCache.size >= TINT_CACHE_MAX) {
+    const oldest = tintCache.keys().next().value
+    if (oldest !== undefined) tintCache.delete(oldest)
+  }
+  tintCache.set(color, parsed)
+  return parsed
+}
+
+function parseTintUncached(color: string): [number, number, number] {
+  const match = TINT_RE.exec(color.trim())
   if (!match || !match[1]) return [1, 1, 1]
   const hex = match[1]
   const size = hex.length === 3 ? 1 : 2

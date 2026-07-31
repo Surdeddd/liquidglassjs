@@ -1,11 +1,22 @@
-import { attach, resetMissingOptions, type LiquidGlassOptions } from '@surdeddd/liquidglass-core'
+import {
+  attach,
+  getInstance,
+  resetMissingOptions,
+  type LiquidGlassHandle,
+  type LiquidGlassOptions
+} from '@surdeddd/liquidglass-core'
 
 export interface LiquidGlassActionReturn {
   update(options?: LiquidGlassOptions): void
   destroy(): void
 }
 
-export function liquidGlass(node: Element, options?: LiquidGlassOptions): LiquidGlassActionReturn {
+export type LiquidGlassAction = (
+  node: Element,
+  options?: LiquidGlassOptions
+) => LiquidGlassActionReturn
+
+export const liquidGlass: LiquidGlassAction = (node, options) => {
   const handle = attach(node, options ?? {})
   let previous = options ?? {}
   return {
@@ -18,6 +29,10 @@ export function liquidGlass(node: Element, options?: LiquidGlassOptions): Liquid
       handle.destroy()
     }
   }
+}
+
+export function glassOf(node: Element | null | undefined): LiquidGlassHandle | undefined {
+  return node ? getInstance(node) : undefined
 }
 
 export * from '@surdeddd/liquidglass-core'
