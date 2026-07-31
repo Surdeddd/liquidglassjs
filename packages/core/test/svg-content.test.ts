@@ -110,6 +110,36 @@ describe('svg-content backend', () => {
     source.remove()
   })
 
+  it('ignores mutations that land nowhere near the lens', async () => {
+    const source = document.createElement('div')
+    source.style.backgroundColor = 'rgb(20, 20, 20)'
+    const far = document.createElement('div')
+    source.appendChild(far)
+    document.body.appendChild(source)
+    const surface = makeSurface(source)
+    const instance = svgContentBackend.mount(surface)
+
+    const boxes = new Map<Element, DOMRect>([
+      [surface.element, { left: 0, top: 0, right: 240, bottom: 120, width: 240, height: 120 } as DOMRect],
+      [far, { left: 4000, top: 4000, right: 4100, bottom: 4100, width: 100, height: 100 } as DOMRect]
+    ])
+    const original = Element.prototype.getBoundingClientRect
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      return boxes.get(this) ?? (original.call(this) as DOMRect)
+    }
+
+    const layer = (): Element | null | undefined =>
+      surface.element.querySelector('[data-liquid-glass-layer="refract"]')?.firstElementChild
+    far.appendChild(document.createElement('span'))
+    await new Promise(resolve => setTimeout(resolve, 40))
+    expect(layer()?.querySelector('span')).toBeNull()
+
+    Element.prototype.getBoundingClientRect = original
+    instance.destroy()
+    surface.element.remove()
+    source.remove()
+  })
+
   it('holds reclones while the surface is off screen and catches up when it returns', async () => {
     const source = document.createElement('div')
     source.className = 'source'

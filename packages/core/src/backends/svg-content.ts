@@ -206,6 +206,23 @@ class SvgContentInstance implements BackendInstance {
     this.#refreshMap(surface, true)
   }
 
+  #reachesLens(target: Node): boolean {
+    const surface = this.#lastSurface
+    if (!surface || !(target instanceof Element)) return true
+    if (typeof target.getBoundingClientRect !== 'function') return true
+    const box = target.getBoundingClientRect()
+    if (box.width === 0 && box.height === 0) return true
+    const lens = surface.element.getBoundingClientRect()
+    if (lens.width === 0 && lens.height === 0) return true
+    const reach = this.#band + 24
+    return (
+      box.left < lens.right + reach &&
+      box.right > lens.left - reach &&
+      box.top < lens.bottom + reach &&
+      box.bottom > lens.top - reach
+    )
+  }
+
   #observeSource(): void {
     if (!this.#source || typeof MutationObserver === 'undefined') return
     this.#mutationObserver = new MutationObserver(records => {
@@ -217,6 +234,7 @@ class SvgContentInstance implements BackendInstance {
         ) {
           continue
         }
+        if (!this.#reachesLens(target)) continue
         this.#scheduleReclone()
         return
       }

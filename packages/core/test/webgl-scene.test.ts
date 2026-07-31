@@ -38,6 +38,109 @@ describe('webgl-scene backend', () => {
   })
 })
 
+function fakeGl(): Record<string, unknown> {
+  const noop = (): void => {}
+  return {
+    canvas: null,
+    VERTEX_SHADER: 1,
+    FRAGMENT_SHADER: 2,
+    COMPILE_STATUS: 3,
+    LINK_STATUS: 4,
+    ARRAY_BUFFER: 5,
+    STATIC_DRAW: 6,
+    FLOAT: 7,
+    BLEND: 8,
+    SRC_ALPHA: 9,
+    ONE_MINUS_SRC_ALPHA: 10,
+    TEXTURE_2D: 11,
+    TEXTURE0: 12,
+    RGBA: 13,
+    UNSIGNED_BYTE: 14,
+    COLOR_BUFFER_BIT: 15,
+    createShader: () => ({}),
+    shaderSource: noop,
+    compileShader: noop,
+    getShaderParameter: () => true,
+    deleteShader: noop,
+    createProgram: () => ({}),
+    attachShader: noop,
+    linkProgram: noop,
+    getProgramParameter: () => true,
+    deleteProgram: noop,
+    createBuffer: () => ({}),
+    deleteBuffer: noop,
+    bindBuffer: noop,
+    bufferData: noop,
+    enableVertexAttribArray: noop,
+    vertexAttribPointer: noop,
+    getUniformLocation: () => ({}),
+    useProgram: noop,
+    enable: noop,
+    blendFunc: noop,
+    getExtension: () => null,
+    createTexture: () => ({}),
+    activeTexture: noop,
+    bindTexture: noop,
+    pixelStorei: noop,
+    texImage2D: noop,
+    texParameteri: noop,
+    deleteTexture: noop,
+    viewport: noop,
+    clearColor: noop,
+    clear: noop,
+    uniform1i: noop,
+    uniform1f: noop,
+    uniform2f: noop,
+    uniform4f: noop,
+    uniform1fv: noop,
+    uniform4fv: noop,
+    uniform3f: noop,
+    drawArrays: noop
+  }
+}
+
+describe('scene context sharing', () => {
+  it('creates one webgl2 context no matter how many scenes mount', () => {
+    let contexts = 0
+    const original = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, id: string) {
+      if (id === 'webgl2') {
+        contexts += 1
+        const gl = fakeGl()
+        gl['canvas'] = this
+        return gl as unknown as WebGL2RenderingContext
+      }
+      return null
+    } as typeof original
+
+    const surfaces = [makeSurface(), makeSurface(), makeSurface()]
+    const instances = surfaces.map(surface => webglSceneBackend.mount(surface))
+    expect(contexts).toBe(1)
+    expect(
+      surfaces.every(surface => surface.element.querySelector('canvas[data-liquid-glass-layer="scene"]'))
+    ).toBe(true)
+
+    instances[0]!.destroy()
+    const joiner = makeSurface()
+    const joined = webglSceneBackend.mount(joiner)
+    expect(contexts, 'context was torn down while other scenes still held it').toBe(1)
+
+    joined.destroy()
+    instances[1]!.destroy()
+    instances[2]!.destroy()
+    surfaces.forEach(surface => surface.element.remove())
+    joiner.element.remove()
+
+    const after = makeSurface()
+    const revived = webglSceneBackend.mount(after)
+    expect(contexts, 'context was not recreated after the last scene left').toBe(2)
+    revived.destroy()
+    after.element.remove()
+
+    HTMLCanvasElement.prototype.getContext = original
+  })
+})
+
 describe('parseTint', () => {
   it('parses six-digit hex into unit rgb', () => {
     const [r, g, b] = parseTint('#7c5cff')

@@ -1,6 +1,6 @@
 import { colorWithOpacity } from '../color'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
-import { GlRenderer } from '../gl/renderer'
+import { GlRenderer, type GlDraw, type GlRect } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
@@ -11,17 +11,79 @@ function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
 }
 
-class WebglSceneInstance implements BackendInstance {
+class SceneGl {
+  static #shared: SceneGl | null = null
+  static #clients = 0
+
   #canvas: HTMLCanvasElement
   #renderer: GlRenderer
+  #bound: TexImageSource | null = null
+
+  private constructor(canvas: HTMLCanvasElement, renderer: GlRenderer) {
+    this.#canvas = canvas
+    this.#renderer = renderer
+  }
+
+  static acquire(): SceneGl | null {
+    if (!SceneGl.#shared) {
+      if (typeof document === 'undefined') return null
+      const canvas = document.createElement('canvas')
+      const renderer = GlRenderer.create(canvas)
+      if (!renderer) return null
+      SceneGl.#shared = new SceneGl(canvas, renderer)
+    }
+    SceneGl.#clients += 1
+    return SceneGl.#shared
+  }
+
+  static release(): void {
+    SceneGl.#clients = Math.max(0, SceneGl.#clients - 1)
+    if (SceneGl.#clients > 0 || !SceneGl.#shared) return
+    SceneGl.#shared.#renderer.destroy()
+    SceneGl.#shared = null
+  }
+
+  bind(source: TexImageSource): void {
+    if (this.#bound === source) return
+    this.#renderer.setTexture(source)
+    this.#bound = source
+  }
+
+  onContextRestored(cb: () => void): void {
+    const previous = this.#restored
+    this.#restored = () => {
+      previous?.()
+      cb()
+    }
+    this.#renderer.onContextRestored(() => {
+      this.#bound = null
+      this.#restored?.()
+    })
+  }
+
+  #restored: (() => void) | null = null
+
+  paint(width: number, height: number, draws: GlDraw[], texRect: GlRect): HTMLCanvasElement | null {
+    if (!this.#renderer.hasTexture || this.#renderer.contextLost) return null
+    this.#renderer.resize(width, height)
+    this.#renderer.render(draws, texRect)
+    return this.#canvas
+  }
+}
+
+class WebglSceneInstance implements BackendInstance {
+  #canvas: HTMLCanvasElement
+  #context: CanvasRenderingContext2D | null
+  #gl: SceneGl
   #image: HTMLImageElement | null = null
   #restore: () => void
   #host: HTMLElement
 
-  constructor(surface: BackendSurface, host: HTMLElement, canvas: HTMLCanvasElement, renderer: GlRenderer) {
+  constructor(surface: BackendSurface, host: HTMLElement, canvas: HTMLCanvasElement, gl: SceneGl) {
     this.#host = host
     this.#canvas = canvas
-    this.#renderer = renderer
+    this.#context = canvas.getContext('2d')
+    this.#gl = gl
     this.#restore = captureInlineStyles(host, TOUCHED)
     this.#applyHostStyles(surface)
     this.#loadImage(surface)
@@ -39,7 +101,7 @@ class WebglSceneInstance implements BackendInstance {
   }
 
   destroy(): void {
-    this.#renderer.destroy()
+    SceneGl.release()
     this.#canvas.remove()
     this.#restore()
   }
@@ -63,7 +125,6 @@ class WebglSceneInstance implements BackendInstance {
     const image = new Image()
     image.crossOrigin = 'anonymous'
     image.onload = () => {
-      this.#renderer.setTexture(image)
       this.#draw(surface)
     }
     image.src = src
@@ -74,12 +135,17 @@ class WebglSceneInstance implements BackendInstance {
     const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, getQuality().maxDpr)
     const hostBox = this.#host.getBoundingClientRect()
     if (hostBox.width < 1 || hostBox.height < 1) return
-    this.#renderer.resize(Math.round(hostBox.width * dpr), Math.round(hostBox.height * dpr))
-    if (!this.#renderer.hasTexture) return
+    const image = this.#image
+    if (!image || !image.complete || image.naturalWidth === 0) return
+    this.#gl.bind(image)
+    const width = Math.round(hostBox.width * dpr)
+    const height = Math.round(hostBox.height * dpr)
     const reference = surface.backdrop ?? this.#host
     const refBox = reference.getBoundingClientRect()
     const quad = { x: 0, y: 0, width: hostBox.width * dpr, height: hostBox.height * dpr }
-    this.#renderer.render(
+    const painted = this.#gl.paint(
+      width,
+      height,
       [
         {
           quad,
@@ -106,6 +172,11 @@ class WebglSceneInstance implements BackendInstance {
         height: refBox.height * dpr
       }
     )
+    if (!painted || !this.#context) return
+    this.#canvas.width = width
+    this.#canvas.height = height
+    this.#context.clearRect(0, 0, width, height)
+    this.#context.drawImage(painted, 0, 0)
   }
 }
 
@@ -131,14 +202,13 @@ export const webglSceneBackend: Backend = {
     style.zIndex = '-1'
     style.pointerEvents = 'none'
     style.borderRadius = 'inherit'
-    surface.element.insertBefore(canvas, surface.element.firstChild)
-    const renderer = GlRenderer.create(canvas)
-    if (!renderer) {
-      canvas.remove()
+    const gl = SceneGl.acquire()
+    if (!gl) {
       return { update() {}, sync() {}, destroy() {} }
     }
-    const instance = new WebglSceneInstance(surface, surface.element, canvas, renderer)
-    renderer.onContextRestored(() => instance.update(surface))
+    surface.element.insertBefore(canvas, surface.element.firstChild)
+    const instance = new WebglSceneInstance(surface, surface.element, canvas, gl)
+    gl.onContextRestored(() => instance.update(surface))
     return {
       update(next) {
         instance.update(next)
