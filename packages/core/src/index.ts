@@ -1,7 +1,7 @@
 export { attach, detach, getInstance } from './engine'
 export { autoAttach } from './auto'
 export { createEmitter } from './runtime/events'
-export type { LiquidGlassEvent, LiquidGlassEventCb } from './runtime/events'
+export type { LiquidGlassEventCb } from './runtime/events'
 export { isOptionKey, OPTION_KEYS, resetMissingOptions } from './options'
 export { frameNow, onFrame, onViewport } from './runtime/scheduler'
 export { configure, deviceTier, getQuality, resetQuality, watchFps } from './quality/profile'
@@ -19,7 +19,6 @@ export {
   TONE_CROSSOVER,
   watchMedia
 } from './quality/a11y'
-export type { BackdropTone } from './quality/a11y'
 export { clampMaterial, MATERIAL_DEFAULTS, MATERIAL_PRESETS, resolveMaterial } from './material'
 export { NO_CAPABILITIES, probeCapabilities, resetCapabilitiesCache } from './quality/probe'
 export type { Capabilities } from './quality/probe'
@@ -56,7 +55,9 @@ export { morphGlass } from './fx/morph'
 export type { MorphOptions } from './fx/morph'
 export type { Backend, BackendInstance, BackendSurface } from './backends/types'
 export type {
+  BackdropTone,
   BackendId,
+  LiquidGlassEventMap,
   LiquidGlassEventName,
   LiquidGlassHandle,
   LiquidGlassOptions,

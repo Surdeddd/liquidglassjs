@@ -67,12 +67,28 @@ export class PhysicsController {
     this.#wake()
   }
 
+  #pointerX = 0
+  #pointerY = 0
+  #magnetFrame = 0
+
   #onMove = (event: PointerEvent): void => {
     if (!this.#config.hover) return
+    this.#pointerX = event.clientX
+    this.#pointerY = event.clientY
+    if (this.#magnetFrame) return
+    this.#aimMagnet()
+    if (typeof requestAnimationFrame !== 'function') return
+    this.#magnetFrame = requestAnimationFrame(() => {
+      this.#magnetFrame = 0
+      this.#aimMagnet()
+    })
+  }
+
+  #aimMagnet(): void {
     const box = this.#element.getBoundingClientRect()
     if (box.width < 1 || box.height < 1) return
-    const dx = event.clientX - (box.left + box.width / 2)
-    const dy = event.clientY - (box.top + box.height / 2)
+    const dx = this.#pointerX - (box.left + box.width / 2)
+    const dy = this.#pointerY - (box.top + box.height / 2)
     this.#tx.target = dx * MAGNET_RATIO
     this.#ty.target = dy * MAGNET_RATIO
     this.#wake()
@@ -128,6 +144,10 @@ export class PhysicsController {
     element.removeEventListener('pointercancel', this.#onUp)
     element.removeEventListener('pointermove', this.#onMove)
     element.removeEventListener('pointerleave', this.#onLeave)
+    if (this.#magnetFrame && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.#magnetFrame)
+      this.#magnetFrame = 0
+    }
     this.#offFrame?.()
     this.#offFrame = null
     this.#restore()

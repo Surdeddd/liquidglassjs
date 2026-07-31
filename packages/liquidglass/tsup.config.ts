@@ -80,7 +80,7 @@ export default defineConfig([
   },
   {
     ...shared,
-    entry: { liquidglass: 'src/index.ts' },
+    entry: { liquidglass: 'src/global.ts' },
     format: ['iife'],
     globalName: 'LiquidGlass',
     minify: true,

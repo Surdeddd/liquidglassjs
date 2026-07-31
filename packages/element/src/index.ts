@@ -111,7 +111,7 @@ function createElementClass(): CustomElementConstructor {
         handle.on(name, detail => {
           this.dispatchEvent(
             new CustomEvent(`liquid-glass:${name}`, {
-              detail: detail === '' ? null : detail,
+              detail,
               bubbles: true,
               composed: true
             })

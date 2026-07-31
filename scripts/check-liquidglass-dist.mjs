@@ -52,6 +52,9 @@ const globalApi = sandbox.__lg
 if (typeof globalApi?.attach !== 'function' || typeof globalApi?.autoAttach !== 'function') {
   throw new Error('LiquidGlass global must expose attach and autoAttach')
 }
+if (typeof globalApi?.define !== 'function') {
+  throw new Error('LiquidGlass global must expose define so <liquid-glass> works from a script tag')
+}
 if (!rootEsm.VERSION || rootEsm.VERSION === '0.0.0-dev') {
   throw new Error('dist VERSION must be injected at build time')
 }

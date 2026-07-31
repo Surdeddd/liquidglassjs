@@ -47,6 +47,27 @@ the browser can do and routes each surface to the best available backend — und
 | Frameworks | vanilla · element · react 18+19 · vue 3 · svelte | react 19 only | vanilla | react | react 19 |
 | Core dependencies | 0 | — | 0 | — | — |
 
+Competitor capabilities as of July 2026 — methodology and sources in
+[docs/research/competitive-landscape.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).
+The engine ships zero runtime dependencies; the optional snapshot tier bundles a vendored copy of
+`html-to-image` into a lazily imported chunk, credited in `THIRD-PARTY-NOTICES.md`.
+
+## Requirements
+
+| | Supported |
+| --- | --- |
+| React | `>=18 <20` |
+| Vue | `^3.4` |
+| Svelte | `4` or `5` |
+| Node (toolchain only) | `>=20.19` |
+| Chromium | 76+ for the CSS tier, WebGL2 for the GL tiers |
+| Safari | 18+ for the content tier (`filter: url()` on live DOM) |
+| Firefox | 128+ for the content tier |
+
+Anything older lands on `css-fallback`, which is blur and tint — never a broken surface. Per-engine
+detail and the fidelity matrix live in
+[docs/browser-support.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md).
+
 ## What it looks like
 
 | [Spring physics](https://liquidglassjs.vercel.app/#physics) | [Metaball merging + tab bar](https://liquidglassjs.vercel.app/#metaballs) |
@@ -77,9 +98,14 @@ npm i @surdeddd/liquidglass
 
 No build step — one script tag from a CDN:
 
+The CDN build carries the web component and registers `<liquid-glass>` on load, so a script tag is
+the whole setup. Drop the version to track latest at your own risk.
+
 ```html
-<div data-liquid-glass-auto='{"preset":"frosted"}'>glass</div>
-<script src="https://unpkg.com/@surdeddd/liquidglass@0.7.0/dist/liquidglass.global.js"></script>
+<liquid-glass preset="frosted">Hello</liquid-glass>
+<div data-liquid-glass-auto='{"preset":"clear"}'>glass</div>
+
+<script src="https://unpkg.com/@surdeddd/liquidglass@0.8.0/dist/liquidglass.global.js"></script>
 <script>
   LiquidGlass.autoAttach()
 </script>
@@ -88,16 +114,20 @@ No build step — one script tag from a CDN:
 ```ts
 import { attach } from '@surdeddd/liquidglass'
 
-const glass = attach(document.querySelector('.panel'), {
-  preset: 'frosted',
-  ior: 1.5,
-  dispersion: 0.3,
-  motionLight: true,
-  physics: { wobble: 0.8 }
-})
+const panel = document.querySelector<HTMLElement>('.panel')
+if (panel) {
+  const glass = attach(panel, {
+    preset: 'frosted',
+    ior: 1.5,
+    dispersion: 0.3,
+    motionLight: true,
+    physics: { wobble: 0.8 }
+  })
 
-glass.set({ preset: 'clear' })
-glass.destroy()
+  glass.on('tonechange', tone => console.log('backdrop is', tone))
+  glass.set({ preset: 'clear' })
+  glass.destroy()
+}
 ```
 
 ```html
@@ -116,13 +146,26 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 ```
 
 ```vue
-<LiquidGlass preset="frosted" :options="{ dispersion: 0.3 }">…</LiquidGlass>
-<div v-liquid-glass="{ preset: 'clear' }">…</div>
+<script setup>
+import { LiquidGlass, vLiquidGlass } from '@surdeddd/liquidglass/vue'
+</script>
+
+<template>
+  <LiquidGlass preset="frosted" :options="{ dispersion: 0.3 }">…</LiquidGlass>
+  <div v-liquid-glass="{ preset: 'clear' }">…</div>
+</template>
 ```
 
 ```svelte
+<script>
+  import { liquidGlass } from '@surdeddd/liquidglass/svelte'
+</script>
+
 <div use:liquidGlass={{ preset: 'frosted' }}>…</div>
 ```
+
+The Vue directive is registered locally by importing `vLiquidGlass` into `<script setup>`; register
+it globally with `app.directive('liquid-glass', vLiquidGlass)` if you prefer.
 
 On Safari and Firefox the engine refracts a designated element rather than the whole page. It picks
 the nearest ancestor that paints a background on its own; pass `backdrop` when you want a specific
@@ -172,12 +215,26 @@ const glass = attach(el, { preset: 'frosted' })
 
 glass.on('backendchange', id => console.log('now rendering with', id))
 glass.on('tonechange', tone => root.classList.toggle('on-light', tone === 'light'))
-glass.on('press', () => {})
+glass.on('press', point => console.log('pressed at', point.x, point.y))
 glass.on('release', () => {})
 glass.on('degrade', id => console.log('fps watchdog dropped to', id))
+
+glass.options.preset
 ```
 
-Every subscription returns its own unsubscribe function. Beyond the handle:
+Every payload is typed per event: `backendchange` and `degrade` give a `BackendId`, `tonechange`
+gives `'light' | 'dark' | null`, `press` gives the point in client coordinates, `release` gives
+`null`. `handle.options` reports the resolved configuration, and every subscription returns its own
+unsubscribe function.
+
+The web component mirrors the same events onto the DOM as composed `liquid-glass:*` CustomEvents,
+so a page without a handle can listen too:
+
+```js
+document.addEventListener('liquid-glass:tonechange', event => console.log(event.detail))
+```
+
+Beyond the handle:
 
 | API | What it does |
 | --- | --- |
@@ -241,9 +298,24 @@ the `data-liquid-glass-tone` attribute to style text yourself, or set `tint` exp
 
 ```sh
 pnpm install
-pnpm build && pnpm test && pnpm e2e && pnpm ssr
-node scripts/fps-bench.mjs --headed
+pnpm build && pnpm typecheck && pnpm lint && pnpm test && pnpm coverage && pnpm ssr && pnpm size
+pnpm e2e
 ```
+
+That is the same list CI runs, in the same order. `pnpm build` comes first because the framework
+adapters resolve the engine through its built output, so their tests run against `packages/core/dist`
+rather than `src`.
+
+The fps benchmark needs the demo served first:
+
+```sh
+pnpm --filter demo dev          # one shell
+pnpm bench                      # another; exits non-zero below 55 fps
+```
+
+Headed Chromium on an M-series machine reports ~105 fps for ten lenses over five seconds of
+scrolling; headless on SwiftShader lands near 40, which is a software rasterizer figure rather than
+a rendering regression.
 
 The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, research notes in
 [docs/research](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).

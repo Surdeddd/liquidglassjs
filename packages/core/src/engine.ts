@@ -171,7 +171,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       tone = null
     }
     surface.material = material
-    if (tone !== previousTone) emitter.emit('tonechange', tone ?? '')
+    if (tone !== previousTone) emitter.emit('tonechange', tone)
     if (tone) element.setAttribute('data-liquid-glass-tone', tone)
     else element.removeAttribute('data-liquid-glass-tone')
   }
@@ -189,7 +189,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   const pressHooks: PhysicsHooks = {
     onPress(x, y) {
       pressed = true
-      emitter.emit('press', '')
+      emitter.emit('press', { x, y })
       element.setAttribute('data-liquid-glass-pressed', 'true')
       applyMaterial()
       instance.update(surface)
@@ -200,7 +200,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     },
     onRelease() {
       pressed = false
-      emitter.emit('release', '')
+      emitter.emit('release', null)
       element.removeAttribute('data-liquid-glass-pressed')
       applyMaterial()
       instance.update(surface)
@@ -320,6 +320,9 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     get backend() {
       return backend.id
     },
+    get options() {
+      return { ...current }
+    },
     on(event, cb) {
       return emitter.on(event, cb)
     },
@@ -356,7 +359,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     destroy() {
       if (pressed) {
         pressed = false
-        emitter.emit('release', '')
+        emitter.emit('release', null)
       }
       tracker.stop()
       degradeTargets.delete(applyDegrade)

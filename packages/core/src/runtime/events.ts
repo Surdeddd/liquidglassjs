@@ -1,22 +1,26 @@
-export type LiquidGlassEvent = 'backendchange' | 'tonechange' | 'press' | 'release' | 'degrade'
+import type { LiquidGlassEventMap, LiquidGlassEventName } from '../types'
 
-export type LiquidGlassEventCb = (detail: string) => void
+export type LiquidGlassEventCb<E extends LiquidGlassEventName = LiquidGlassEventName> = (
+  detail: LiquidGlassEventMap[E]
+) => void
 
 export interface Emitter {
-  on(event: LiquidGlassEvent, cb: LiquidGlassEventCb): () => void
-  emit(event: LiquidGlassEvent, detail: string): void
+  on<E extends LiquidGlassEventName>(event: E, cb: LiquidGlassEventCb<E>): () => void
+  emit<E extends LiquidGlassEventName>(event: E, detail: LiquidGlassEventMap[E]): void
   clear(): void
 }
 
+type AnyCb = (detail: never) => void
+
 export function createEmitter(): Emitter {
-  const listeners = new Map<LiquidGlassEvent, Set<LiquidGlassEventCb>>()
+  const listeners = new Map<LiquidGlassEventName, Set<AnyCb>>()
   return {
     on(event, cb) {
-      const bucket = listeners.get(event) ?? new Set()
+      const bucket = listeners.get(event) ?? new Set<AnyCb>()
       listeners.set(event, bucket)
-      bucket.add(cb)
+      bucket.add(cb as AnyCb)
       return () => {
-        bucket.delete(cb)
+        bucket.delete(cb as AnyCb)
       }
     },
     emit(event, detail) {
@@ -24,7 +28,7 @@ export function createEmitter(): Emitter {
       if (!bucket) return
       for (const cb of [...bucket]) {
         try {
-          cb(detail)
+          ;(cb as (value: unknown) => void)(detail)
         } catch {
           continue
         }

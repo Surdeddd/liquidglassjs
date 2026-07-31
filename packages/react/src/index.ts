@@ -1,4 +1,4 @@
-import { createElement, forwardRef, useEffect, useLayoutEffect, useRef } from 'react'
+import { createElement, forwardRef, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import type {
   CSSProperties,
   ForwardRefExoticComponent,
@@ -101,10 +101,12 @@ export const LiquidGlass: ForwardRefExoticComponent<
   }
   const elementRef = useRef<HTMLElement | null>(null)
   useLiquidGlass(elementRef, options)
-  const setRef = (node: HTMLElement | null): void => {
+  const forwarded = useRef(forwardedRef)
+  forwarded.current = forwardedRef
+  const setRef = useCallback((node: HTMLElement | null): void => {
     elementRef.current = node
-    assignRef(forwardedRef, node)
-  }
+    assignRef(forwarded.current, node)
+  }, [])
   return createElement(as, { ...domProps, ref: setRef, className, style }, children)
 })
 

@@ -32,7 +32,13 @@ function media(query: string): boolean {
 
 function detectWebgl2(): boolean {
   try {
-    return document.createElement('canvas').getContext('webgl2') !== null
+    const canvas = document.createElement('canvas')
+    canvas.width = 1
+    canvas.height = 1
+    const gl = canvas.getContext('webgl2')
+    if (!gl) return false
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
   } catch {
     return false
   }

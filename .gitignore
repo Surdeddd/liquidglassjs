@@ -27,12 +27,3 @@ Thumbs.db
 *.local
 
 .vercel/
-
-memory-bank/
-GOAL.md
-
-.claude/
-.superpowers/
-.playwright-mcp/
-.remember/
-docs/superpowers/

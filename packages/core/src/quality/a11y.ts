@@ -1,6 +1,6 @@
-import type { MaterialParams } from '../types'
+import type { BackdropTone, MaterialParams } from '../types'
 
-export type BackdropTone = 'light' | 'dark'
+export type { BackdropTone }
 
 export function parseColor(color: string): [number, number, number, number] | null {
   const value = color.trim()

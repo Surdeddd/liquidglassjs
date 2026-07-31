@@ -116,6 +116,11 @@ class SvgContentInstance implements BackendInstance {
   }
 
   sync(surface: BackendSurface): void {
+    this.#lastSurface = surface
+    if (this.#recloneDeferred && surface.state.visible) {
+      this.#recloneDeferred = false
+      this.#scheduleReclone()
+    }
     this.#position(surface)
     this.#refreshMap(surface, false)
   }
@@ -224,10 +229,21 @@ class SvgContentInstance implements BackendInstance {
     })
   }
 
+  #recloneDeferred = false
+
   #scheduleReclone(): void {
     if (this.#cloneFrame || typeof requestAnimationFrame !== 'function') return
+    if (typeof document !== 'undefined' && document.hidden) {
+      this.#recloneDeferred = true
+      return
+    }
+    if (this.#lastSurface && !this.#lastSurface.state.visible) {
+      this.#recloneDeferred = true
+      return
+    }
     this.#cloneFrame = requestAnimationFrame(() => {
       this.#cloneFrame = 0
+      this.#recloneDeferred = false
       if (this.#lastSurface) this.#recloneNow(this.#lastSurface)
     })
   }

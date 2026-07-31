@@ -4,7 +4,7 @@ One package on npm (`@surdeddd/liquidglass`), five workspace modules behind it. 
 
 ## Core module map
 
-```
+```text
 packages/core/src
 ├── engine.ts          attach/set/destroy lifecycle, backend selection, degrade watchdog
 ├── index.ts           the only public entry — everything re-exports through here
@@ -43,9 +43,18 @@ packages/core/src
 
 ## Rendering tiers
 
-1. `webgl-overlay` — one shared canvas for every glass, page snapshot as texture, metaball merging.
-2. `css-svg` — per-element SVG displacement filter through `backdrop-filter: url(#…)`.
-3. `svg-content` — WebKit path: positioned clone of the backdrop refracted through an SVG filter.
-4. `css-fallback` — blur/saturation/tint only.
+Auto-selection walks these by priority:
 
-`selectBackend` picks the best supported tier; the fps watchdog can demote auto-selected overlay instances to the css tier once per page. The meta package (`packages/liquidglass`) bundles all of this into one artifact: esm + cjs subpath entries that share a single core runtime, plus an iife global build for CDN script tags.
+1. `css-svg` (30) — per-element SVG displacement filter through `backdrop-filter: url(#…)`.
+2. `svg-content` (20) — WebKit and Gecko path: positioned clone of the backdrop refracted through an SVG filter.
+3. `webgl-overlay` (10) — one shared canvas for every glass, page snapshot as texture, metaball merging.
+4. `css-fallback` (0) — blur/saturation/tint only, supported everywhere.
+
+`webgl-scene` is never auto-selected. It owns its own scene rather than refracting the page, so it
+is opt-in through `backend: 'webgl-scene'` plus `sceneImage`. `webgl-overlay` is reachable under
+`auto` only where the two SVG tiers are unsupported, or when `merge` asks for metaballs — which is
+also the only tier the fps watchdog can demote, once per page.
+
+The meta package (`packages/liquidglass`) bundles all of this into one artifact: esm + cjs subpath
+entries that share a single core runtime, plus an iife global build for CDN script tags that also
+registers `<liquid-glass>` on load.

@@ -110,6 +110,32 @@ describe('svg-content backend', () => {
     source.remove()
   })
 
+  it('holds reclones while the surface is off screen and catches up when it returns', async () => {
+    const source = document.createElement('div')
+    source.className = 'source'
+    source.style.backgroundColor = 'rgb(20, 20, 20)'
+    document.body.appendChild(source)
+    const surface = makeSurface(source)
+    const instance = svgContentBackend.mount(surface)
+    const layer = (): Element | null | undefined =>
+      surface.element.querySelector('[data-liquid-glass-layer="refract"]')?.firstElementChild
+
+    surface.state = { ...surface.state, visible: false }
+    instance.sync(surface)
+    source.appendChild(document.createElement('span'))
+    await new Promise(resolve => setTimeout(resolve, 20))
+    expect(layer()?.querySelector('span')).toBeNull()
+
+    surface.state = { ...surface.state, visible: true }
+    instance.sync(surface)
+    await new Promise(resolve => setTimeout(resolve, 40))
+    expect(layer()?.querySelector('span')).not.toBeNull()
+
+    instance.destroy()
+    surface.element.remove()
+    source.remove()
+  })
+
   it('rebuilds the layer when the backdrop source changes', () => {
     const first = document.createElement('div')
     first.className = 'first'
