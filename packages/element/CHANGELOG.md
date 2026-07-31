@@ -1,5 +1,11 @@
 # @surdeddd/liquidglass-element
 
+## 0.8.0
+
+### Patch Changes
+
+- @surdeddd/liquidglass-core@0.8.0
+
 ## 0.2.0
 
 ### Minor Changes
