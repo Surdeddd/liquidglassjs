@@ -132,17 +132,21 @@ DOM-to-image constraints: cross-origin images without CORS headers and webfonts 
 will not appear in the refracted texture. Dirty tracking keeps re-snapshots rare, but the tier is a
 specialty path for merging, not a general-purpose default.
 
-The texture is mapped onto page coordinates, which assumes the rasterizer reproduces the page
-layout exactly. It does not always: a clone can lose auto margins, so a centered `max-width`
-container ends up flush left in the texture. Lenses on that tier then sample the wrong column and
-show whatever sits beyond the shifted content — usually the page background. Measured on a
-1440 × 2780 page whose content is centred at 1080px wide: the texture is the right size, but at
-y = 1150 the striped section ends at x ≈ 1080 instead of x ≈ 1288, and a lens at x = 976…1196 reads
-the page background for most of its width.
+The texture is mapped onto page coordinates, so the rasterized clone has to reproduce the page
+layout. One case where it does not, on its own: `getComputedStyle` reports the *computed* value of
+`margin: 0 auto`, which is `0px`, not the pixel offset the browser resolved. A centered `max-width`
+container therefore lands flush left in the clone, and lenses sitting to the right of centre sample
+past the shifted content — usually the page background, which reads as a dark quad.
 
-Until that mapping is measured rather than assumed, keep `webgl-overlay` lenses out of centered
-`max-width` containers, or give the merge group its own full-width section. The CSS and SVG tiers
-are unaffected — they refract the real backdrop and never rasterize the page.
+The backend now measures the resolved offset of each surface's ancestors and pins it as an explicit
+inline margin for the duration of the snapshot, restoring the previous value afterwards. The
+measurement is the element's own box against its parent's content box, so it costs one rect read per
+ancestor and only runs on the snapshot path.
+
+Layout that survives a clone is still the safer bet for this tier. If a lens shows a flat dark
+region where refraction belongs, compare the texture against the page: a mismatch means the clone
+resolved something differently, and moving that lens to `css-svg` or `svg-content` sidesteps
+rasterization altogether.
 
 **WebGPU.** `'webgpu'` is a valid `BackendId` in the type surface, but no WebGPU backend is
 registered yet. Requesting it falls through to normal auto-selection rather than failing.

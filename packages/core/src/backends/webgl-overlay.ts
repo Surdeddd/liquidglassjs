@@ -3,6 +3,7 @@ import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
+import { pinUsedMargins } from '../runtime/layout'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -60,7 +61,7 @@ class OverlayManager {
     style.left = '0'
     style.top = '0'
     style.pointerEvents = 'none'
-    style.zIndex = '2147483000'
+    style.zIndex = String(getQuality().overlayZIndex)
     style.willChange = 'transform'
     document.body.appendChild(canvas)
     const renderer = GlRenderer.create(canvas)
@@ -211,6 +212,7 @@ class OverlayManager {
       return
     }
     this.#snapshotting = true
+    let restorePins: Array<() => void> = []
     try {
       const { toCanvas } = await import('html-to-image')
       if (this.#destroyed) return
@@ -218,6 +220,10 @@ class OverlayManager {
       const scale = Math.min(
         1,
         MAX_SNAPSHOT_SIDE / Math.max(body.scrollWidth, body.scrollHeight, 1)
+      )
+      restorePins = pinUsedMargins(
+        [...this.#surfaces].map(surface => surface.element),
+        body
       )
       const snapshot = await toCanvas(body, {
         pixelRatio: scale,
@@ -239,6 +245,7 @@ class OverlayManager {
       this.#snapshotDirty = false
       return
     } finally {
+      for (const restore of restorePins) restore()
       this.#snapshotting = false
     }
     if (this.#snapshotDirty) {
@@ -370,7 +377,7 @@ function applyBaseStyles(surface: BackendSurface): void {
     const computed = getComputedStyle(surface.element)
     if (computed.position === 'static') style.setProperty('position', 'relative')
     if (computed.zIndex === 'auto' || computed.zIndex === '0') {
-      style.setProperty('z-index', '2147483001')
+      style.setProperty('z-index', String(getQuality().overlayZIndex + 1))
     }
   }
 }

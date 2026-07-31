@@ -72,7 +72,7 @@ export function optics(): string {
         <liquid-glass class="panel panel--frosted" preset="frosted" backdrop=".stripes"><span>frosted</span></liquid-glass>
         <liquid-glass class="panel panel--clear" preset="clear" backdrop=".stripes"><span>clear</span></liquid-glass>
         <liquid-glass class="panel panel--tinted" preset="tinted" backdrop=".stripes"><span>tinted</span></liquid-glass>
-        <liquid-glass class="panel panel--fallback" preset="clear" backend="css-fallback" backdrop=".stripes"><span>css-fallback</span></liquid-glass>
+        <liquid-glass class="panel panel--overlay" preset="clear" backend="webgl-overlay"><span>webgl-overlay</span></liquid-glass>
         <liquid-glass class="panel panel--squircle" preset="frosted" backdrop=".stripes" shape="squircle"><span>squircle</span></liquid-glass>
       </section>
     </section>
