@@ -1,5 +1,64 @@
 # @surdeddd/liquidglass
 
+## 0.9.0
+
+### Minor Changes
+
+- 29142e0: CDN build carries the web component, typed event payloads, and the last of the audit tail.
+
+  - The `unpkg`/`jsdelivr` global is built from an entry that includes `<liquid-glass>` and registers
+    it on load, so the documented script-tag path actually gives you the element. It previously
+    shipped the core entry alone, leaving `define()` unreachable from a script tag. The dist verifier
+    now asserts the global exposes it.
+  - `handle.on()` payloads are typed per event through `LiquidGlassEventMap`: `backendchange` and
+    `degrade` give a `BackendId`, `tonechange` gives `'light' | 'dark' | null`, `press` gives the
+    point in client coordinates, `release` gives `null`. Previously every payload was a `string` and
+    press/release carried an empty one.
+  - `handle.options` reports the resolved configuration, so a consumer can read back what a surface is
+    running with instead of tracking it separately.
+  - `BackdropTone` has one declaration again, and the duplicate `LiquidGlassEvent` alias is gone in
+    favour of `LiquidGlassEventName`.
+  - Hover magnetism coalesces pointer moves into one rect read per frame instead of one per event,
+    keeping the leading edge immediate.
+  - `svg-content` holds reclones while its surface is off screen or the document is hidden, and
+    catches up on the next visible sync rather than rebuilding the clone for nobody.
+  - The capability probe releases the WebGL2 context it creates to answer one boolean.
+  - React's callback ref is stable across renders, so a forwarded ref is no longer detached and
+    reattached on every render.
+
+### Patch Changes
+
+- 3e29037: One WebGL context for every scene surface, and cheaper backdrop cloning.
+
+  - `webgl-scene` used to create a WebGL2 context per element. Browsers cap live contexts at around a
+    dozen and silently drop the oldest, so a page with many scene lenses would start losing them. The
+    tier now renders through one shared context and blits each frame into the host's own 2D canvas,
+    reference-counted so the context goes away with the last scene.
+  - `svg-content` skips reclones for mutations that land outside the lens and its bevel band, so
+    unrelated activity elsewhere in the backdrop no longer rebuilds the refraction copy. Nodes without
+    a box yet, and lenses that have not been measured, still reclone rather than risk a stale layer.
+
+- a514d05: Typed custom element, honest shader tests, and the last perf odds and ends.
+
+  - `<liquid-glass>` and `<liquid-glass-group>` are declared in `HTMLElementTagNameMap`, and the five
+    `liquid-glass:*` events in `HTMLElementEventMap`, so `document.querySelector('liquid-glass')`
+    returns a typed element with `glass` and `options`, and listeners get typed details.
+  - `autoAttach` drops surfaces by checking `isConnected` instead of running `contains` for every
+    removed node against every attached element.
+  - The lens-map generator no longer allocates a pair array per interior pixel.
+  - The capability probe releases its WebGL2 context; `resetBackends()` lets the registry start clean.
+  - The Svelte action is typed as `LiquidGlassAction`, and `glassOf(node)` reaches the handle an action
+    created without threading it through the component.
+  - The GL renderer caches parsed tints instead of running a regex per draw.
+  - Svelte 5 gets `glass(options)` as an attachment alongside the existing action.
+  - `destroy()` is idempotent, so a stale handle can no longer tear down a surface that was attached
+    after it. The ownership contract — one glass per element, `attach` is attach-or-update, `destroy`
+    removes it for every owner — is now stated in the README rather than implied.
+  - The shared scheduler reuses its dispatch buffers instead of allocating two arrays per frame.
+  - The published API reference documents the real entry points — `@surdeddd/liquidglass` and its
+    `/element`, `/react`, `/vue`, `/svelte` subpaths — rather than internal workspace packages whose
+    names resolve to nothing on npm.
+
 ## 0.8.0
 
 ### Minor Changes

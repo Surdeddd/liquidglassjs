@@ -1,5 +1,7 @@
 # @surdeddd/liquidglass-core
 
+## 0.9.0
+
 ## 0.8.0
 
 ## 0.2.0
