@@ -1,10 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cssFallbackBackend } from '../src/backends/css-fallback'
-import { registerBackend, selectBackend } from '../src/backends/registry'
+import {
+  listBackends,
+  registerBackend,
+  resetBackends,
+  selectBackend
+} from '../src/backends/registry'
 import type { Backend } from '../src/backends/types'
 import { NO_CAPABILITIES } from '../src/quality/probe'
-
-registerBackend(cssFallbackBackend)
 
 const unsupportedBackend: Backend = {
   id: 'webgpu',
@@ -20,8 +23,39 @@ const supportedBackend: Backend = {
   mount: () => ({ update() {}, sync() {}, destroy() {} })
 }
 
+beforeEach(() => {
+  resetBackends()
+})
+
+afterEach(() => {
+  resetBackends()
+})
+
+describe('registry', () => {
+  it('registers the built-in backends on first use rather than at import time', () => {
+    const ids = listBackends().map(backend => backend.id)
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        'css-fallback',
+        'css-svg',
+        'svg-content',
+        'webgl-overlay',
+        'webgl-scene'
+      ])
+    )
+  })
+
+  it('lets a custom backend replace a built-in of the same id', () => {
+    registerBackend(supportedBackend)
+    expect(selectBackend(NO_CAPABILITIES, 'webgl-overlay')).toBe(supportedBackend)
+  })
+})
+
 describe('selectBackend', () => {
-  it('falls back to css-fallback when nothing else is registered', () => {
+  it('falls back to css-fallback when nothing else supports the capabilities', () => {
+    resetBackends()
+    registerBackend(cssFallbackBackend)
+    registerBackend(unsupportedBackend)
     expect(selectBackend(NO_CAPABILITIES, 'auto').id).toBe('css-fallback')
   })
 

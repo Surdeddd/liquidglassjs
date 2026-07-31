@@ -287,7 +287,7 @@ import { LiquidGlass, vLiquidGlass } from '@surdeddd/liquidglass/vue'
   import { liquidGlass } from '@surdeddd/liquidglass/svelte'
 </script>
 
-<div use:liquidGlass={{ preset: 'frosted', wobble: 0.8 }}>…</div>`
+<div use:liquidGlass={{ preset: 'frosted', physics: { wobble: 0.8 } }}>…</div>`
 }
 
 const fwCode = document.querySelector('[data-fw-code]')

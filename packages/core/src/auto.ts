@@ -56,12 +56,14 @@ export function autoAttach(root?: ParentNode): () => void {
           }
         }
         for (const node of record.removedNodes) {
-          if (node instanceof Element) {
-            if (attached.has(node)) unmount(node)
-            for (const el of [...attached]) {
-              if (node.contains(el)) unmount(el)
-            }
+          if (!(node instanceof Element)) continue
+          if (attached.has(node)) unmount(node)
+          if (attached.size === 0) continue
+          const stale: Element[] = []
+          for (const el of attached) {
+            if (!el.isConnected) stale.push(el)
           }
+          for (const el of stale) unmount(el)
         }
       }
     })

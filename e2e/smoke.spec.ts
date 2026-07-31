@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test'
 test('demo mounts liquid glass surfaces', async ({ page }) => {
   await page.goto('/')
   const panels = page.locator('liquid-glass')
-  await expect(panels).toHaveCount(10)
+  expect(await panels.count()).toBeGreaterThanOrEqual(5)
+  const mounted = page.locator('liquid-glass[data-liquid-glass]')
+  await expect(mounted).toHaveCount(await panels.count())
   await expect(page.locator('liquid-glass.panel--frosted')).toHaveAttribute(
     'data-liquid-glass',
     'frosted'

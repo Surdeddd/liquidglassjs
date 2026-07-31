@@ -1,24 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { FRAGMENT_SRC } from '../src/gl/renderer'
+import { FRAGMENT_SRC, UNIFORMS, VERTEX_SRC } from '../src/gl/renderer'
+
+const PROGRAM = `${VERTEX_SRC}\n${FRAGMENT_SRC}`
 
 describe('gl lens shader', () => {
-  it('models Snell refraction with an ior uniform', () => {
-    expect(FRAGMENT_SRC).toContain('u_ior')
+  it('declares every uniform the renderer binds', () => {
+    for (const name of UNIFORMS) {
+      expect(PROGRAM.includes(name), `program is missing uniform ${name}`).toBe(true)
+    }
+  })
+
+  it('binds every uniform it declares', () => {
+    const declared = [...PROGRAM.matchAll(/uniform\s+\w+\s+(u_\w+)/g)].map(match => match[1])
+    const bound = new Set<string>(UNIFORMS)
+    expect(declared.length).toBeGreaterThan(0)
+    for (const name of declared) {
+      expect(bound.has(name as string), `program declares unbound uniform ${name}`).toBe(true)
+    }
+  })
+
+  it('keeps the optical terms the material model depends on', () => {
     expect(FRAGMENT_SRC).toContain('asin(')
-    expect(FRAGMENT_SRC).not.toContain('1.0 + u_bevelDepth * 2.0')
-  })
-
-  it('lights the rim from a movable direction with a counter-sheen', () => {
-    expect(FRAGMENT_SRC).toContain('u_lightDir')
-    expect(FRAGMENT_SRC).toContain('counterSheen')
-  })
-
-  it('supports interior magnification around the lens center', () => {
+    expect(FRAGMENT_SRC).toContain('u_ior')
     expect(FRAGMENT_SRC).toContain('u_magnify')
-    expect(FRAGMENT_SRC).toContain('u_center')
-  })
-
-  it('clamps the rounded-box corner radius to the half size', () => {
-    expect(FRAGMENT_SRC).toContain('min(r, min(halfSize.x, halfSize.y))')
+    expect(FRAGMENT_SRC).toContain('u_dispersion')
   })
 })

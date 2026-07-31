@@ -182,6 +182,7 @@ void main() {
 }`
 
 export const FRAGMENT_SRC = FRAG
+export const VERTEX_SRC = VERT
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader | null {
   const shader = gl.createShader(type)
@@ -195,7 +196,7 @@ function compile(gl: WebGL2RenderingContext, type: number, source: string): WebG
   return shader
 }
 
-const UNIFORMS = [
+export const UNIFORMS = [
   'u_tex',
   'u_lensRect',
   'u_texRect',

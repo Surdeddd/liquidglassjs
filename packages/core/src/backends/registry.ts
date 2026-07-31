@@ -27,7 +27,13 @@ function ensureBuiltinBackends(): void {
 }
 
 export function registerBackend(backend: Backend): void {
+  ensureBuiltinBackends()
   backends.set(backend.id, backend)
+}
+
+export function resetBackends(): void {
+  backends.clear()
+  builtinsReady = false
 }
 
 export function getBackend(id: BackendId): Backend | undefined {

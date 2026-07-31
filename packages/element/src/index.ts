@@ -9,6 +9,30 @@ import {
   type LiquidGlassPreset
 } from '@surdeddd/liquidglass-core'
 
+export interface LiquidGlassElement extends HTMLElement {
+  readonly glass: LiquidGlassHandle | undefined
+  readonly options: LiquidGlassOptions
+}
+
+export interface LiquidGlassGroupElement extends HTMLElement {
+  spacing: string | null
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'liquid-glass': LiquidGlassElement
+    'liquid-glass-group': LiquidGlassGroupElement
+  }
+
+  interface HTMLElementEventMap {
+    'liquid-glass:press': CustomEvent<{ x: number; y: number }>
+    'liquid-glass:release': CustomEvent<null>
+    'liquid-glass:tonechange': CustomEvent<'light' | 'dark' | null>
+    'liquid-glass:backendchange': CustomEvent<string>
+    'liquid-glass:degrade': CustomEvent<string>
+  }
+}
+
 const PRESETS: readonly LiquidGlassPreset[] = ['clear', 'frosted', 'tinted']
 
 const BACKENDS: readonly BackendId[] = [

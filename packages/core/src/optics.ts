@@ -17,6 +17,16 @@ export function lensProfile(depth: number, { band, ior, thickness }: LensOptions
   return Math.min(offset, band * FOLD_CAP)
 }
 
+export function interiorZoomOffsetX(px: number, cx: number, magnify: number): number {
+  if (magnify === 0) return 0
+  return (px - cx) * -magnify || 0
+}
+
+export function interiorZoomOffsetY(py: number, cy: number, magnify: number): number {
+  if (magnify === 0) return 0
+  return (py - cy) * -magnify || 0
+}
+
 export function interiorZoomOffset(
   px: number,
   py: number,
@@ -24,6 +34,5 @@ export function interiorZoomOffset(
   cy: number,
   magnify: number,
 ): [number, number] {
-  if (magnify === 0) return [0, 0]
-  return [(px - cx) * -magnify || 0, (py - cy) * -magnify || 0]
+  return [interiorZoomOffsetX(px, cx, magnify), interiorZoomOffsetY(py, cy, magnify)]
 }

@@ -1,4 +1,4 @@
-import { interiorZoomOffset, lensProfile } from './optics'
+import { interiorZoomOffsetX, interiorZoomOffsetY, lensProfile } from './optics'
 import { getQuality } from './quality/profile'
 import type { LensOptions } from './optics'
 
@@ -138,9 +138,8 @@ export function computeOffsets(opts: MapOptions): OffsetField {
         }
       }
       if (depth >= 0) {
-        const [zx, zy] = interiorZoomOffset(sx, sy, cx, cy, opts.magnify)
-        dx += zx
-        dy += zy
+        dx += interiorZoomOffsetX(sx, cx, opts.magnify)
+        dy += interiorZoomOffsetY(sy, cy, opts.magnify)
       }
       const m = Math.max(Math.abs(dx), Math.abs(dy))
       if (m > maxOffset) maxOffset = m

@@ -81,9 +81,7 @@ describe('liquid-glass element', () => {
 
   it('exposes the whole option surface through attributes', () => {
     define()
-    const el = document.createElement('liquid-glass') as HTMLElement & {
-      options?: Record<string, unknown>
-    }
+    const el = document.createElement('liquid-glass')
     el.setAttribute('dispersion', '0.4')
     el.setAttribute('blur', '12')
     el.setAttribute('tint', '#00ff00')

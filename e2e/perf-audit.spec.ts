@@ -1,7 +1,9 @@
-import { test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
+const FLOOR_FPS = 24
 
 test('webkit perf profile of the docs landing', async ({ page, browserName }) => {
-  test.skip(browserName !== 'webkit' || Boolean(process.env.CI), 'local safari profiling tool')
+  test.skip(browserName !== 'webkit', 'safari profiling tool')
   test.setTimeout(120000)
   await page.goto('http://127.0.0.1:4175/')
   await page.waitForTimeout(1500)
@@ -45,4 +47,15 @@ test('webkit perf profile of the docs landing', async ({ page, browserName }) =>
     return out
   })
   console.log('WEBKIT_PERF ' + JSON.stringify(metrics))
+
+  const samples = Object.entries(metrics).filter(([label]) => label.startsWith('fps_'))
+  expect(samples.length).toBeGreaterThanOrEqual(4)
+  expect(metrics['clones'], 'svg-content produced no refraction layers').toBeGreaterThan(0)
+  for (const [label, value] of samples) {
+    expect(value, `${label} produced no frames at all`).toBeGreaterThan(0)
+  }
+  if (process.env.CI) return
+  for (const [label, value] of samples) {
+    expect(value, `${label} collapsed to ${value} fps`).toBeGreaterThan(FLOOR_FPS)
+  }
 })
