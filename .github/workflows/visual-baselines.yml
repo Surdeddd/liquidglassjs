@@ -2,9 +2,15 @@ name: Visual baselines
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: capture new baselines, or verify the committed ones
+        type: choice
+        options: [verify, capture]
+        default: verify
 
 jobs:
-  capture:
+  baselines:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,8 +22,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium webkit firefox
-      - run: pnpm e2e --update-snapshots --project=chromium --project=webkit --project=firefox e2e/visual.spec.ts
+
+      - name: Verify committed baselines
+        if: inputs.mode == 'verify'
+        run: pnpm exec playwright test --reporter=list --project=chromium --project=webkit --project=firefox e2e/visual.spec.ts
+
+      - name: Capture baselines
+        if: inputs.mode == 'capture'
+        run: pnpm e2e --update-snapshots --project=chromium --project=webkit --project=firefox e2e/visual.spec.ts
+
       - uses: actions/upload-artifact@v4
+        if: inputs.mode == 'capture'
         with:
           name: visual-baselines-linux
           path: e2e/visual.spec.ts-snapshots/*-linux.png
