@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 
 test.describe('lens optics visual regression', () => {
   test.skip(
-    process.platform !== 'darwin',
-    'pixel baselines are captured on macOS; other platforms would compare against a foreign renderer'
+    !['darwin', 'linux'].includes(process.platform),
+    'pixel baselines exist for macOS and the linux CI runner'
   )
 
   test('rim bends stripes and interior stays flat', async ({ page }) => {
