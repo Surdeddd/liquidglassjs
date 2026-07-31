@@ -26,17 +26,17 @@
     {
       "name": "engine (core entry)",
       "path": "packages/core/dist/index.js",
-      "limit": "24 kB"
+      "limit": "26 kB"
     },
     {
       "name": "published esm entry",
       "path": "packages/liquidglass/dist/index.js",
-      "limit": "24 kB"
+      "limit": "26 kB"
     },
     {
       "name": "cdn global build",
       "path": "packages/liquidglass/dist/liquidglass.global.js",
-      "limit": "24 kB"
+      "limit": "26 kB"
     },
     {
       "name": "snapshot chunk (lazy)",

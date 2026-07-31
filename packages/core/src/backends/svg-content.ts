@@ -16,6 +16,16 @@ function paints(node: Element): boolean {
   return computed.backgroundImage !== '' && computed.backgroundImage !== 'none'
 }
 
+let warnedMissingSource = false
+
+function warnMissingSource(): void {
+  if (warnedMissingSource) return
+  warnedMissingSource = true
+  console.warn(
+    'liquidglass: no painted ancestor to refract on this engine, so the surface falls back to blur and tint. Pass backdrop: <element|selector> to name the layer it should bend.'
+  )
+}
+
 export function resolveContentSource(element: Element): Element | null {
   if (typeof getComputedStyle !== 'function') return null
   const doc = element.ownerDocument
@@ -152,7 +162,11 @@ class SvgContentInstance implements BackendInstance {
     }
     this.#teardownLayer()
     this.#source = wanted
-    if (!this.#source || !isStyleable(surface.element)) return
+    if (!this.#source) {
+      warnMissingSource()
+      return
+    }
+    if (!isStyleable(surface.element)) return
 
     const id = `lgc-${++uid}`
     const filter = document.createElementNS(SVG_NS, 'filter')

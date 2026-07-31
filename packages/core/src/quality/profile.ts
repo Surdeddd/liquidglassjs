@@ -5,12 +5,15 @@ export interface QualityProfile {
   caPasses: 1 | 3
   maxDpr: number
   snapshotThrottleMs: number
+  overlayZIndex: number
 }
 
+const OVERLAY_Z_INDEX = 2147483000
+
 const TIERS: Record<'high' | 'mid' | 'low', QualityProfile> = {
-  high: { mapSide: 600, caPasses: 3, maxDpr: 2, snapshotThrottleMs: 250 },
-  mid: { mapSide: 480, caPasses: 3, maxDpr: 2, snapshotThrottleMs: 350 },
-  low: { mapSide: 320, caPasses: 1, maxDpr: 1.5, snapshotThrottleMs: 500 }
+  high: { mapSide: 600, caPasses: 3, maxDpr: 2, snapshotThrottleMs: 250, overlayZIndex: OVERLAY_Z_INDEX },
+  mid: { mapSide: 480, caPasses: 3, maxDpr: 2, snapshotThrottleMs: 350, overlayZIndex: OVERLAY_Z_INDEX },
+  low: { mapSide: 320, caPasses: 1, maxDpr: 1.5, snapshotThrottleMs: 500, overlayZIndex: OVERLAY_Z_INDEX }
 }
 
 export function deviceTier(): 'high' | 'mid' | 'low' {
