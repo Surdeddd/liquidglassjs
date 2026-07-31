@@ -35,4 +35,13 @@ export function glassOf(node: Element | null | undefined): LiquidGlassHandle | u
   return node ? getInstance(node) : undefined
 }
 
+export type LiquidGlassAttachment = (node: Element) => () => void
+
+export function glass(options?: LiquidGlassOptions): LiquidGlassAttachment {
+  return node => {
+    const handle = attach(node, options ?? {})
+    return () => handle.destroy()
+  }
+}
+
 export * from '@surdeddd/liquidglass-core'

@@ -47,6 +47,19 @@ describe('destroy then re-attach', () => {
     painted.remove()
   })
 
+  it('tears down once no matter how many times destroy is called', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const handle = attach(el, { backend: 'css-fallback', physics: false, adaptive: false })
+    handle.destroy()
+    expect(getInstance(el)).toBeUndefined()
+    const second = attach(el, { backend: 'css-fallback', physics: false, adaptive: false })
+    handle.destroy()
+    expect(getInstance(el)).toBe(second)
+    second.destroy()
+    el.remove()
+  })
+
   it('hands back the same handle while one is live and a fresh one after destroy', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)

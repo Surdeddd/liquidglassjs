@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { colorWithOpacity, liquidGlass } from '../src/index'
+import { colorWithOpacity, glass, glassOf, liquidGlass } from '../src/index'
+
+describe('svelte 5 attachment', () => {
+  it('attaches on mount and tears down through the returned cleanup', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const cleanup = glass({ backend: 'css-fallback', preset: 'frosted', physics: false })(el)
+    expect(el.getAttribute('data-liquid-glass')).toBe('frosted')
+    expect(glassOf(el)?.backend).toBe('css-fallback')
+    cleanup()
+    expect(el.hasAttribute('data-liquid-glass')).toBe(false)
+    expect(glassOf(el)).toBeUndefined()
+    el.remove()
+  })
+
+  it('answers undefined for a node it never touched', () => {
+    expect(glassOf(null)).toBeUndefined()
+    expect(glassOf(document.createElement('div'))).toBeUndefined()
+  })
+})
 
 describe('svelte action', () => {
   it('attaches, updates and destroys', () => {

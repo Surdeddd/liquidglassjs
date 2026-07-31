@@ -103,6 +103,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     existing.set(options)
     return existing
   }
+  let destroyed = false
 
   let current: LiquidGlassOptions = { ...options }
   let pressed = false
@@ -357,6 +358,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       warnUnmergeable()
     },
     destroy() {
+      if (destroyed) return
+      destroyed = true
       if (pressed) {
         pressed = false
         emitter.emit('release', null)

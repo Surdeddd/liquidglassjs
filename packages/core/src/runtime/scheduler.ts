@@ -8,6 +8,18 @@ let now = 0
 let viewportBound = false
 let viewportDirty = false
 
+const viewportBuffer: Array<() => void> = []
+const frameBuffer: FrameCb[] = []
+
+function drain<T>(source: Set<T>, buffer: T[]): number {
+  let count = 0
+  for (const item of source) {
+    buffer[count] = item
+    count += 1
+  }
+  return count
+}
+
 function tick(time: number): void {
   frame = 0
   now = time
@@ -15,9 +27,13 @@ function tick(time: number): void {
   last = time
   if (viewportDirty) {
     viewportDirty = false
-    for (const cb of [...viewportCbs]) cb()
+    const count = drain(viewportCbs, viewportBuffer)
+    for (let i = 0; i < count; i++) viewportBuffer[i]!()
+    viewportBuffer.length = 0
   }
-  for (const cb of [...frameCbs]) cb(dt)
+  const count = drain(frameCbs, frameBuffer)
+  for (let i = 0; i < count; i++) frameBuffer[i]!(dt)
+  frameBuffer.length = 0
   if (frameCbs.size > 0 || viewportDirty) schedule()
   else last = 0
 }

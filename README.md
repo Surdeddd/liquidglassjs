@@ -158,10 +158,13 @@ import { LiquidGlass, vLiquidGlass } from '@surdeddd/liquidglass/vue'
 
 ```svelte
 <script>
-  import { liquidGlass } from '@surdeddd/liquidglass/svelte'
+  import { liquidGlass, glass } from '@surdeddd/liquidglass/svelte'
 </script>
 
 <div use:liquidGlass={{ preset: 'frosted' }}>…</div>
+
+<!-- svelte 5 attachment -->
+<div {@attach glass({ preset: 'frosted' })}>…</div>
 ```
 
 The Vue directive is registered locally by importing `vLiquidGlass` into `<script setup>`; register
@@ -233,6 +236,12 @@ so a page without a handle can listen too:
 ```js
 document.addEventListener('liquid-glass:tonechange', event => console.log(event.detail))
 ```
+
+**One glass per element.** `attach()` on an element that already has one returns the same handle and
+applies the new options — it is attach-or-update, not a second surface. `destroy()` and `detach()`
+remove it for everyone, so two independent owners on the same node share a lifetime; give them
+separate elements if they need separate lifetimes. Calling `destroy()` twice is safe, and a stale
+handle cannot tear down a surface that was attached after it.
 
 Beyond the handle:
 
