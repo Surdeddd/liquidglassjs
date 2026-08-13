@@ -49,6 +49,30 @@ test('dock pill springs between tabs and shares the merge group', async ({ page 
     .toBeGreaterThan(50)
 })
 
+test('every playground control announces what it changes', async ({ page }) => {
+  await page.goto(DOCS)
+  await page.locator('#playground').scrollIntoViewIfNeeded()
+  const names = await page
+    .locator('.pg-controls input')
+    .evaluateAll(nodes => nodes.map(node => node.getAttribute('data-param') ?? 'tint'))
+  expect(names.length).toBeGreaterThanOrEqual(12)
+  for (const label of ['blur', 'refraction', 'dispersion', 'specular', 'frost']) {
+    await expect(page.getByRole('slider', { name: label, exact: true })).toHaveCount(1)
+  }
+  await expect(page.getByRole('checkbox', { name: 'motion light' })).toHaveCount(1)
+})
+
+test('keyboard focus stays visible and follows the control shape', async ({ page }) => {
+  await page.goto(DOCS)
+  const ring = await page.locator('.dock-tabs button').first().evaluate(el => {
+    el.focus()
+    const cs = getComputedStyle(el)
+    return { radius: cs.borderRadius, outline: cs.outlineColor, width: cs.outlineWidth }
+  })
+  expect(parseFloat(ring.radius)).toBeGreaterThan(8)
+  expect(parseFloat(ring.width)).toBeGreaterThanOrEqual(2)
+})
+
 test('adaptive cards expose their tone', async ({ page }) => {
   await page.goto(DOCS)
   const lightLens = page.locator('.adaptive-light liquid-glass')

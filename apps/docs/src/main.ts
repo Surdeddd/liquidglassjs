@@ -131,7 +131,7 @@ function syncInputs(material: MaterialParams): void {
     const value = material[key]
     if (typeof value === 'number') {
       input.value = String(value)
-      const output = input.closest('label')?.querySelector('output')
+      const output = input.closest('label')?.querySelector('.pg-value')
       if (output) output.textContent = String(value)
     } else if (key === 'tint' && typeof value === 'string' && value.startsWith('#')) {
       input.value = value.length === 4 ? `#${[...value.slice(1)].map(c => c + c).join('')}` : value
@@ -150,7 +150,7 @@ if (pgLens) {
       pgTouched = true
       Object.assign(pgState, { [key]: value })
       handle.set({ [key]: value })
-      const output = input.closest('label')?.querySelector('output')
+      const output = input.closest('label')?.querySelector('.pg-value')
       if (output) output.textContent = String(value)
       renderSnippet()
     })

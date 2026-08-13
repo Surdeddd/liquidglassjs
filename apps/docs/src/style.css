@@ -33,6 +33,12 @@ body {
   overflow-x: hidden;
 }
 
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(4, 6, 12, 0.92);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -125,6 +131,7 @@ body {
 .nav-links a {
   color: var(--ink-dim);
   text-decoration: none;
+  border-radius: 7px;
   transition: color 0.25s ease;
 }
 
@@ -510,6 +517,7 @@ main {
 .dock-tabs button {
   background: none;
   border: 0;
+  border-radius: 26px;
   color: rgba(238, 241, 249, 0.72);
   font-family: var(--mono);
   font-size: 13px;
@@ -738,6 +746,7 @@ main {
 .ios-tabs button {
   background: none;
   border: 0;
+  border-radius: 18px;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.55);
   display: grid;
@@ -809,9 +818,10 @@ main {
 .pg-controls label input[type='range'] {
   grid-column: 1 / -1;
   accent-color: var(--cyan);
+  border-radius: 999px;
 }
 
-.pg-controls output {
+.pg-controls .pg-value {
   font-family: var(--mono);
   font-size: 12.5px;
   color: var(--cyan);
