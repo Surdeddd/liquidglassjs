@@ -1,6 +1,7 @@
 import { colorWithOpacity } from '../color'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { parseColor } from '../quality/a11y'
+import { getQuality } from '../quality/profile'
 import { requestLensMap } from '../worker/host'
 import { buildLensChain } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
@@ -365,7 +366,8 @@ class SvgContentInstance implements BackendInstance {
         band: this.#band,
         ior: material.ior,
         thickness: resolveThicknessPx(material.thickness, width, height),
-        magnify: material.magnify
+        magnify: material.magnify,
+        mapSide: getQuality(surface.quality).mapSide
       },
       map => {
         if (token !== this.#mapToken || !this.#filter) return

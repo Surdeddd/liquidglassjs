@@ -79,7 +79,7 @@ export function requestLensMap(opts: MapOptions, onReady: (map: LensMap) => void
   const id = ++nextId
   pending.set(id, { key, opts, onReady })
   try {
-    active.postMessage({ id, opts, mapSide: getQuality().mapSide })
+    active.postMessage({ id, opts, mapSide: opts.mapSide ?? getQuality().mapSide })
   } catch {
     pending.delete(id)
     failPending()

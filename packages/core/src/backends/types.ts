@@ -1,5 +1,6 @@
 import type { SurfaceState } from '../runtime/dom-sync'
 import type { Capabilities } from '../quality/probe'
+import type { QualityProfile } from '../quality/profile'
 import type { BackendId, LiquidGlassPreset, MaterialParams } from '../types'
 
 export interface BackendSurface {
@@ -11,6 +12,7 @@ export interface BackendSurface {
   sceneImage: string | null
   merge?: string | null
   mergeStrength?: number | null
+  quality?: Partial<QualityProfile> | null
 }
 
 export interface BackendInstance {

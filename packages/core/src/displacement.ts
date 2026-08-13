@@ -77,6 +77,7 @@ export interface MapOptions {
   ior: number
   thickness: number
   magnify: number
+  mapSide?: number | undefined
 }
 
 interface OffsetField {
@@ -92,7 +93,8 @@ interface OffsetField {
 export function computeOffsets(opts: MapOptions): OffsetField {
   const scale = Math.min(
     1,
-    getQuality().mapSide / (Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2))
+    (opts.mapSide ?? getQuality().mapSide) /
+      (Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2))
   )
   const ew = opts.width * scale
   const eh = opts.height * scale

@@ -61,6 +61,7 @@ export type {
   LiquidGlassEventName,
   LiquidGlassHandle,
   LiquidGlassOptions,
+  LiquidGlassQuality,
   LiquidGlassPreset,
   LiquidGlassShape,
   MaterialParams

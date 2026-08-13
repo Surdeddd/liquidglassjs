@@ -41,6 +41,13 @@ export interface LiquidGlassOptions extends Resettable<MaterialParams> {
   mergeStrength?: number | undefined
   adaptive?: boolean | undefined
   motionLight?: boolean | undefined
+  quality?: LiquidGlassQuality | undefined
+}
+
+export interface LiquidGlassQuality {
+  mapSide?: number
+  caPasses?: 1 | 3
+  maxDpr?: number
 }
 
 export type BackdropTone = 'light' | 'dark'

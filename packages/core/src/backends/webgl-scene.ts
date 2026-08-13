@@ -132,7 +132,10 @@ class WebglSceneInstance implements BackendInstance {
   }
 
   #draw(surface: BackendSurface): void {
-    const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, getQuality().maxDpr)
+    const dpr = Math.min(
+      typeof devicePixelRatio === 'number' ? devicePixelRatio : 1,
+      getQuality(surface.quality).maxDpr
+    )
     const hostBox = this.#host.getBoundingClientRect()
     if (hostBox.width < 1 || hostBox.height < 1) return
     const image = this.#image

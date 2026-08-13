@@ -29,8 +29,9 @@ export function deviceTier(): 'high' | 'mid' | 'low' {
 
 let overrides: Partial<QualityProfile> = {}
 
-export function getQuality(): QualityProfile {
-  return { ...TIERS[deviceTier()], ...overrides }
+export function getQuality(local?: Partial<QualityProfile> | null): QualityProfile {
+  const base = { ...TIERS[deviceTier()], ...overrides }
+  return local ? { ...base, ...local } : base
 }
 
 export function configure(next: Partial<QualityProfile>): void {

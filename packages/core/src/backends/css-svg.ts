@@ -152,12 +152,14 @@ class CssSvgInstance implements BackendInstance {
         band: this.#band,
         ior: material.ior,
         thickness: resolveThicknessPx(material.thickness, width, height),
-        magnify: material.magnify
+        magnify: material.magnify,
+        mapSide: getQuality(surface.quality).mapSide
       },
       map => {
         if (token !== this.#mapToken) return
         const { material: latest } = surface
-        const passes = latest.dispersion > 0.001 && getQuality().caPasses === 3 ? 3 : 1
+        const passes =
+          latest.dispersion > 0.001 && getQuality(surface.quality).caPasses === 3 ? 3 : 1
         const scale = 2 * map.maxOffset * latest.refraction * 2
         const chainKey = `${passes}|${latest.frost > 0}|${latest.blur}|${latest.saturation}|${latest.brightness}|${latest.dispersion}`
         if (!this.#chain || chainKey !== this.#chainKey) {

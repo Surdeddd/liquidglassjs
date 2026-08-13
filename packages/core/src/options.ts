@@ -25,7 +25,8 @@ const OPTION_KEY_MAP: Record<keyof LiquidGlassOptions, true> = {
   merge: true,
   mergeStrength: true,
   adaptive: true,
-  motionLight: true
+  motionLight: true,
+  quality: true
 }
 
 export const OPTION_KEYS: ReadonlySet<string> = new Set(Object.keys(OPTION_KEY_MAP))

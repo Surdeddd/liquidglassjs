@@ -134,7 +134,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     backdrop: resolveBackdrop(current.backdrop),
     sceneImage: current.sceneImage ?? null,
     merge: current.merge ?? null,
-    mergeStrength: current.mergeStrength ?? null
+    mergeStrength: current.mergeStrength ?? null,
+    quality: current.quality ?? null
   }
 
   const applyMaterial = (): void => {
@@ -339,6 +340,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       surface.sceneImage = current.sceneImage ?? null
       surface.merge = current.merge ?? null
       surface.mergeStrength = current.mergeStrength ?? null
+      surface.quality = current.quality ?? null
       applyMaterial()
       const replacement = pickBackend()
       if (replacement.id !== backend.id) {

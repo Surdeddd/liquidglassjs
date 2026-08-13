@@ -210,6 +210,7 @@ to the range shown; anything non-finite falls back to the default.
 | `mergeStrength` | number | 40 | px | Distance at which group members melt together |
 | `adaptive` | boolean | `true` | — | Backdrop tone sampling and automatic tint flip |
 | `motionLight` | boolean | `false` | — | Drive the bezel highlight from device orientation |
+| `quality` | `{ mapSide, caPasses, maxDpr }` | device tier | — | Per-surface override of the quality profile; layers on top of `configure()` |
 
 ## Runtime and events
 
@@ -329,8 +330,15 @@ a rendering regression.
 The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, research notes in
 [docs/research](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).
 
-Engine-by-engine behaviour, the per-backend fidelity matrix and the platform version floors live in
-[docs/browser-support.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md).
+## Documentation
+
+| | |
+| --- | --- |
+| [Recipes](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/recipes.md) | Whole components: nav bar, tactile card, melting tab bar, morph, lens over your own art |
+| [Performance](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/performance.md) | What each surface costs, which knob moves it, how the fps watchdog behaves |
+| [Browser support](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md) | Engine-by-engine behaviour, the per-backend fidelity matrix, version floors |
+| [Architecture](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/architecture.md) | Module map, dependency direction, how tiers are selected |
+| [API reference](https://liquidglassjs.vercel.app/api/) | Generated from the published entry points |
 
 ## License
 
