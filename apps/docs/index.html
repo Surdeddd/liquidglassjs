@@ -291,6 +291,50 @@
         </div>
         <pre class="fw-code"><code data-fw-code></code></pre>
       </section>
+
+      <section class="section reveal" id="budget">
+        <p class="section-index">08</p>
+        <h2 class="section-title">What your device got</h2>
+        <p class="section-lead">
+          The engine profiles the machine it lands on and spends accordingly. These are the live
+          values for the browser reading this page, not a table someone typed.
+        </p>
+
+        <div class="budget-grid">
+          <liquid-glass class="budget-card" preset="clear" physics="false" backdrop=".budget-wall">
+            <span class="budget-label">device tier</span>
+            <span class="budget-value" data-budget-tier>—</span>
+            <span class="budget-note" data-budget-tier-why>reading cores, memory and dpr</span>
+          </liquid-glass>
+
+          <liquid-glass class="budget-card" preset="clear" physics="false" backdrop=".budget-wall">
+            <span class="budget-label">backend in use</span>
+            <span class="budget-value" data-budget-backend>—</span>
+            <span class="budget-note" data-budget-backend-why>chosen by capability probe</span>
+          </liquid-glass>
+
+          <liquid-glass class="budget-card" preset="clear" physics="false" backdrop=".budget-wall">
+            <span class="budget-label">displacement map</span>
+            <span class="budget-value" data-budget-map>—</span>
+            <span class="budget-note">px per side, before padding</span>
+          </liquid-glass>
+
+          <liquid-glass class="budget-card" preset="clear" physics="false" backdrop=".budget-wall">
+            <span class="budget-label">dispersion passes</span>
+            <span class="budget-value" data-budget-passes>—</span>
+            <span class="budget-note" data-budget-passes-why>three splits colour at the rim</span>
+          </liquid-glass>
+
+          <div class="budget-wall" data-wall="dawn" data-wall-seed="19" aria-hidden="true"></div>
+        </div>
+
+        <p class="section-lead budget-cost">
+          Ten lenses scrolling on an M-series Mac open in the mid-30s of fps with dispersion at three
+          passes and settle around 100 once the watchdog drops to one. Dispersion is most of the
+          cost, and it is the part you can give up without losing the refraction — per surface with
+          <code>quality</code>, or page-wide with <code>configure()</code>.
+        </p>
+      </section>
     </main>
 
     <footer class="footer">

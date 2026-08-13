@@ -1,6 +1,8 @@
 import {
   attach,
   define,
+  deviceTier,
+  getQuality,
   morphGlass,
   mountScrollEdge,
   resolveMaterial,
@@ -306,3 +308,49 @@ for (const tab of fwTabs) {
 showTab('vanilla')
 
 wireCopy(document.querySelector('[data-copy-snippet]'), () => snippetNode?.textContent ?? '')
+
+const TIER_WHY: Record<string, string> = {
+  high: 'many cores and a retina display',
+  mid: 'a capable machine without the headroom to spare',
+  low: 'few cores or little memory — the engine spends less here'
+}
+
+const BACKEND_WHY: Record<string, string> = {
+  'css-svg': 'backdrop-filter with a displacement map, over the live page',
+  'svg-content': 'a positioned copy of the backdrop, refracted through a filter',
+  'webgl-overlay': 'one shared canvas, page snapshot as texture',
+  'webgl-scene': 'full GPU optics over a scene you own',
+  'css-fallback': 'blur and tint — never a broken surface'
+}
+
+function paintBudget(): void {
+  const tierEl = document.querySelector('[data-budget-tier]')
+  if (!tierEl) return
+  const tier = deviceTier()
+  const quality = getQuality()
+  const probeLens = document.querySelector('.budget-card')
+  const backend = probeLens?.getAttribute('data-liquid-glass-backend') ?? 'css-fallback'
+
+  tierEl.textContent = tier
+  setText('[data-budget-tier-why]', TIER_WHY[tier] ?? '')
+  setText('[data-budget-backend]', backend)
+  setText('[data-budget-backend-why]', BACKEND_WHY[backend] ?? '')
+  setText('[data-budget-map]', String(quality.mapSide))
+  setText('[data-budget-passes]', String(quality.caPasses))
+  setText(
+    '[data-budget-passes-why]',
+    quality.caPasses === 3
+      ? 'three splits colour at the rim'
+      : 'dropped to one — the fps watchdog decided this page could not afford three'
+  )
+}
+
+function setText(selector: string, value: string): void {
+  const el = document.querySelector(selector)
+  if (el) el.textContent = value
+}
+
+requestAnimationFrame(() => {
+  paintBudget()
+  setInterval(paintBudget, 2000)
+})
