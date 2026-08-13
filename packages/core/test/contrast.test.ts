@@ -48,6 +48,39 @@ describe('engine tone from the luminance grid', () => {
     host.remove()
   })
 
+  it('re-reads the tone when a new grid arrives under a lens that never moved', () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    host.getBoundingClientRect = () =>
+      ({ left: 10, top: 40, width: 80, height: 60, right: 90, bottom: 100, x: 10, y: 40, toJSON: () => ({}) }) as DOMRect
+    const handle = attach(host, { physics: false })
+    const seen: Array<string | null> = []
+    handle.on('tonechange', tone => seen.push(tone))
+
+    splitGrid()
+    expect(host.getAttribute('data-liquid-glass-tone')).toBe('dark')
+
+    const cols = 4
+    const rows = 2
+    const bright = new Float32Array(cols * rows).fill(0.9)
+    setLuminanceGrid({ data: bright, cols, rows, docWidth: 400, docHeight: 200 })
+    expect(host.getAttribute('data-liquid-glass-tone')).toBe('light')
+    expect(seen).toContain('light')
+
+    handle.destroy()
+    host.remove()
+  })
+
+  it('stops re-reading the tone once the lens is destroyed', () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const handle = attach(host, { physics: false })
+    handle.destroy()
+    expect(() => splitGrid()).not.toThrow()
+    expect(host.hasAttribute('data-liquid-glass-tone')).toBe(false)
+    host.remove()
+  })
+
   it('marks glass dark over a dim snapshot region', () => {
     splitGrid()
     const host = document.createElement('div')

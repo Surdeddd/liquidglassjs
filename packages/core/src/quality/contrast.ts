@@ -10,8 +10,24 @@ export interface LuminanceGrid {
 
 let grid: LuminanceGrid | null = null
 
+const gridListeners = new Set<() => void>()
+
 export function setLuminanceGrid(next: LuminanceGrid | null): void {
   grid = next
+  for (const listener of [...gridListeners]) {
+    try {
+      listener()
+    } catch {
+      continue
+    }
+  }
+}
+
+export function onLuminanceGrid(cb: () => void): () => void {
+  gridListeners.add(cb)
+  return () => {
+    gridListeners.delete(cb)
+  }
 }
 
 export function getLuminanceGrid(): LuminanceGrid | null {

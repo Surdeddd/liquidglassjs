@@ -39,6 +39,14 @@ export function relativeLuminance(r: number, g: number, b: number): number {
 }
 
 export function sampleTone(element: Element, backdrop: Element | null): BackdropTone | null {
+  const observed = observeTone(element, backdrop)
+  return observed === 'unpainted' ? 'light' : observed
+}
+
+export function observeTone(
+  element: Element,
+  backdrop: Element | null
+): BackdropTone | 'unpainted' | null {
   if (typeof getComputedStyle !== 'function') return null
   const layers: Array<[number, number, number, number]> = []
   let sawImage = false
@@ -55,7 +63,7 @@ export function sampleTone(element: Element, backdrop: Element | null): Backdrop
     node = node.parentElement
   }
   if (layers.length === 0) {
-    return sawImage ? null : 'light'
+    return sawImage ? null : 'unpainted'
   }
   const opaque = layers[layers.length - 1]
   if (sawImage && (!opaque || opaque[3] < 0.99)) return null

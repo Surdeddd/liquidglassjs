@@ -4,14 +4,14 @@ import {
   readForcedColors,
   readReducedMotion,
   readReducedTransparency,
-  sampleTone,
+  observeTone,
   TONE_CROSSOVER,
   watchMedia,
   type BackdropTone
 } from './quality/a11y'
 import { mountBezel } from './fx/bezel'
 import type { BezelHandle } from './fx/bezel'
-import { backdropLuminance } from './quality/contrast'
+import { backdropLuminance, onLuminanceGrid } from './quality/contrast'
 import { mountGlow } from './fx/glow'
 import type { GlowHandle } from './fx/glow'
 import { registerLight } from './fx/light'
@@ -154,19 +154,24 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       }
     }
     if (current.adaptive !== false) {
-      const box = element.getBoundingClientRect()
-      const luminance = backdropLuminance({
-        left: box.left + (typeof window === 'undefined' ? 0 : window.scrollX),
-        top: box.top + (typeof window === 'undefined' ? 0 : window.scrollY),
-        width: box.width,
-        height: box.height
-      })
-      if (luminance !== null) {
-        if (tone === null || Math.abs(luminance - TONE_CROSSOVER) >= 0.04) {
-          tone = luminance > TONE_CROSSOVER ? 'light' : 'dark'
-        }
+      const painted = observeTone(element, surface.backdrop)
+      if (painted === 'light' || painted === 'dark') {
+        tone = painted
       } else {
-        tone = sampleTone(element, surface.backdrop)
+        const box = element.getBoundingClientRect()
+        const luminance = backdropLuminance({
+          left: box.left + (typeof window === 'undefined' ? 0 : window.scrollX),
+          top: box.top + (typeof window === 'undefined' ? 0 : window.scrollY),
+          width: box.width,
+          height: box.height
+        })
+        if (luminance !== null) {
+          if (tone === null || Math.abs(luminance - TONE_CROSSOVER) >= 0.04) {
+            tone = luminance > TONE_CROSSOVER ? 'light' : 'dark'
+          }
+        } else {
+          tone = painted === 'unpainted' ? 'light' : null
+        }
       }
       if (current.tint === undefined) {
         material = adaptTintToTone(material, tone, MATERIAL_DEFAULTS.tint)
@@ -249,11 +254,14 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
   syncBezel()
 
+  let wasVisible = false
   const tracker = new SurfaceTracker(element, state => {
+    const appeared = state.visible && !wasVisible
+    wasVisible = state.visible
     surface.state = state
     if (current.adaptive !== false) {
       const now = Date.now()
-      if (now - lastToneSample > TONE_SAMPLE_INTERVAL_MS) {
+      if (appeared || now - lastToneSample > TONE_SAMPLE_INTERVAL_MS) {
         lastToneSample = now
         const previousTone = tone
         applyMaterial()
@@ -309,7 +317,16 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
   warnUnmergeable()
 
+  const retoneFromBackdrop = (): void => {
+    if (current.adaptive === false) return
+    const previousTone = tone
+    lastToneSample = Date.now()
+    applyMaterial()
+    if (tone !== previousTone) instance.update(surface)
+  }
+
   const unsubscribers: Array<() => void> = [
+    onLuminanceGrid(retoneFromBackdrop),
     watchMedia('(prefers-reduced-motion: reduce)', matches => {
       reducedMotion = matches
       physics?.destroy()

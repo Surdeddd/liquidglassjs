@@ -10,6 +10,7 @@ export { colorWithOpacity } from './color'
 export {
   adaptTintToTone,
   applyReducedTransparency,
+  observeTone,
   parseColor,
   readForcedColors,
   readReducedMotion,
