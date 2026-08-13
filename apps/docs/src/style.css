@@ -95,16 +95,26 @@ body {
   border-radius: 999px;
   font-size: 14px;
   white-space: nowrap;
+  max-width: calc(100vw - 20px);
 }
 
 .nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--display);
   font-weight: 500;
   letter-spacing: 0.02em;
 }
 
+.nav-mark {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
 .nav-logo-dim {
-  opacity: 0.45;
+  opacity: 0.62;
 }
 
 .nav-links {
@@ -373,30 +383,34 @@ main {
   position: absolute;
   border-radius: 50%;
   z-index: 1;
+  top: 50%;
+  left: 50%;
 }
 
 .m-blob-a {
   width: 150px;
   height: 150px;
-  top: 74px;
-  left: 26%;
+  margin: -75px 0 0 -75px;
+  translate: -71px 6px;
   animation: blob-a 7s ease-in-out infinite alternate;
 }
 
 .m-blob-b {
   width: 118px;
   height: 118px;
-  top: 92px;
-  left: 47%;
+  margin: -59px 0 0 -59px;
+  translate: 71px -8px;
   animation: blob-b 7s ease-in-out infinite alternate;
 }
 
 @keyframes blob-a {
-  to { translate: 130px 6px; }
+  from { translate: -172px -10px; }
+  to { translate: -71px 6px; }
 }
 
 @keyframes blob-b {
-  to { translate: -120px -8px; }
+  from { translate: 172px 12px; }
+  to { translate: 71px -8px; }
 }
 
 .dock-lead {
@@ -948,8 +962,8 @@ main {
 
 @media (max-width: 640px) {
   .nav {
-    gap: 14px;
-    padding: 10px 16px;
+    gap: 12px;
+    padding: 10px 14px;
     font-size: 13px;
   }
 
@@ -962,11 +976,37 @@ main {
   }
 
   .hero-lens {
-    translate: -50% -46%;
+    width: min(300px, 54vw);
+    height: clamp(96px, 16vw, 132px);
+    translate: -56% -44%;
   }
 
   .hero-lens-b {
     display: none;
+  }
+
+  .m-blob-a {
+    width: 112px;
+    height: 112px;
+    margin: -56px 0 0 -56px;
+    translate: -52px 6px;
+  }
+
+  .m-blob-b {
+    width: 88px;
+    height: 88px;
+    margin: -44px 0 0 -44px;
+    translate: 52px -8px;
+  }
+
+  @keyframes blob-a {
+    from { translate: -126px -10px; }
+    to { translate: -52px 6px; }
+  }
+
+  @keyframes blob-b {
+    from { translate: 126px 12px; }
+    to { translate: 52px -8px; }
   }
 
   .ios-cc-grid {
@@ -976,6 +1016,22 @@ main {
 
   .ios-time {
     font-size: 72px;
+  }
+}
+
+@media (max-width: 520px) {
+  .nav {
+    gap: 10px;
+    padding: 9px 13px;
+    font-size: 12.5px;
+  }
+
+  .nav-logo {
+    display: none;
+  }
+
+  .nav-links {
+    gap: 11px;
   }
 }
 

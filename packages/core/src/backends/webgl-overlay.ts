@@ -190,12 +190,25 @@ class OverlayManager {
     }
   }
 
+  #snapshotDeadline = 0
+
   scheduleSnapshot(): void {
+    const throttle = getQuality().snapshotThrottleMs
+    const now = Date.now()
+    if (this.#snapshotDeadline === 0) this.#snapshotDeadline = now + throttle * 4
+    if (now >= this.#snapshotDeadline) {
+      if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer)
+      this.#snapshotTimer = null
+      this.#snapshotDeadline = 0
+      void this.#snapshot()
+      return
+    }
     if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer)
     this.#snapshotTimer = setTimeout(() => {
       this.#snapshotTimer = null
+      this.#snapshotDeadline = 0
       void this.#snapshot()
-    }, getQuality().snapshotThrottleMs)
+    }, throttle)
   }
 
   scheduleRender(): void {
@@ -414,12 +427,15 @@ export const webglOverlayBackend: Backend = {
       return fallback
     }
     manager.add(surface)
+    let wasVisible = surface.state.visible
     return {
       update(next) {
         applyBaseStyles(next)
         manager.add(next)
       },
-      sync() {
+      sync(next) {
+        if (next.state.visible && !wasVisible) manager.scheduleSnapshot()
+        wasVisible = next.state.visible
         manager.scheduleRender()
       },
       destroy() {

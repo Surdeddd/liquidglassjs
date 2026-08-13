@@ -21,7 +21,18 @@
     <div class="grain" data-liquid-glass-ignore aria-hidden="true"></div>
 
     <liquid-glass class="nav" preset="clear" physics="false" motion-light>
-      <span class="nav-logo">🫧 liquidglass<span class="nav-logo-dim">js</span></span>
+      <span class="nav-logo">
+        <svg class="nav-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="navMarkFill" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7fe7ff" />
+              <stop offset="1" stop-color="#b39bff" />
+            </linearGradient>
+          </defs>
+          <circle cx="12" cy="12" r="9" fill="none" stroke="url(#navMarkFill)" stroke-width="1.8" />
+          <ellipse cx="9.2" cy="8.8" rx="3.1" ry="2.2" fill="#ffffff" opacity="0.72" transform="rotate(-28 9.2 8.8)" />
+        </svg>
+        liquidglass<span class="nav-logo-dim">js</span></span>
       <span class="nav-links">
         <a href="#ios">showcase</a>
         <a href="#playground">playground</a>
