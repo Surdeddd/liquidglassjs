@@ -19,10 +19,14 @@ mountScrollEdge(document.body, { position: 'top', size: 108, strength: 10 })
 const heroLensB = document.querySelector<HTMLElement>('[data-hero-lens-b]')
 if (heroLensB) {
   attach(heroLensB, {
-    preset: 'tinted',
-    tint: '#7c5cff',
-    tintOpacity: 0.12,
-    refraction: 0.55,
+    preset: 'clear',
+    tint: '#a898ff',
+    tintOpacity: 0.05,
+    refraction: 0.62,
+    ior: 1.7,
+    magnify: 0.04,
+    dispersion: 0.24,
+    specular: 0.8,
     physics: false,
     motionLight: true
   })
