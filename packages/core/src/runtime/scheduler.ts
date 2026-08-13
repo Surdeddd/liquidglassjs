@@ -1,6 +1,7 @@
 type FrameCb = (dt: number) => void
 
 const frameCbs = new Set<FrameCb>()
+const observerCbs = new Set<FrameCb>()
 const viewportCbs = new Set<() => void>()
 let frame = 0
 let last = 0
@@ -23,7 +24,8 @@ function drain<T>(source: Set<T>, buffer: T[]): number {
 function tick(time: number): void {
   frame = 0
   now = time
-  const dt = last ? Math.min((time - last) / 1000, 1 / 20) : 1 / 60
+  const gap = last ? (time - last) / 1000 : 0
+  const dt = last ? Math.min(gap, 1 / 20) : 1 / 60
   last = time
   if (viewportDirty) {
     viewportDirty = false
@@ -34,8 +36,12 @@ function tick(time: number): void {
   const count = drain(frameCbs, frameBuffer)
   for (let i = 0; i < count; i++) frameBuffer[i]!(dt)
   frameBuffer.length = 0
+  if (observerCbs.size > 0) {
+    const observed = drain(observerCbs, frameBuffer)
+    for (let i = 0; i < observed; i++) frameBuffer[i]!(gap)
+    frameBuffer.length = 0
+  }
   if (frameCbs.size > 0 || viewportDirty) schedule()
-  else last = 0
 }
 
 function schedule(): void {
@@ -71,6 +77,13 @@ export function onFrame(cb: FrameCb): () => void {
   schedule()
   return () => {
     frameCbs.delete(cb)
+  }
+}
+
+export function observeFrames(cb: FrameCb): () => void {
+  observerCbs.add(cb)
+  return () => {
+    observerCbs.delete(cb)
   }
 }
 

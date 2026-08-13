@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { onFrame, onViewport } from '../src/runtime/scheduler'
+import { observeFrames, onFrame, onViewport } from '../src/runtime/scheduler'
 
 function twoFrames(): Promise<void> {
   return new Promise(resolve =>
@@ -54,6 +54,34 @@ describe('scheduler', () => {
     expect(remove.mock.calls.some(call => call[0] === 'scroll')).toBe(true)
     add.mockRestore()
     remove.mockRestore()
+  })
+
+  it('an observer never keeps the loop alive on its own', async () => {
+    const observer = vi.fn()
+    const off = observeFrames(observer)
+    await twoFrames()
+    const settled = observer.mock.calls.length
+    await twoFrames()
+    await twoFrames()
+    expect(observer.mock.calls.length).toBe(settled)
+    off()
+  })
+
+  it('an observer sees frames another subscriber asked for', async () => {
+    const observer = vi.fn()
+    const offObserve = observeFrames(observer)
+    const idle = observer.mock.calls.length
+    const offFrame = onFrame(() => {})
+    await twoFrames()
+    await twoFrames()
+    expect(observer.mock.calls.length).toBeGreaterThan(idle + 1)
+    offFrame()
+    await twoFrames()
+    const settled = observer.mock.calls.length
+    await twoFrames()
+    await twoFrames()
+    expect(observer.mock.calls.length).toBe(settled)
+    offObserve()
   })
 
   it('coalesces viewport bursts into one callback per frame', async () => {

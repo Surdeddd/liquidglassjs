@@ -1,4 +1,4 @@
-import { onFrame } from '../runtime/scheduler'
+import { observeFrames } from '../runtime/scheduler'
 
 export interface QualityProfile {
   mapSide: number
@@ -55,8 +55,10 @@ let fired = false
 let degradeCbs: Array<() => void> = []
 let offWatch: (() => void) | null = null
 
+const IDLE_GAP_S = 0.2
+
 export function _pushFrameSample(dt: number): void {
-  if (fired || dt <= 0) return
+  if (fired || dt <= 0 || dt > IDLE_GAP_S) return
   windowSamples.push(1 / dt)
   if (windowSamples.length < WINDOW_SIZE) return
   const sorted = [...windowSamples].sort((a, b) => a - b)
@@ -81,7 +83,7 @@ export function watchFps(onDegrade: () => void): () => void {
   if (fired) return () => {}
   degradeCbs.push(onDegrade)
   if (!offWatch) {
-    offWatch = onFrame(dt => _pushFrameSample(dt))
+    offWatch = observeFrames(dt => _pushFrameSample(dt))
   }
   return () => {
     degradeCbs = degradeCbs.filter(cb => cb !== onDegrade)

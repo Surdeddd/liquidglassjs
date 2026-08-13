@@ -14,7 +14,10 @@ What each surface costs, and which knob moves it.
 | Tone sampling | At most every 250 ms per surface | Ancestor chain length |
 
 The scheduler runs one shared `requestAnimationFrame` loop for the whole page and idles when no
-spring is active and nothing is scrolling. A static page with attached glass does no per-frame work.
+spring is active and nothing is scrolling. A static page with attached glass does no per-frame work —
+including the fps watchdog, which observes frames the page was going to render anyway rather than
+holding the loop open to measure. Gaps longer than 200 ms are read as idle rather than as jank, so a
+quiet page is never mistaken for a slow one.
 
 ## The knobs
 
@@ -96,8 +99,8 @@ Chromium on an M-series machine that reads roughly:
 
 | | fps |
 | --- | --- |
-| Ten lenses, dispersion at three passes | 31 |
-| Same page after the watchdog drops to one pass | 77 |
+| Ten lenses, dispersion at three passes | 34–38 |
+| Same page after the watchdog drops to one pass | 92–114 |
 | `dispersion: 0` from the start | 54 |
 | No glass on the page at all | 118 |
 
