@@ -1,5 +1,49 @@
 # @surdeddd/liquidglass
 
+## 0.10.0
+
+### Minor Changes
+
+- e62a78b: Per-surface quality, and an overlay snapshot that cannot go stale.
+
+  - `quality` is an option now, not only a global setting: `attach(el, { quality: { mapSide: 240,
+caPasses: 1 } })` gives one lens a cheaper displacement map and drops its dispersion pass while
+    the rest of the page keeps the tier defaults. It layers on top of `configure()`.
+  - The shared overlay's snapshot debounce restarted on every mutation, so a steady stream of them
+    could starve it indefinitely and a lens would keep sampling a texture captured before the content
+    under it painted. There is a max-wait now, and a surface becoming visible asks for a fresh
+    capture.
+
+- 948b280: The fps watchdog now helps the tier most pages actually use.
+
+  It only ever armed for an auto-selected `webgl-overlay`, the one tier it could re-mount. A Chromium
+  page full of `css-svg` lenses — the common case — had no recovery path at all: it just stayed slow.
+
+  Measured on ten lenses scrolling continuously, headed Chromium, M-series: 31 fps with dispersion at
+  three displacement passes, 54 with dispersion off, 118 with no glass on the page. Dispersion is most
+  of the cost, and it is the part that can be given up without losing the refraction.
+
+  So the watchdog arms whenever any surface is on `auto`, and when it fires it drops dispersion to a
+  single pass page-wide before re-mounting any overlay lenses. The same bench page recovers from 22 to
+  77 fps on its own. Explicit `backend` choices are still never re-mounted, and a page that configures
+  every surface by hand never arms the watchdog at all.
+
+### Patch Changes
+
+- b357043: Adaptive tone believes the page over the snapshot, and re-reads it when the backdrop changes.
+
+  Two bugs met in one place. Tone was resolved once at attach and then only re-evaluated when the
+  element's own rect moved, so a lens sitting still while its surroundings arrived — a section that
+  fades in, an image that loads, a theme that switches — kept the answer it guessed on an empty page
+  forever. And when a page snapshot existed, its luminance grid outranked the live ancestor sampler,
+  so a lens on a plainly light card could report `dark` because the rasterized copy of the page
+  disagreed with the page.
+
+  The live sampler wins now whenever it can actually see a painted ancestor; the grid is the fallback
+  for backdrops it cannot reduce, like gradients and images. Tone is re-read when a new grid lands and
+  when a surface first becomes visible, so the `tonechange` event fires on the transitions consumers
+  care about rather than only when the lens moves.
+
 ## 0.9.0
 
 ### Minor Changes

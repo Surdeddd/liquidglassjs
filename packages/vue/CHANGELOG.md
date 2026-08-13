@@ -1,5 +1,11 @@
 # @surdeddd/liquidglass-vue
 
+## 0.10.0
+
+### Patch Changes
+
+- @surdeddd/liquidglass-core@0.10.0
+
 ## 0.9.0
 
 ### Patch Changes
