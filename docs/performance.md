@@ -68,13 +68,20 @@ for `clear`.
 
 ## The fps watchdog
 
-An auto-selected `webgl-overlay` surface is watched: if the median frame rate stays under 45 for
-three consecutive 90-frame windows, every auto-selected overlay lens on the page drops to the CSS
-tier once, and `handle.on('degrade')` fires. Explicit `backend` choices are never demoted — if you
-asked for a tier, you keep it.
+If the median frame rate stays under 45 for three consecutive 90-frame windows, the engine reacts in
+two ways at once:
 
-The watchdog only arms for the tier it can actually demote, and releases its frame sampler when the
-last lens is destroyed.
+- dispersion drops to a single pass page-wide, which is the cheapest large win on the CSS tiers and
+  where most of the recovery comes from
+- auto-selected `webgl-overlay` lenses re-mount onto the CSS tier
+
+`handle.on('degrade')` fires either way. Explicit `backend` choices are never re-mounted — if you
+asked for a tier, you keep it — and the watchdog only arms when at least one surface is on `auto`,
+so a page that configures everything by hand is left alone entirely. The frame sampler is released
+when the last lens is destroyed.
+
+Roughly 270 slow frames have to pass before it acts, so a page that is briefly busy is not punished
+for it. On the bench that is about nine seconds.
 
 ## Measuring
 
@@ -83,9 +90,23 @@ pnpm --filter demo dev      # one shell
 pnpm bench                  # another; exits non-zero below 55 fps
 ```
 
-The benchmark drives ten lenses through five seconds of scrolling. Headed Chromium on an M-series
-machine reports ~105 fps; headless on SwiftShader lands near 40, which is a software rasterizer
-figure rather than a regression.
+The benchmark drives ten lenses through continuous scrolling and prints two numbers: the cold rate
+over the first five seconds, and the settled rate after the engine has had time to react. On headed
+Chromium on an M-series machine that reads roughly:
+
+| | fps |
+| --- | --- |
+| Ten lenses, dispersion at three passes | 31 |
+| Same page after the watchdog drops to one pass | 77 |
+| `dispersion: 0` from the start | 54 |
+| No glass on the page at all | 118 |
+
+Dispersion is the dominant cost on the CSS tier — it very nearly halves the frame rate on its own.
+If you know a page carries many lenses, setting `caPasses: 1` up front is better than waiting for
+the watchdog to work it out, and a surface that does not need the colour split can simply run
+`dispersion: 0`.
+
+Headless lands far lower on all of these: it renders through SwiftShader, a software rasterizer.
 
 The docs landing carries its own profile in `e2e/perf-audit.spec.ts`, which asserts the harness
 produced frames and holds an fps floor where the hardware is real.

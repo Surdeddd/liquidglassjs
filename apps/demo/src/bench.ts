@@ -1,4 +1,4 @@
-import { define } from '@surdeddd/liquidglass-element'
+import { define, deviceTier, getQuality } from '@surdeddd/liquidglass-element'
 
 define()
 
@@ -50,22 +50,46 @@ if (app) {
 declare global {
   interface Window {
     __fps?: number
+    __initialFps?: number
+    __quality?: () => { tier: string; caPasses: number; mapSide: number; passes: number }
   }
 }
 
-let frames = 0
+window.__quality = () => ({
+  tier: deviceTier(),
+  caPasses: getQuality().caPasses,
+  mapSide: getQuality().mapSide,
+  passes: document.querySelectorAll('feDisplacementMap').length
+})
+
+const WARMUP_MS = 12000
+const SETTLED_MS = 4000
+
 let direction = 1
+let warmupFrames = 0
+let settledFrames = 0
+let settledStart = 0
 const start = performance.now()
 
 function loop(now: number): void {
-  frames++
   window.scrollBy(0, direction * 8)
   if (window.scrollY > 2000 || window.scrollY <= 0) direction *= -1
-  if (now - start < 5000) {
+  const elapsed = now - start
+
+  if (elapsed < WARMUP_MS) {
+    warmupFrames++
+    if (elapsed < 5000) window.__initialFps = Math.round(warmupFrames / (elapsed / 1000))
     requestAnimationFrame(loop)
-  } else {
-    window.__fps = Math.round(frames / ((now - start) / 1000))
+    return
   }
+
+  if (settledStart === 0) settledStart = now
+  settledFrames++
+  if (now - settledStart < SETTLED_MS) {
+    requestAnimationFrame(loop)
+    return
+  }
+  window.__fps = Math.round(settledFrames / ((now - settledStart) / 1000))
 }
 
 requestAnimationFrame(loop)

@@ -272,7 +272,7 @@ The resolved state is also on the element, which makes it inspectable in devtool
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
 - **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
 - **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden.
-- **Fast** — 10 lenses at 105 fps on Apple silicon (bench script included); render-on-demand everywhere, no idle loops.
+- **Fast enough to be honest about** — ten lenses scrolling continuously start around 31 fps with dispersion at full quality and settle at 77 once the fps watchdog drops the extra passes; render-on-demand everywhere, no idle loops. Numbers from the included bench, not a guess.
 
 ## Troubleshooting
 
@@ -323,9 +323,14 @@ pnpm --filter demo dev          # one shell
 pnpm bench                      # another; exits non-zero below 55 fps
 ```
 
-Headed Chromium on an M-series machine reports ~105 fps for ten lenses over five seconds of
-scrolling; headless on SwiftShader lands near 40, which is a software rasterizer figure rather than
-a rendering regression.
+The bench reports two numbers, because one would be misleading. Ten lenses scrolling on headed
+Chromium on an M-series machine open around **31 fps** — every lens running three displacement
+passes for chromatic dispersion — and settle at **77 fps** once the fps watchdog decides the page
+cannot afford them and drops to one. The same page with no glass on it runs at ~118 fps, so the
+lenses are the cost, and dispersion is most of it.
+
+Headless lands far lower on both counts: it renders through SwiftShader, which is a software
+rasterizer figure rather than a rendering regression.
 
 The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, research notes in
 [docs/research](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).

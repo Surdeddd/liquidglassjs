@@ -18,7 +18,7 @@ import { registerLight } from './fx/light'
 import { cssFallbackBackend } from './backends/css-fallback'
 import { getBackend, selectBackend } from './backends/registry'
 import type { Backend, BackendInstance, BackendSurface } from './backends/types'
-import { watchFps } from './quality/profile'
+import { configure, watchFps } from './quality/profile'
 import { createEmitter } from './runtime/events'
 import { SurfaceTracker } from './runtime/dom-sync'
 import { MATERIAL_DEFAULTS, resolveMaterial } from './material'
@@ -80,6 +80,7 @@ function degradeTarget(capabilities: ReturnType<typeof probeCapabilities>): Back
 }
 
 const degradeTargets = new Set<() => void>()
+const cheapenTargets = new Set<() => void>()
 let warnedAboutMerge = false
 let watchdogArmed = false
 let globallyDegraded = false
@@ -95,6 +96,7 @@ export function resetDegradation(): void {
   globallyDegraded = false
   releaseWatchdog()
   degradeTargets.clear()
+  cheapenTargets.clear()
 }
 
 export function attach(element: Element, options: LiquidGlassOptions = {}): LiquidGlassHandle {
@@ -277,15 +279,22 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     emitter.emit('degrade', backend.id)
     emitter.emit('backendchange', backend.id)
   }
+  const applyCheaperQuality = (): void => {
+    instance.update(surface)
+    emitter.emit('degrade', backend.id)
+  }
   degradeTargets.add(applyDegrade)
+  cheapenTargets.add(applyCheaperQuality)
   const armWatchdog = (): void => {
     if (watchdogArmed || typeof window === 'undefined') return
-    if (backend.id !== 'webgl-overlay' || (current.backend ?? 'auto') !== 'auto') return
+    if ((current.backend ?? 'auto') !== 'auto') return
     watchdogArmed = true
     stopWatchdog = watchFps(() => {
       globallyDegraded = true
       stopWatchdog = null
       watchdogArmed = false
+      configure({ caPasses: 1 })
+      for (const fn of [...cheapenTargets]) fn()
       for (const fn of [...degradeTargets]) fn()
     })
   }
@@ -368,6 +377,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       }
       tracker.stop()
       degradeTargets.delete(applyDegrade)
+      cheapenTargets.delete(applyCheaperQuality)
       if (degradeTargets.size === 0) releaseWatchdog()
       for (const unsubscribe of unsubscribers) unsubscribe()
       physics?.destroy()

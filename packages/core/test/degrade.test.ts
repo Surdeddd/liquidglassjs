@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { attach, registerBackend } from '../src/index'
 import type { Backend, BackendId } from '../src/index'
 import { resetDegradation } from '../src/engine'
-import { _pushFrameSample, resetQuality } from '../src/quality/profile'
+import { _pushFrameSample, configure, getQuality, resetQuality } from '../src/quality/profile'
 
 const fakeOverlay: Backend = {
   id: 'webgl-overlay' as BackendId,
@@ -30,6 +30,22 @@ describe('fps watchdog degradation', () => {
     expect(el.getAttribute('data-liquid-glass-degraded')).toBe('true')
     handle.set({ blur: 10 })
     expect(handle.backend).toBe('css-fallback')
+    handle.destroy()
+  })
+
+  it('drops dispersion to one pass for tiers it cannot re-mount', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const handle = attach(el, { physics: false, adaptive: false })
+    const backend = handle.backend
+    expect(backend).not.toBe('webgl-overlay')
+    configure({ caPasses: 3 })
+    const seen: string[] = []
+    handle.on('degrade', id => seen.push(id))
+    for (let i = 0; i < 400; i++) _pushFrameSample(1 / 24)
+    expect(getQuality().caPasses).toBe(1)
+    expect(seen).toEqual([backend])
+    expect(handle.backend).toBe(backend)
     handle.destroy()
   })
 
