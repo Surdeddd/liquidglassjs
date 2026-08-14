@@ -1,6 +1,6 @@
 {
   "name": "@surdeddd/liquidglass-svelte",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Svelte action for @surdeddd/liquidglass-core",
   "type": "module",
   "license": "MIT",
