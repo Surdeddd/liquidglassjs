@@ -12,6 +12,7 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+e2e/visual.spec.ts-snapshots/
 
 *.log
 npm-debug.log*
@@ -30,3 +31,4 @@ Thumbs.db
 
 .vscode/
 memory-bank/
+GOAL.md
