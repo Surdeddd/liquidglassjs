@@ -4,12 +4,15 @@ import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
 import { pinUsedMargins } from '../runtime/layout'
+import { onViewport } from '../runtime/scheduler'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
 const DEFAULT_MERGE_K = 30
 
 const MAX_SNAPSHOT_SIDE = 4096
+
+const SCROLL_QUIET_MS = 180
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
@@ -84,6 +87,8 @@ class OverlayManager {
   #snapshotDirty = false
   #mutationObserver: MutationObserver | null = null
   #anchor: GlRect | null = null
+  #quietUntil = 0
+  #unwatchViewport: (() => void) | null = null
 
   #onResize = (): void => {
     this.scheduleRender()
@@ -93,6 +98,9 @@ class OverlayManager {
     this.#canvas = canvas
     this.#renderer = renderer
     window.addEventListener('resize', this.#onResize, { passive: true })
+    this.#unwatchViewport = onViewport(() => {
+      this.#quietUntil = Date.now() + SCROLL_QUIET_MS
+    })
     if (typeof MutationObserver !== 'undefined') {
       this.#mutationObserver = new MutationObserver(records => {
         for (const record of records) {
@@ -195,6 +203,14 @@ class OverlayManager {
   scheduleSnapshot(): void {
     const throttle = getQuality().snapshotThrottleMs
     const now = Date.now()
+    if (now < this.#quietUntil) {
+      if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer)
+      this.#snapshotTimer = setTimeout(() => {
+        this.#snapshotTimer = null
+        this.scheduleSnapshot()
+      }, this.#quietUntil - now)
+      return
+    }
     if (this.#snapshotDeadline === 0) this.#snapshotDeadline = now + throttle * 4
     if (now >= this.#snapshotDeadline) {
       if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer)
@@ -359,6 +375,8 @@ class OverlayManager {
     this.#destroyed = true
     setLuminanceGrid(null)
     window.removeEventListener('resize', this.#onResize)
+    this.#unwatchViewport?.()
+    this.#unwatchViewport = null
     this.#mutationObserver?.disconnect()
     this.#mutationObserver = null
     if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer)

@@ -8,6 +8,7 @@ let last = 0
 let now = 0
 let viewportBound = false
 let viewportDirty = false
+let continuous = false
 
 const viewportBuffer: Array<() => void> = []
 const frameBuffer: FrameCb[] = []
@@ -24,8 +25,8 @@ function drain<T>(source: Set<T>, buffer: T[]): number {
 function tick(time: number): void {
   frame = 0
   now = time
-  const gap = last ? (time - last) / 1000 : 0
-  const dt = last ? Math.min(gap, 1 / 20) : 1 / 60
+  const gap = last && continuous ? (time - last) / 1000 : 0
+  const dt = last ? Math.min(gap || 1 / 60, 1 / 20) : 1 / 60
   last = time
   if (viewportDirty) {
     viewportDirty = false
@@ -41,7 +42,8 @@ function tick(time: number): void {
     for (let i = 0; i < observed; i++) frameBuffer[i]!(gap)
     frameBuffer.length = 0
   }
-  if (frameCbs.size > 0 || viewportDirty) schedule()
+  continuous = frameCbs.size > 0 || viewportDirty
+  if (continuous) schedule()
 }
 
 function schedule(): void {

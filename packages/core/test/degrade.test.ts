@@ -49,6 +49,30 @@ describe('fps watchdog degradation', () => {
     handle.destroy()
   })
 
+  it('rescues a badly stalling page in seconds rather than in frames', () => {
+    registerBackend(fakeOverlay)
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const handle = attach(el, { physics: false, adaptive: false })
+    expect(handle.backend).toBe('webgl-overlay')
+    // 8 fps: three 1.5s windows are about 36 frames, far short of the 270 a
+    // frame-counted window would need. The worse the stall, the longer that
+    // wait got, which is backwards.
+    for (let i = 0; i < 60; i++) _pushFrameSample(1 / 8)
+    expect(handle.backend).toBe('css-fallback')
+    handle.destroy()
+  })
+
+  it('does not close a window on a couple of stray slow frames', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const handle = attach(el, { physics: false, adaptive: false })
+    configure({ caPasses: 3 })
+    for (let i = 0; i < 6; i++) _pushFrameSample(1 / 6)
+    expect(getQuality().caPasses).toBe(3)
+    handle.destroy()
+  })
+
   it('leaves forced backends alone', () => {
     registerBackend(fakeOverlay)
     const el = document.createElement('div')
