@@ -12,7 +12,7 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
-e2e/visual.spec.ts-snapshots/
+e2e/visual.spec.ts-snapshots/*-darwin.png
 
 *.log
 npm-debug.log*
