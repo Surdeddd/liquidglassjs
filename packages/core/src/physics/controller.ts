@@ -6,12 +6,15 @@ export interface PhysicsConfig {
   press: boolean
   hover: boolean
   wobble: number
+  /** How far the surface elongates along its own travel, 0 to 1. */
+  stretch: number
 }
 
 export const PHYSICS_DEFAULTS: PhysicsConfig = {
   press: true,
   hover: true,
-  wobble: 0.6
+  wobble: 0.6,
+  stretch: 0.6
 }
 
 export type PhysicsOption = boolean | Partial<PhysicsConfig> | undefined
@@ -28,6 +31,9 @@ export function resolvePhysics(option: PhysicsOption): PhysicsConfig | null {
 }
 
 const PRESS_SPRING = { stiffness: 550, damping: 30, mass: 1 }
+const STRETCH_SPRING = { stiffness: 260, damping: 22, mass: 1 }
+const STRETCH_REFERENCE_SPEED = 1600
+const STRETCH_LIMIT = 0.18
 const HOVER_SPRING = { stiffness: 220, damping: 18, mass: 1 }
 const MAGNET_RATIO = 0.05
 
@@ -41,6 +47,11 @@ export class PhysicsController {
   #scaleY: Spring
   #tx: Spring
   #ty: Spring
+  #stretchX: Spring
+  #stretchY: Spring
+  #lastX = 0
+  #lastY = 0
+  #seen = false
   #offFrame: (() => void) | null = null
 
   #onDown = (event: PointerEvent): void => {
@@ -119,11 +130,44 @@ export class PhysicsController {
     this.#scaleY = new Spring(1, PRESS_SPRING)
     this.#tx = new Spring(0, HOVER_SPRING)
     this.#ty = new Spring(0, HOVER_SPRING)
+    this.#stretchX = new Spring(1, STRETCH_SPRING)
+    this.#stretchY = new Spring(1, STRETCH_SPRING)
     element.addEventListener('pointerdown', this.#onDown)
     element.addEventListener('pointerup', this.#onUp)
     element.addEventListener('pointercancel', this.#onUp)
     element.addEventListener('pointermove', this.#onMove)
     element.addEventListener('pointerleave', this.#onLeave)
+  }
+
+  /**
+   * Feeds the surface's own position so travel can elongate it. Coordinates are page
+   * space; passing the rect the tracker already measured avoids a second layout read.
+   */
+  travelled(x: number, y: number, dt: number): void {
+    if (this.#config.stretch <= 0) return
+    if (!this.#seen) {
+      this.#seen = true
+      this.#lastX = x
+      this.#lastY = y
+      return
+    }
+    const dx = x - this.#lastX
+    const dy = y - this.#lastY
+    this.#lastX = x
+    this.#lastY = y
+    const step = Math.max(dt, 1 / 240)
+    const speed = Math.hypot(dx, dy) / step
+    if (speed < 1) {
+      this.#stretchX.target = 1
+      this.#stretchY.target = 1
+      return
+    }
+    const amount =
+      Math.min(speed / STRETCH_REFERENCE_SPEED, 1) * STRETCH_LIMIT * this.#config.stretch
+    const axis = Math.abs(dx) >= Math.abs(dy)
+    this.#stretchX.target = axis ? 1 + amount : 1 - amount * 0.6
+    this.#stretchY.target = axis ? 1 - amount * 0.6 : 1 + amount
+    this.#wake()
   }
 
   tick(dt: number): boolean {
@@ -133,6 +177,8 @@ export class PhysicsController {
     active = this.#scaleY.step(clamped) || active
     active = this.#tx.step(clamped) || active
     active = this.#ty.step(clamped) || active
+    active = this.#stretchX.step(clamped) || active
+    active = this.#stretchY.step(clamped) || active
     this.#apply(active)
     return active
   }
@@ -163,7 +209,9 @@ export class PhysicsController {
       this.#element.style.removeProperty('transform')
       return
     }
-    const transform = `${this.#base} translate3d(${this.#tx.value.toFixed(3)}px, ${this.#ty.value.toFixed(3)}px, 0) scale(${this.#scaleX.value.toFixed(4)}, ${this.#scaleY.value.toFixed(4)})`
+    const sx = this.#scaleX.value * this.#stretchX.value
+    const sy = this.#scaleY.value * this.#stretchY.value
+    const transform = `${this.#base} translate3d(${this.#tx.value.toFixed(3)}px, ${this.#ty.value.toFixed(3)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`
     this.#element.style.transform = transform.trim()
   }
 
@@ -171,6 +219,8 @@ export class PhysicsController {
     return (
       Math.abs(this.#scaleX.value - 1) < 0.001 &&
       Math.abs(this.#scaleY.value - 1) < 0.001 &&
+      Math.abs(this.#stretchX.value - 1) < 0.001 &&
+      Math.abs(this.#stretchY.value - 1) < 0.001 &&
       Math.abs(this.#tx.value) < 0.05 &&
       Math.abs(this.#ty.value) < 0.05
     )

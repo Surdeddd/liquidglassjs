@@ -7,6 +7,7 @@ export type BackendId =
   | 'webgl-overlay'
   | 'webgl-scene'
   | 'webgpu'
+  | 'inert'
 
 export type LiquidGlassShape = 'rounded' | 'squircle'
 
@@ -36,6 +37,8 @@ type Resettable<T> = { [P in keyof T]?: T[P] | undefined }
 export interface LiquidGlassOptions extends Resettable<MaterialParams> {
   preset?: LiquidGlassPreset | undefined
   backend?: BackendId | 'auto' | undefined
+  /** Turns the whole material off, leaving the element exactly as authored. */
+  effects?: boolean | undefined
   backdrop?: Element | string | null | undefined
   sceneImage?: string | null | undefined
   physics?: boolean | { press?: boolean; hover?: boolean; wobble?: number } | undefined

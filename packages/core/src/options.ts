@@ -21,6 +21,7 @@ const OPTION_KEY_MAP: Record<keyof LiquidGlassOptions, true> = {
   shape: true,
   preset: true,
   backend: true,
+  effects: true,
   backdrop: true,
   sceneImage: true,
   physics: true,

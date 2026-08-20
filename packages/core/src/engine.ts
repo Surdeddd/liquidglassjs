@@ -9,6 +9,8 @@ import {
   watchMedia,
   type BackdropTone
 } from './quality/a11y'
+import { frameNow } from './runtime/scheduler'
+import { inertBackend } from './backends/inert'
 import { mountBezel } from './fx/bezel'
 import type { BezelHandle } from './fx/bezel'
 import { backdropLuminance, onLuminanceGrid } from './quality/contrast'
@@ -56,7 +58,7 @@ function createPhysics(
   reducedMotion: boolean,
   hooks?: PhysicsHooks
 ): PhysicsController | null {
-  if (reducedMotion) return null
+  if (reducedMotion || options.effects === false) return null
   if (typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement)) return null
   const config = resolvePhysics(options.physics)
   if (!config) return null
@@ -112,6 +114,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   const capabilities = probeCapabilities()
   let reducedMotion = readReducedMotion()
   const pickBackend = (): Backend => {
+    if (current.effects === false) return inertBackend
     const preference = current.backend ?? 'auto'
     if (preference === 'auto' && current.merge && !globallyDegraded) {
       const overlay = getBackend('webgl-overlay')
@@ -229,7 +232,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
 
   const syncBezel = (): void => {
     const styleable = typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
-    const wanted = styleable && surface.material.specular > 0
+    const wanted = styleable && current.effects !== false && surface.material.specular > 0
     if (!wanted) {
       releaseLight?.()
       releaseLight = null
@@ -259,10 +262,16 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   syncBezel()
 
   let wasVisible = false
+  let lastTravel = 0
   const tracker = new SurfaceTracker(element, state => {
     const appeared = state.visible && !wasVisible
     wasVisible = state.visible
     surface.state = state
+    if (physics && state.visible) {
+      const stamp = frameNow()
+      physics.travelled(state.rect.x, state.rect.y, lastTravel ? (stamp - lastTravel) / 1000 : 0)
+      lastTravel = stamp
+    }
     if (current.adaptive !== false) {
       const now = Date.now()
       if (appeared || now - lastToneSample > TONE_SAMPLE_INTERVAL_MS) {
