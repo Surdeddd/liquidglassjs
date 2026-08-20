@@ -430,7 +430,9 @@ function applyBaseStyles(surface: BackendSurface): void {
   if (typeof material.radius === 'number') {
     style.setProperty('border-radius', `${material.radius}px`)
   }
-  const cast = glassShadowCss(material.shadow, surface.element.getBoundingClientRect().height)
+  const cast = surface.merge
+    ? ''
+    : glassShadowCss(material.shadow, surface.element.getBoundingClientRect().height)
   if (cast) style.setProperty('box-shadow', cast)
   else style.removeProperty('box-shadow')
   if (typeof getComputedStyle === 'function') {

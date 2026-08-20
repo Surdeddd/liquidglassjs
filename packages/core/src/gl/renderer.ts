@@ -222,6 +222,11 @@ void main() {
   vec3 env = mix(vec3(0.6, 0.66, 0.75), vec3(0.95, 0.97, 1.0), 1.0 - v_local.y);
   col += env * clamp(fresnel, 0.0, 1.0) * u_specular * 0.5 * edge;
 
+  float hair = 1.0 - smoothstep(0.0, 2.2 * px, depth);
+  float topness = clamp(0.5 - grad.y * 0.5, 0.0, 1.0);
+  col += hair * (0.1 + 0.42 * topness) * u_specular;
+  col -= hair * (1.0 - topness) * 0.06 * u_specular;
+
   outColor = vec4(col, coverage);
 }`
 
