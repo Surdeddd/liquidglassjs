@@ -352,32 +352,36 @@ main {
 }
 
 /* A whole section resolving as one block finishes before the reader reaches its
-   middle. Letting the parts arrive in order gives the motion something to say. */
-.section.reveal > * {
+   middle. The head arrives in order instead — only the head: fading a container
+   that owns a backdrop-filter costs a composited layer per demo, and the demos
+   belong to the section rather than announcing themselves separately. */
+.section.reveal > .section-index,
+.section.reveal > .section-title,
+.section.reveal > .section-lead {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 0.7s var(--e-out), transform 0.7s var(--e-out);
 }
 
-.section.reveal.in > * {
+.section.reveal.in > .section-index,
+.section.reveal.in > .section-title,
+.section.reveal.in > .section-lead {
   opacity: 1;
   transform: none;
 }
 
-.section.reveal.in > :nth-child(2) {
+.section.reveal.in > .section-title {
   transition-delay: 60ms;
 }
 
-.section.reveal.in > :nth-child(3) {
+.section.reveal.in > .section-lead {
   transition-delay: 120ms;
 }
 
-.section.reveal.in > :nth-child(n + 4) {
-  transition-delay: 180ms;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .section.reveal > * {
+  .section.reveal > .section-index,
+  .section.reveal > .section-title,
+  .section.reveal > .section-lead {
     opacity: 1;
     transform: none;
     transition: none;
