@@ -1,6 +1,7 @@
 import { colorWithOpacity } from '../color'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, type GlDraw, type GlRect } from '../gl/renderer'
+import { glassShadowCss } from '../material'
 import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
@@ -113,6 +114,9 @@ class WebglSceneInstance implements BackendInstance {
     if (typeof material.radius === 'number') {
       style.setProperty('border-radius', `${material.radius}px`)
     }
+    const cast = glassShadowCss(material.shadow, this.#host.getBoundingClientRect().height)
+    if (cast) style.setProperty('box-shadow', cast)
+    else style.removeProperty('box-shadow')
     style.setProperty('isolation', 'isolate')
     if (typeof getComputedStyle === 'function' && getComputedStyle(this.#host).position === 'static') {
       style.setProperty('position', 'relative')

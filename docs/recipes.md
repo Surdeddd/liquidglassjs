@@ -63,21 +63,32 @@ travels. Metaball merging needs the WebGL tier, which `<liquid-glass-group>` sel
 ```
 
 Move the pill with a transform and the neck forms on its own — the group polls member geometry while
-anything in it is moving.
+anything in it is moving. A group holds 8 lenses; the ninth and later members render without
+refraction and without merging, so a bar with more parts than that needs a second `merge` group.
 
 ## Morphing one control into another
 
 ```ts
 import { morphGlass } from '@surdeddd/liquidglass'
 
-button.addEventListener('click', () => {
+button.addEventListener('click', async () => {
   panel.hidden = false
-  morphGlass(button, panel)
+  await morphGlass(button, panel)
+})
+
+close.addEventListener('click', () => {
+  panel.hidden = true
+  button.style.visibility = ''
 })
 ```
 
-The material rides a spring from the source geometry to the target. Both elements need to be
-attached; the source is left untouched.
+The material rides a spring from the source geometry to the target. `morphGlass` hides the source
+(`visibility: hidden`) and never puts it back — that is the FLIP illusion, and restoring it when the
+target closes is yours to do, as above. Neither element has to have a glass attached; it works on
+plain elements. It returns a promise that resolves when the spring settles and takes
+`{ stiffness, damping }`, defaulting to 320 and 26. Under `prefers-reduced-motion` it hides the
+source and resolves immediately without moving the target, so anything you hang off the promise
+still runs.
 
 ## A lens over your own artwork
 
@@ -126,11 +137,12 @@ dark.
 
 ```html
 <div data-liquid-glass-auto='{"preset":"frosted","ior":1.6}'>…</div>
-<script src="https://unpkg.com/@surdeddd/liquidglass@0.9.0/dist/liquidglass.global.js"></script>
+<script src="https://unpkg.com/@surdeddd/liquidglass@0.10.0/dist/liquidglass.global.js"></script>
 <script>
   LiquidGlass.autoAttach()
 </script>
 ```
 
 `autoAttach` keeps watching, so elements added later are picked up. It returns a stop function, and
-a malformed attribute is contained to its own element instead of aborting the scan.
+a malformed attribute is contained to its own element instead of aborting the scan — that element is
+still attached, silently, with default options rather than skipped.

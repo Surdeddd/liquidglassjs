@@ -4,7 +4,7 @@ Liquid Glass for the whole web — one engine, every browser, every framework.
 
 [![CI](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml/badge.svg)](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@surdeddd/liquidglass)](https://www.npmjs.com/package/@surdeddd/liquidglass)
-[![size](https://img.shields.io/badge/engine-21.7kB_brotli-blue)](https://github.com/Surdeddd/liquidglassjs/tree/main/packages/core)
+[![size](https://img.shields.io/bundlephobia/minzip/@surdeddd/liquidglass)](https://bundlephobia.com/package/@surdeddd/liquidglass)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Surdeddd/liquidglassjs/blob/main/LICENSE)
 
 Real refraction over live DOM — not a screenshot, not Chromium-only. Living spring physics,
@@ -46,6 +46,11 @@ the browser can do and routes each surface to the best available backend — und
 | prefers-reduced-motion / transparency | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Frameworks | vanilla · element · react 18+19 · vue 3 · svelte | react 19 only | vanilla | react | react 19 |
 | Core dependencies | 0 | — | 0 | — | — |
+
+Competitor capabilities as of July 2026 — methodology and sources in
+[docs/research/competitive-landscape.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).
+The engine ships zero runtime dependencies; the optional snapshot tier bundles a vendored copy of
+`html-to-image` into a lazily imported chunk, credited in `THIRD-PARTY-NOTICES.md`.
 
 ## What it looks like
 
@@ -127,27 +132,40 @@ import { LiquidGlass } from '@surdeddd/liquidglass/react'
 ## Highlights
 
 - **Real lens optics** — a convex squircle dome refracted by Snell's law (`ior`, default 1.5): optically flat interior with a subtle whole-body magnification (`magnify`) and all the bending concentrated in a rim band that tracks your corner radius, exactly like iOS 26.
-- **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on every backend, including the default Chromium path.
+- **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on the Chromium and WebGL paths ([fidelity matrix](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md#fidelity-matrix)).
 - **Living specular bezel** — a two-tone rim highlight that follows the pointer (or device tilt with `motionLight: true`) instead of a painted-on gradient.
 - **Tiered rendering** — capability probe picks the best backend per browser; fidelity improves as browsers ship new APIs, your code never changes.
-- **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way.
+- **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way. Up to 8 lenses per group.
 - **Scroll edge** — `mountScrollEdge(document.body, { position: 'top' })` progressively dissolves content under your floating bars, like iOS scroll edge effects.
 - **Morphing** — `morphGlass(from, to)` hands one control's geometry to another on a spring, the glassEffectID transition.
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
 - **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
-- **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden.
-- **Fast** — 10 lenses at 105 fps on Apple silicon (bench script included); render-on-demand everywhere, no idle loops.
+- **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden. Reduced transparency is only observable from a page in Chromium 118+, so the opaque fallback is a bonus rather than a contrast plan.
+- **Fast enough to be honest about** — ten lenses scrolling continuously open in the mid-30s with dispersion at full quality and settle around 100 once the fps watchdog drops the extra passes; render-on-demand everywhere, and nothing keeps a frame loop alive when the page is still. Both numbers, and the machine they came from, are in [docs/performance.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/performance.md#measuring).
 
 ## Development
 
 ```sh
 pnpm install
-pnpm build && pnpm test && pnpm e2e && pnpm ssr
-node scripts/fps-bench.mjs --headed
+pnpm build && pnpm typecheck && pnpm lint && pnpm test && pnpm coverage && pnpm ssr && pnpm size
+pnpm e2e
 ```
+
+That is the list CI runs, in the same order. The fps benchmark wants the demo served on 4173 first:
+`pnpm --filter demo exec vite --port 4173 --strictPort`, then `pnpm bench`.
 
 The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, research notes in
 [docs/research](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/research/competitive-landscape.md).
+
+## Documentation
+
+| | |
+| --- | --- |
+| [README on GitHub](https://github.com/Surdeddd/liquidglassjs#readme) | Requirements, the full options table, runtime and events, troubleshooting |
+| [Recipes](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/recipes.md) | Whole components: nav bar, tactile card, melting tab bar, morph, lens over your own art |
+| [Performance](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/performance.md) | What each surface costs, which knob moves it, how the fps watchdog behaves |
+| [Browser support](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md) | Engine-by-engine behaviour, the per-backend fidelity matrix, version floors |
+| [API reference](https://liquidglassjs.vercel.app/api/) | Generated from the published entry points |
 
 ## License
 

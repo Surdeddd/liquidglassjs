@@ -7,10 +7,12 @@ The material reads as glass now: light bends at the rim instead of being smeared
 Apple describes Liquid Glass as three layers — highlight, shadow, illumination — and as a material
 that *bends* light where earlier ones scattered it. Measured against that, five things were wrong.
 
-**The blur ran after the displacement.** The rim compresses roughly twenty pixels of backdrop into
-one or two; blurring afterwards averages exactly that sliver away, which is why the edge read as a
-soft grey band rather than a lens. The SVG chain now softens the source and *then* bends it, so the
-rim keeps its contrast while the interior stays smooth.
+**The blur ran after the displacement**, where Apple's material softens the backdrop and then bends
+it. The SVG chain now matches that order. Measured honestly, this one is a small correction rather
+than a visible win: over a frosted panel the two orders differ by at most 8 levels out of 255, on
+3.68% of pixels, with rim and interior detail unchanged — a Gaussian is near enough shift-invariant
+that the orders only diverge in the thin band where the displacement gradient is steep. It is kept
+because it is the right order, not because it repaints the material.
 
 **There was no shadow at all, on any backend.** A new `shadow` parameter (default `0.55`) draws a
 soft ambient cast sized from the element plus a tight contact line, so the glass stops reading as a

@@ -60,11 +60,12 @@ The engine ships zero runtime dependencies; the optional snapshot tier bundles a
 | Vue | `^3.4` |
 | Svelte | `4` or `5` |
 | Node (toolchain only) | `>=20.19` |
-| Chromium | 76+ for the CSS tier, WebGL2 for the GL tiers |
-| Safari | 18+ for the content tier (`filter: url()` on live DOM) |
-| Firefox | 128+ for the content tier |
+| Chromium | 76+ for the blur fallback; the `css-svg` tier also needs `backdrop-filter: url()`, the GL tiers need WebGL2 |
+| Safari | any version where `CSS.supports('filter', 'url(#lg)')` is true — the content tier is feature-detected, not version-gated |
+| Firefox | the same feature test; `backdrop-filter: url()` is not implemented there, so Firefox never resolves to `css-svg` |
 
-Anything older lands on `css-fallback`, which is blur and tint — never a broken surface. Per-engine
+Anything that fails those tests lands on `css-fallback`, which is blur and tint — never a broken
+surface. Per-engine
 detail and the fidelity matrix live in
 [docs/browser-support.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md).
 
@@ -105,7 +106,7 @@ the whole setup. Drop the version to track latest at your own risk.
 <liquid-glass preset="frosted">Hello</liquid-glass>
 <div data-liquid-glass-auto='{"preset":"clear"}'>glass</div>
 
-<script src="https://unpkg.com/@surdeddd/liquidglass@0.8.0/dist/liquidglass.global.js"></script>
+<script src="https://unpkg.com/@surdeddd/liquidglass@0.10.0/dist/liquidglass.global.js"></script>
 <script>
   LiquidGlass.autoAttach()
 </script>
@@ -181,36 +182,43 @@ attach(panel, { backdrop: '.hero-art' })
 ## Options
 
 Every option is optional and can be changed at runtime through `set()`. Numeric values are clamped
-to the range shown; anything non-finite falls back to the default.
+to the range shown; anything non-finite falls back to the default. Where a preset moves a value the
+default column reads `clear / frosted / tinted` — `clear` is what you get when you pass no preset.
 
 | Option | Type | Default | Range | Notes |
 | --- | --- | --- | --- | --- |
 | `preset` | `'clear' \| 'frosted' \| 'tinted'` | `'clear'` | — | Starting point for every material value below |
-| `blur` | number | 2 / 10 / 8 per preset | 0–100 | Backdrop blur in px |
-| `saturation` | number | 1.4 | 0–3 | Backdrop saturation multiplier |
-| `brightness` | number | 1 | 0–3 | Backdrop brightness multiplier |
-| `tint` | string | `#ffffff` | hex or `rgb()` | Set it explicitly to opt out of adaptive tinting |
-| `tintOpacity` | number | 0.06–0.28 per preset | 0–1 | Tint alpha |
-| `refraction` | number | 0.45–0.65 per preset | 0–1 | Strength of the rim bend |
+| `blur` | number | 2 / 10 / 8 | 0–100 | Backdrop blur in px |
+| `saturation` | number | 1.4 / 1.6 / 1.4 | 0–3 | Backdrop saturation multiplier |
+| `brightness` | number | 1 / 1.05 / 1 | 0–3 | Backdrop brightness multiplier |
+| `tint` | string | `#ffffff`, `#7c5cff` under `tinted` | hex or `rgb()` | Set it explicitly to opt out of adaptive tinting |
+| `tintOpacity` | number | 0.06 / 0.14 / 0.28 | 0–1 | Tint alpha |
+| `refraction` | number | 0.65 / 0.45 / 0.5 | 0–1 | Strength of the rim bend |
 | `ior` | number | 1.5 | 1–2.5 | Index of refraction; 1 bends nothing |
-| `magnify` | number | 0.015 | 0–0.1 | Whole-body magnification |
+| `magnify` | number | 0.02 / 0.015 / 0.015 | 0–0.1 | Whole-body magnification |
 | `thickness` | number \| `'auto'` | `'auto'` | 0–100 | Glass depth in px |
 | `bevelWidth` | number \| `'auto'` | `'auto'` | 0–200 | Rim band width; `auto` tracks the corner radius |
 | `bevelDepth` | number | 0.6 | 0–1 | Rim profile curvature |
 | `dispersion` | number | 0.15 | 0–1 | Chromatic split at the rim — Chromium and WebGL tiers only |
 | `specular` | number | 0.6 | 0–1 | Bezel highlight strength; 0 removes the bezel layer |
-| `frost` | number | 0–0.35 per preset | 0–1 | Grain displacement |
+| `shadow` | number | 0.55 | 0–1 | Cast shadow under the glass — a soft ambient sized from the element plus a contact line; 0 removes it. Painted on every tier |
+| `frost` | number | 0 / 0.35 / 0 | 0–1 | Grain displacement |
 | `radius` | number \| `'auto'` | `'auto'` | ≥ 0 | `auto` reads the element's border-radius |
 | `shape` | `'rounded' \| 'squircle'` | `'rounded'` | — | Squircle also clips the host |
 | `backend` | `BackendId \| 'auto'` | `'auto'` | — | Honoured only if the tier is supported |
 | `backdrop` | `Element \| string \| null` | `null` | — | Refraction source for `svg-content` |
 | `sceneImage` | string \| null | `null` | — | Texture for `webgl-scene` |
-| `physics` | boolean \| `{ press, hover, wobble }` | `true` | `wobble` 0–1 | Disabled entirely under reduced motion |
-| `merge` | string \| null | `null` | — | Metaball group name; needs `webgl-overlay` |
-| `mergeStrength` | number | 40 | px | Distance at which group members melt together |
+| `physics` | boolean \| `{ press, hover, wobble }` | `true` — `press` and `hover` on, `wobble` 0.6 | `wobble` 0–1 | Disabled entirely under reduced motion; `hover` turns itself off on coarse pointers unless you pass it explicitly |
+| `merge` | string \| null | `null` | — | Metaball group name; needs `webgl-overlay`, and a group holds at most 8 lenses |
+| `mergeStrength` | number | 30 | px, unclamped | Distance at which group members melt together; `<liquid-glass-group spacing>` sets it to 40 |
 | `adaptive` | boolean | `true` | — | Backdrop tone sampling and automatic tint flip |
 | `motionLight` | boolean | `false` | — | Drive the bezel highlight from device orientation |
-| `quality` | `{ mapSide, caPasses, maxDpr }` | device tier | — | Per-surface override of the quality profile; layers on top of `configure()` |
+| `quality` | `{ mapSide: number, caPasses: 1 \| 3, maxDpr: number }` | device tier | — | Per-surface override of the quality profile; layers on top of `configure()` |
+
+A `merge` group is capped at 8 lenses, which is the size of the shader's shape array. The ninth and
+later members of a group are dropped from the overlay pass entirely — they keep their blur, tint and
+shadow but get neither refraction nor merging, and nothing is logged. Split a longer dock into a
+second `merge` group.
 
 ## Runtime and events
 
@@ -227,9 +235,9 @@ glass.options.preset
 ```
 
 Every payload is typed per event: `backendchange` and `degrade` give a `BackendId`, `tonechange`
-gives `'light' | 'dark' | null`, `press` gives the point in client coordinates, `release` gives
-`null`. `handle.options` reports the resolved configuration, and every subscription returns its own
-unsubscribe function.
+gives `'light' | 'dark' | null`, `press` gives the point relative to the element's own top-left
+corner rather than the viewport, `release` gives `null`. `handle.options` reports the resolved
+configuration, and every subscription returns its own unsubscribe function.
 
 The web component mirrors the same events onto the DOM as composed `liquid-glass:*` CustomEvents,
 so a page without a handle can listen too:
@@ -249,16 +257,42 @@ Beyond the handle:
 | API | What it does |
 | --- | --- |
 | `autoAttach(root?)` | Attaches every `[data-liquid-glass-auto]` element and keeps watching for new ones. Returns a stop function; inert without a DOM |
-| `configure({ mapSide, caPasses, maxDpr, snapshotThrottleMs })` | Overrides the quality profile the device tier picked |
+| `configure({ mapSide, caPasses, maxDpr, snapshotThrottleMs, overlayZIndex })` | Overrides the quality profile the device tier picked |
+| `resetQuality()` | Clears every override, including the `caPasses: 1` the fps watchdog writes |
 | `deviceTier()` / `getQuality()` | Reads what the engine decided for this device |
 | `probeCapabilities()` | The capability snapshot behind backend selection |
-| `mountScrollEdge(el, { position })` | Progressive blur edge for floating bars |
-| `morphGlass(from, to)` | Hands one control's geometry to another on a spring |
+| `mountScrollEdge(el, { position = 'top', size = 96, strength = 12 })` | Progressive blur edge for floating bars; returns a handle whose `destroy()` you have to call |
+| `morphGlass(from, to, { stiffness = 320, damping = 26 })` | Hands one control's geometry to another on a spring; returns a promise that resolves when the spring settles |
 | `getInstance(el)` / `detach(el)` | Reach or tear down a surface you did not keep a handle to |
+| `VERSION` | The version string this build was stamped with |
 
 The resolved state is also on the element, which makes it inspectable in devtools:
 `data-liquid-glass` (preset), `data-liquid-glass-backend`, `data-liquid-glass-tone`,
-`data-liquid-glass-pressed`, `data-liquid-glass-degraded`.
+`data-liquid-glass-pressed`, `data-liquid-glass-degraded`. A morphing element also carries
+`data-liquid-glass-morphing` for the length of the spring.
+
+### What `attach()` takes over
+
+The engine paints through inline styles on your element, so some properties stop being yours for the
+lifetime of the glass. Whatever you had set inline is captured at mount and put back by `destroy()`,
+but while the surface is attached the engine's value wins. `backdrop-filter` below stands for both
+the prefixed and the unprefixed form, and `border-radius` is only overwritten when `radius` is a
+number or a squircle needs one — at `radius: 'auto'` the engine reads yours instead.
+
+| Tier | Inline properties it owns |
+| --- | --- |
+| `css-svg` | `backdrop-filter`, `background`, `border-radius`, `box-shadow`, `clip-path` |
+| `svg-content` | the same, plus `isolation` and `position` |
+| `webgl-overlay` | `backdrop-filter`, `background`, `border-radius`, `box-shadow`, `position`, `z-index` |
+| `webgl-scene` | `background`, `border-radius`, `isolation`, `position` — this is the one tier that paints no cast shadow |
+| `css-fallback` | `background`, `backdrop-filter`, `border-radius`, `box-shadow`, `clip-path` |
+
+Two consequences are worth planning for. Your own `background` and `box-shadow` are replaced — the
+glass is the surface now, and `shadow: 0` is how you ask for no cast shadow. And a host whose
+computed `position` is `static` becomes `relative`, which re-parents its absolutely positioned
+children; the specular bezel and the press glow do that on every tier, since both mount a layer
+inside the host. The division that works: style layout on the host — size, margin, padding, and the
+`border-radius` that `radius: 'auto'` reads — and leave paint to the engine.
 
 ## Highlights
 
@@ -266,12 +300,12 @@ The resolved state is also on the element, which makes it inspectable in devtool
 - **Edge chromatic aberration** — `dispersion` splits R/G/B along the rim on the Chromium and WebGL paths ([fidelity matrix](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md#fidelity-matrix)).
 - **Living specular bezel** — a two-tone rim highlight that follows the pointer (or device tilt with `motionLight: true`) instead of a painted-on gradient.
 - **Tiered rendering** — capability probe picks the best backend per browser; fidelity improves as browsers ship new APIs, your code never changes.
-- **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way.
+- **Metaballs** — wrap lenses in `<liquid-glass-group spacing="48">` (or share a `merge` group) and they melt into each other through an SDF smooth-min shader, the GlassEffectContainer way. Up to 8 lenses per group.
 - **Scroll edge** — `mountScrollEdge(document.body, { position: 'top' })` progressively dissolves content under your floating bars, like iOS scroll edge effects.
 - **Morphing** — `morphGlass(from, to)` hands one control's geometry to another on a spring, the glassEffectID transition.
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
 - **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
-- **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden.
+- **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden. Reduced transparency is only observable from a page in Chromium 118+, so the opaque fallback is a bonus rather than a contrast plan.
 - **Fast enough to be honest about** — ten lenses scrolling continuously start in the mid-30s with dispersion at full quality and settle around 100 once the fps watchdog drops the extra passes; render-on-demand everywhere, and nothing keeps a frame loop alive when the page is still. Numbers from the included bench, not a guess.
 
 ## Troubleshooting
@@ -292,6 +326,16 @@ output, more main-thread work.
 **Next.js / Nuxt / SvelteKit.** Every entry imports cleanly on the server and `attach()` is a
 client-side call; run it from an effect. `autoAttach()` is safe to call anywhere — it returns an
 inert stop function when there is no DOM.
+
+**React Server Components.** `@surdeddd/liquidglass/react` ships without a `"use client"` banner, so
+importing it from a server component fails. Put `'use client'` at the top of your own file — the one
+that imports `LiquidGlass`, `useLiquidGlass` or `useLiquidGlassHandle` — or reach it through
+`dynamic(() => import('./glass'), { ssr: false })`. `pnpm ssr` only proves the entries import in bare
+Node; it does not exercise the RSC boundary.
+
+**Only some of my lenses merge.** A `merge` group holds 8. The ninth and later members are dropped
+from the overlay pass — blur, tint and shadow survive, refraction and merging do not, and nothing is
+logged. Split the rest into a second group.
 
 **Images vanish inside a metaball group.** The `webgl-overlay` tier rasterizes the page to a
 texture, so cross-origin images without CORS headers and webfonts that cannot be inlined do not make
@@ -316,12 +360,17 @@ That is the same list CI runs, in the same order. `pnpm build` comes first becau
 adapters resolve the engine through its built output, so their tests run against `packages/core/dist`
 rather than `src`.
 
-The fps benchmark needs the demo served first:
+The fps benchmark needs the demo served on 4173, which is the address `pnpm bench` opens — `vite`
+alone serves 5173 and the bench would find nothing there:
 
 ```sh
-pnpm --filter demo dev          # one shell
-pnpm bench                      # another; exits non-zero below 55 fps
+pnpm --filter demo exec vite --port 4173 --strictPort   # one shell
+pnpm bench                                              # another; exits non-zero below 55 fps
 ```
+
+`BENCH_URL` overrides the address: `BENCH_URL=http://localhost:5173/bench.html pnpm bench` if the
+demo is already up on the vite default. `pnpm bench` is headless; the numbers below come from
+`node scripts/fps-bench.mjs --headed`.
 
 The bench reports two numbers, because one would be misleading. Ten lenses scrolling on headed
 Chromium on an M-series machine open in the **mid-30s** — every lens running three displacement

@@ -426,6 +426,32 @@ main {
   color: var(--cyan);
 }
 
+/* Wide enough, and the chapter reads as a spread: title left, lead set beside it,
+   demos below at full width. Narrower than this it stays a single column. */
+@media (min-width: 1080px) {
+  .section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    column-gap: 64px;
+    align-items: start;
+  }
+
+  .section > * {
+    grid-column: 1 / -1;
+  }
+
+  .section > .section-index,
+  .section > .section-title {
+    grid-column: 1;
+  }
+
+  .section > .section-title + .section-lead {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 0.5em;
+  }
+}
+
 .detected {
   margin: 26px 0 16px;
   font-size: 14px;

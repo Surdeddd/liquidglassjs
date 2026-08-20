@@ -27,6 +27,7 @@ differs, and this page documents exactly how.
 | `svgFilterOnContent` | `CSS.supports('filter', 'url(#lg)')` |
 | `webgl2` | a throwaway canvas returns a `webgl2` context |
 | `webgpu` | `'gpu' in navigator` |
+| `htmlInCanvas` | reserved — always `false`, no backend reads it yet |
 | `reducedMotion` / `reducedTransparency` | the matching media queries |
 
 Backends are then tried by priority, highest first:
@@ -54,8 +55,9 @@ to `svg-content`, which produces real refraction through a different mechanism.
 | Blur | yes | yes | yes | yes | yes |
 | Tint + saturation + brightness | yes | yes | yes | yes | yes |
 | Specular bevel ring | yes | yes | yes | yes | yes |
+| Cast shadow (`shadow`) | yes | yes | yes | yes | yes |
 | Squircle shape | yes | yes | yes | yes | yes |
-| Metaball merging | no | no | **yes** | no | no |
+| Metaball merging | no | no | **yes** — 8 per group | no | no |
 | Spring physics | yes | yes | yes | yes | yes |
 | Adaptive contrast + tone hook | yes | yes | yes | yes | yes |
 
@@ -71,6 +73,11 @@ frost, bevel and everything else on that path are unaffected.
 Metaball merging needs several lenses solved in one shader pass, which no CSS or SVG filter path can
 express. `merge` groups therefore require `webgl-overlay`; `<liquid-glass-group>` sets that backend
 on its children automatically.
+
+That shader carries a fixed array of 8 shapes, so a group is capped at 8 lenses. The ninth and later
+members are dropped from the overlay pass: they keep their blur, tint and shadow, and get neither
+refraction nor merging. Nothing is logged, so a dock whose last tabs quietly stop merging has hit
+this cap; split it into a second `merge` group.
 
 ## Platform feature floors
 
@@ -109,10 +116,13 @@ imagery, pass `tint` explicitly or use the `tonechange` event to drive your own 
 
 **Safari / WebKit.** SVG filters are rasterized on the CPU, so large glass surfaces cost noticeably
 more than in Blink. The quality profile lowers the displacement-map resolution on weak devices, and
-the fps watchdog is the backstop: if the median frame rate stays under 45 fps across three
-consecutive 90-frame windows, auto-selected `webgl-overlay` instances are demoted once per page.
-`svg-content` also clones the backdrop element into a refraction layer, which means a very large or
-very dynamic backdrop is the thing to watch, not the number of lenses.
+the fps watchdog is the backstop — the thresholds and the escape hatch are in
+[performance.md](performance.md#the-fps-watchdog). Worth knowing which half of it applies here: the
+first move, dropping dispersion to a single pass page-wide, is a Blink win, because `svg-content`
+already builds a single-pass chain; on WebKit what remains is the second move, re-mounting
+auto-selected `webgl-overlay` lenses onto the CSS tier. `svg-content` also clones the backdrop element into a
+refraction layer, which means a very large or very dynamic backdrop is the thing to watch, not the
+number of lenses.
 
 **Firefox / Gecko.** `backdrop-filter: url()` is not implemented, which is exactly why the
 `svg-content` path exists. Everything except metaball merging works.
@@ -177,6 +187,7 @@ questions inspectable in devtools:
 | `data-liquid-glass-tone` | sampled backdrop tone, absent when unresolved |
 | `data-liquid-glass-pressed` | present while the physics controller holds a press |
 | `data-liquid-glass-degraded` | present after the fps watchdog demoted this instance |
+| `data-liquid-glass-morphing` | present on the target of `morphGlass()` while its spring runs |
 
 Mark any element you do not want captured in an overlay snapshot or cloned into a refraction layer
 with `data-liquid-glass-ignore`.

@@ -29,10 +29,11 @@ test.describe('lens optics visual regression', () => {
     })
   })
 
-  // The two crops above sit on `preset="clear"`, whose blur is 2px — small enough
-  // that the order of blur and displacement barely shows. The frosted panel blurs
-  // at 10px, which is where softening the source rather than the bent result is
-  // the difference between a lens and a grey band.
+  // The crops above sit on `preset="clear"`, whose 2px blur leaves the heavy-blur
+  // path uncovered entirely. This one guards the frosted rim at 10px. It does not
+  // distinguish blurring before the displacement from blurring after — measured,
+  // those differ by at most 8 levels out of 255 on 3.68% of the panel — so treat
+  // it as coverage for the tier, not as a guard on filter order.
   test('a heavily blurred rim still resolves the backdrop behind it', async ({ page }) => {
     await page.goto('/?static=1')
     const panel = page.locator('liquid-glass.panel--frosted').first()

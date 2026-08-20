@@ -15,7 +15,7 @@ docs apps run with `pnpm --filter demo dev` and `pnpm --filter docs dev`.
 Everything below has to be green before a change is ready. CI runs the same list.
 
 ```sh
-pnpm build && pnpm typecheck && pnpm lint && pnpm test && pnpm ssr && pnpm size
+pnpm build && pnpm typecheck && pnpm lint && pnpm test && pnpm coverage && pnpm ssr && pnpm size
 pnpm e2e
 ```
 
