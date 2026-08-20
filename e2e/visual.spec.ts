@@ -29,6 +29,24 @@ test.describe('lens optics visual regression', () => {
     })
   })
 
+  // The two crops above sit on `preset="clear"`, whose blur is 2px — small enough
+  // that the order of blur and displacement barely shows. The frosted panel blurs
+  // at 10px, which is where softening the source rather than the bent result is
+  // the difference between a lens and a grey band.
+  test('a heavily blurred rim still resolves the backdrop behind it', async ({ page }) => {
+    await page.goto('/?static=1')
+    const panel = page.locator('liquid-glass.panel--frosted').first()
+    await panel.waitFor()
+    await panel.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(600)
+    const box = await panel.boundingBox()
+    if (!box) throw new Error('frosted panel not laid out')
+
+    await expect(page).toHaveScreenshot('frosted-rim.png', {
+      clip: { x: box.x - 10, y: box.y + box.height / 2 - 28, width: 56, height: 56 }
+    })
+  })
+
   test('squircle rim renders the bezel ring', async ({ page }) => {
     await page.goto('/?static=1')
     const panel = page.locator('liquid-glass[shape="squircle"]').first()
