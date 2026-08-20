@@ -1,4 +1,7 @@
 :root {
+  color-scheme: dark;
+  --e-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --bg-0: #04060c;
   --bg-1: #0a1124;
   --ink: #eef1f9;
@@ -27,7 +30,7 @@
 body {
   min-height: 100vh;
   font-family: var(--body);
-  font-weight: 300;
+  font-weight: 400;
   color: var(--ink);
   background: linear-gradient(175deg, var(--bg-0), var(--bg-1) 60%, #070b18);
   overflow-x: hidden;
@@ -59,8 +62,8 @@ body {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(4, 6, 12, 0.72), rgba(4, 6, 12, 0.38) 30%, rgba(4, 6, 12, 0.55) 75%, rgba(4, 6, 12, 0.8)),
-    radial-gradient(1200px 700px at 50% 0%, transparent, rgba(4, 6, 12, 0.35));
+    linear-gradient(180deg, rgba(4, 6, 12, 0.4), rgba(4, 6, 12, 0.1) 34%, rgba(4, 6, 12, 0.38) 76%, rgba(4, 6, 12, 0.78)),
+    radial-gradient(1200px 700px at 50% 0%, transparent, rgba(4, 6, 12, 0.18));
 }
 
 .grain {
@@ -191,6 +194,24 @@ body {
   z-index: 1;
 }
 
+/* The page-wide scrim is light now so the hero has something worth refracting.
+   The copy gets its own pool instead of dimming the whole wallpaper for it. */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 46%;
+  background: radial-gradient(720px 320px at 50% 84%, rgba(4, 6, 12, 0.66), transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-sub,
+.hero-cta {
+  position: relative;
+  z-index: 3;
+}
+
 .hero-sub {
   margin-top: 44px;
   font-size: clamp(15px, 2vw, 19px);
@@ -208,13 +229,52 @@ body {
 }
 
 .install {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--mono);
   font-size: 14px;
   color: var(--cyan);
-  padding: 13px 18px;
+  padding: 5px 6px 5px 18px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: rgba(10, 17, 36, 0.6);
+}
+
+.install .copy-btn {
+  border: 0;
+  background: none;
+  padding: 8px 12px;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+.install .copy-btn:hover {
+  background: rgba(94, 242, 220, 0.1);
+  color: var(--ink);
+}
+
+.hero-proof {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 26px;
+  margin-top: 30px;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.hero-proof b {
+  font-weight: 500;
+  color: var(--cyan);
 }
 
 .copy-btn,
@@ -243,22 +303,47 @@ body {
   border-color: rgba(94, 242, 220, 0.5);
 }
 
+.ghost-btn--primary {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #04121c;
+  font-weight: 500;
+}
+
+.ghost-btn--primary:hover {
+  background: #7ef7e4;
+  border-color: #7ef7e4;
+  color: #04121c;
+}
+
 main {
   display: flex;
   flex-direction: column;
-  gap: clamp(90px, 14vh, 170px);
+  gap: clamp(96px, 9vw, 148px);
   padding: 40px 0 120px;
 }
 
 .section {
   width: min(1060px, calc(100vw - 48px));
   margin: 0 auto;
+  scroll-margin-top: 96px;
+}
+
+.hero {
+  scroll-margin-top: 96px;
+}
+
+@media (max-width: 640px) {
+  .section,
+  .hero {
+    scroll-margin-top: 84px;
+  }
 }
 
 .reveal {
   opacity: 0;
   transform: translateY(26px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition: opacity 0.8s var(--e-out), transform 0.8s var(--e-out);
 }
 
 .reveal.in {
@@ -266,7 +351,43 @@ main {
   transform: none;
 }
 
+/* A whole section resolving as one block finishes before the reader reaches its
+   middle. Letting the parts arrive in order gives the motion something to say. */
+.section.reveal > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.7s var(--e-out), transform 0.7s var(--e-out);
+}
+
+.section.reveal.in > * {
+  opacity: 1;
+  transform: none;
+}
+
+.section.reveal.in > :nth-child(2) {
+  transition-delay: 60ms;
+}
+
+.section.reveal.in > :nth-child(3) {
+  transition-delay: 120ms;
+}
+
+.section.reveal.in > :nth-child(n + 4) {
+  transition-delay: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section.reveal > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 .section-index {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.34em;
@@ -274,19 +395,28 @@ main {
   margin-bottom: 14px;
 }
 
+.section-index::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--amber);
+  opacity: 0.7;
+}
+
 .section-title {
   font-family: var(--display);
   font-weight: 300;
   font-size: clamp(34px, 5.4vw, 66px);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.015em;
   line-height: 1.06;
+  max-width: 17ch;
   margin-bottom: 22px;
 }
 
 .section-lead {
-  max-width: 640px;
-  font-size: 16px;
-  line-height: 1.8;
+  max-width: 62ch;
+  font-size: 17px;
+  line-height: 1.6;
   color: var(--ink-dim);
 }
 
@@ -817,8 +947,46 @@ main {
 
 .pg-controls label input[type='range'] {
   grid-column: 1 / -1;
-  accent-color: var(--cyan);
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 26px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pg-controls label input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
   border-radius: 999px;
+  background: rgba(238, 241, 249, 0.16);
+}
+
+.pg-controls label input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px rgba(4, 6, 12, 0.6), 0 2px 12px rgba(94, 242, 220, 0.35);
+  cursor: grab;
+}
+
+.pg-controls label input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(238, 241, 249, 0.16);
+}
+
+.pg-controls label input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px rgba(4, 6, 12, 0.6), 0 2px 12px rgba(94, 242, 220, 0.35);
+  cursor: grab;
 }
 
 .pg-controls .pg-value {
@@ -834,11 +1002,22 @@ main {
 }
 
 .pg-color input {
-  width: 42px;
-  height: 26px;
-  border: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   background: none;
   padding: 0;
+  cursor: pointer;
+}
+
+.pg-color input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.pg-color input::-webkit-color-swatch {
+  border: none;
+  border-radius: 8px;
 }
 
 .pg-stage {

@@ -53,7 +53,7 @@ const revealObserver =
             }
           }
         },
-        { threshold: 0.15 }
+        { threshold: 0.02, rootMargin: '0px 0px -12% 0px' }
       )
     : null
 

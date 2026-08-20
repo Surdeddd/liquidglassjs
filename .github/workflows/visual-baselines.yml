@@ -63,15 +63,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if git diff --quiet -- 'e2e/visual.spec.ts-snapshots/*-linux.png'; then
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # A newly captured reference is an untracked file, and `git diff` cannot see
+          # those — staging first is what makes a first-time snapshot show up at all.
+          git add -A e2e/visual.spec.ts-snapshots
+          if git diff --cached --quiet -- e2e/visual.spec.ts-snapshots; then
             echo "references are unchanged; nothing to open"
             exit 0
           fi
+          git status --short -- e2e/visual.spec.ts-snapshots
           branch="chore/visual-baselines-${GITHUB_RUN_ID}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add 'e2e/visual.spec.ts-snapshots/*-linux.png'
           git commit -m "chore(e2e): recapture linux visual references"
           git push origin "$branch"
           gh pr create \
