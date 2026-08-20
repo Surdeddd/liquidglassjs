@@ -172,9 +172,6 @@ void main() {
     col += (hash(basePx) - 0.5) * u_frost * 0.12;
   }
 
-  // The bevel is a curved surface, so the highlight has to roll across its width as
-  // the light moves rather than sit as a fixed ring on the outline. Build the real
-  // normal from the slope the refraction step already solved for.
   float band = max(u_bevelWidth, 1e-3);
   float alpha = slopeAngle(depth, band, u_thickness);
   vec3 N = normalize(vec3(grad * sin(alpha), max(cos(alpha), 1e-3)));
@@ -188,9 +185,6 @@ void main() {
   float onBevel = 1.0 - smoothstep(0.0, band, depth);
   col += (spec + counter) * u_specular * onBevel;
 
-  // Schlick, so the edge brightening is a hairline where the surface turns edge-on
-  // instead of a linear wash across the whole band, and it reflects an environment
-  // rather than flat white.
   float f0 = pow((u_ior - 1.0) / (u_ior + 1.0), 2.0);
   float fresnel = f0 + (1.0 - f0) * pow(1.0 - cos(alpha), 5.0);
   vec3 env = mix(vec3(0.55, 0.62, 0.72), vec3(0.95, 0.97, 1.0), 1.0 - v_local.y);
