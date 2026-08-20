@@ -149,12 +149,12 @@ export function adaptTintToTone(
     return {
       ...material,
       tint: '#14171e',
-      tintOpacity: Math.max(material.tintOpacity, 0.32)
+      tintOpacity: Math.max(material.tintOpacity, 0.24)
     }
   }
   return {
     ...material,
-    tintOpacity: Math.max(material.tintOpacity, 0.4)
+    tintOpacity: Math.max(material.tintOpacity, 0.36)
   }
 }
 

@@ -75,7 +75,7 @@ With `adaptive` left on, which is the default, the engine works out whether the 
 on light or dark content and reacts twice:
 
 - It makes the **default** tint follow the backdrop, the way Apple's material does: `#14171e` smoke
-  at an opacity of at least `0.32` over dark content, white frost at an opacity of at least `0.4`
+  at an opacity of at least `0.24` over dark content, white frost at an opacity of at least `0.36`
   over light. A `tint` you set explicitly is never touched — setting one is how you opt out.
 - It writes `data-liquid-glass-tone="light"` or `"dark"` on your element, sets `--lg-on-glass` to a
   matching content color you can use directly, and emits `tonechange` for anything richer.

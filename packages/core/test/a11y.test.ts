@@ -190,13 +190,13 @@ describe('adaptTintToTone', () => {
   it('frosts the default tint over light backdrops', () => {
     const material = adaptTintToTone(MATERIAL_DEFAULTS, 'light', MATERIAL_DEFAULTS.tint)
     expect(material.tint).toBe(MATERIAL_DEFAULTS.tint)
-    expect(material.tintOpacity).toBeGreaterThanOrEqual(0.4)
+    expect(material.tintOpacity).toBeGreaterThanOrEqual(0.36)
   })
 
   it('smokes the default tint over dark backdrops', () => {
     const material = adaptTintToTone(MATERIAL_DEFAULTS, 'dark', MATERIAL_DEFAULTS.tint)
     expect(material.tint).toBe('#14171e')
-    expect(material.tintOpacity).toBeGreaterThanOrEqual(0.32)
+    expect(material.tintOpacity).toBeGreaterThanOrEqual(0.24)
   })
 
   it('keeps custom tints untouched', () => {

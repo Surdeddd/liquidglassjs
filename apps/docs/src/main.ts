@@ -21,12 +21,12 @@ mountScrollEdge(document.body, { position: 'top', size: 108, strength: 10 })
 
 const DOCK_TINTS = {
   dark: {
-    '.dock-bar': ['#10141f', '0.38'],
-    '.dock-pill': ['#8b96b4', '0.42']
+    '.dock-bar': ['#10141f', '0.26'],
+    '.dock-pill': ['#8b96b4', '0.36']
   },
   light: {
-    '.dock-bar': ['#f4f6fb', '0.5'],
-    '.dock-pill': ['#ffffff', '0.62']
+    '.dock-bar': ['#f4f6fb', '0.22'],
+    '.dock-pill': ['#ffffff', '0.42']
   }
 } as const
 
