@@ -280,7 +280,13 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       const stamp = frameNow()
       const pageX = state.rect.x + (typeof window === 'undefined' ? 0 : window.scrollX)
       const pageY = state.rect.y + (typeof window === 'undefined' ? 0 : window.scrollY)
-      physics.travelled(pageX, pageY, lastTravel ? (stamp - lastTravel) / 1000 : 0)
+      physics.travelled(
+        pageX,
+        pageY,
+        lastTravel ? (stamp - lastTravel) / 1000 : 0,
+        state.rect.x,
+        state.rect.y
+      )
       lastTravel = stamp
     }
     if (current.adaptive !== false) {

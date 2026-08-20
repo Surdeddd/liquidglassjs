@@ -52,6 +52,8 @@ export class PhysicsController {
   #stretchY: Spring
   #lastX = 0
   #lastY = 0
+  #lastViewX = 0
+  #lastViewY = 0
   #seen = false
   #speed = 0
   #alongX = true
@@ -143,21 +145,30 @@ export class PhysicsController {
   }
 
   /**
-   * Feeds the surface's own position so travel can elongate it. Coordinates are page
-   * space; passing the rect the tracker already measured avoids a second layout read.
+   * Feeds the surface's own position so travel can elongate it. Pass both the page-space
+   * and viewport-space coordinates: travel is the smaller of the two motions per axis, so
+   * a scroll — which moves an element in exactly one of those spaces — never reads as travel.
    */
-  travelled(x: number, y: number, dt: number): void {
+  travelled(x: number, y: number, dt: number, viewX = x, viewY = y): void {
     if (this.#config.stretch <= 0) return
     if (!this.#seen) {
       this.#seen = true
       this.#lastX = x
       this.#lastY = y
+      this.#lastViewX = viewX
+      this.#lastViewY = viewY
       return
     }
-    const dx = x - this.#lastX
-    const dy = y - this.#lastY
+    const pageDx = x - this.#lastX
+    const pageDy = y - this.#lastY
+    const viewDx = viewX - this.#lastViewX
+    const viewDy = viewY - this.#lastViewY
+    const dx = Math.abs(pageDx) <= Math.abs(viewDx) ? pageDx : viewDx
+    const dy = Math.abs(pageDy) <= Math.abs(viewDy) ? pageDy : viewDy
     this.#lastX = x
     this.#lastY = y
+    this.#lastViewX = viewX
+    this.#lastViewY = viewY
     const step = Math.max(dt, 1 / 240)
     const speed = Math.hypot(dx, dy) / step
     this.#speed = (this.#speed + speed) / 2
