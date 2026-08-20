@@ -165,7 +165,7 @@ describe('LiquidGlass react component', () => {
       )
     })
     const glass = host.querySelector<HTMLElement>('[data-liquid-glass]')
-    expect(glass?.style.getPropertyValue('background')).toBe(colorWithOpacity('#ff0000', 1))
+    expect(glass?.style.getPropertyValue('background')).toContain(colorWithOpacity('#ff0000', 1))
     act(() => {
       root.render(
         createElement(LiquidGlass, { backend: 'css-fallback', adaptive: false, physics: false })

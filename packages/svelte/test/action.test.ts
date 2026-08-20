@@ -41,7 +41,7 @@ describe('svelte action', () => {
       tint: '#ff0000',
       tintOpacity: 1
     })
-    expect(el.style.getPropertyValue('background')).toBe(colorWithOpacity('#ff0000', 1))
+    expect(el.style.getPropertyValue('background')).toContain(colorWithOpacity('#ff0000', 1))
     action.update({ backend: 'css-fallback', adaptive: false, physics: false })
     expect(el.style.getPropertyValue('background')).not.toBe(colorWithOpacity('#ff0000', 1))
     action.destroy()

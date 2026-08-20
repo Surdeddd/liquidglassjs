@@ -1,6 +1,6 @@
 import { colorWithOpacity } from '../color'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
-import { glassShadowCss } from '../material'
+import { glassInnerShadowCss, glassShadowCss, glassSheenCss } from '../material'
 import { parseColor } from '../quality/a11y'
 import { getQuality } from '../quality/profile'
 import { requestLensMap } from '../worker/host'
@@ -141,7 +141,7 @@ class SvgContentInstance implements BackendInstance {
     const filter = `blur(${material.blur}px) saturate(${material.saturation}) brightness(${material.brightness})`
     style.setProperty('backdrop-filter', filter)
     style.setProperty('-webkit-backdrop-filter', filter)
-    style.setProperty('background', colorWithOpacity(material.tint, material.tintOpacity))
+    style.setProperty('background', glassSheenCss(material))
     if (typeof material.radius === 'number') {
       style.setProperty('border-radius', `${material.radius}px`)
     }
@@ -150,11 +150,9 @@ class SvgContentInstance implements BackendInstance {
     } else {
       style.removeProperty('clip-path')
     }
-    const specularAlpha = material.specular * 0.25
-    const inner =
-      `inset 0 1px 0 rgba(255, 255, 255, ${specularAlpha.toFixed(3)}), ` +
-      `inset 0 -1px 0 rgba(255, 255, 255, ${(specularAlpha * 0.35).toFixed(3)})`
-    const cast = glassShadowCss(material.shadow, surface.element.getBoundingClientRect().height)
+    const height = surface.element.getBoundingClientRect().height
+    const inner = glassInnerShadowCss(material.specular, height)
+    const cast = glassShadowCss(material.shadow, height)
     style.setProperty('box-shadow', cast ? `${cast}, ${inner}` : inner)
     style.setProperty('isolation', 'isolate')
     if (typeof getComputedStyle === 'function' && getComputedStyle(surface.element).position === 'static') {

@@ -78,10 +78,10 @@ describe('handle.set dynamic options', () => {
       tint: '#ff0000',
       tintOpacity: 1
     })
-    expect(el.style.getPropertyValue('background')).toBe(colorWithOpacity('#ff0000', 1))
+    expect(el.style.getPropertyValue('background')).toContain(colorWithOpacity('#ff0000', 1))
     handle.set({ tint: undefined, tintOpacity: undefined })
     const preset = resolveMaterial({})
-    expect(el.style.getPropertyValue('background')).toBe(
+    expect(el.style.getPropertyValue('background')).toContain(
       colorWithOpacity(preset.tint, preset.tintOpacity)
     )
     handle.destroy()

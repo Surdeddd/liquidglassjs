@@ -1,6 +1,6 @@
 import { colorWithOpacity } from '../color'
 import { squircleClipPath } from '../displacement'
-import { glassShadowCss } from '../material'
+import { glassShadowCss, glassSheenCss } from '../material'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
@@ -15,7 +15,7 @@ function apply(surface: BackendSurface): void {
   const { material } = surface
   const style = surface.element.style
   const filter = `blur(${material.blur}px) saturate(${material.saturation}) brightness(${material.brightness})`
-  style.setProperty('background', colorWithOpacity(material.tint, material.tintOpacity))
+  style.setProperty('background', glassSheenCss(material))
   style.setProperty('backdrop-filter', filter)
   style.setProperty('-webkit-backdrop-filter', filter)
   if (typeof material.radius === 'number') {

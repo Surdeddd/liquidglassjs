@@ -57,10 +57,10 @@ describe('LiquidGlass vue component', () => {
     })
     app.mount(host)
     const glass = host.querySelector<HTMLElement>('[data-liquid-glass]')
-    expect(glass?.style.getPropertyValue('background')).toBe(red)
+    expect(glass?.style.getPropertyValue('background')).toContain(red)
     options.value = { backend: 'css-fallback', adaptive: false, physics: false }
     await nextTick()
-    expect(glass?.style.getPropertyValue('background')).not.toBe(red)
+    expect(glass?.style.getPropertyValue('background')).not.toContain(red)
     app.unmount()
     host.remove()
   })

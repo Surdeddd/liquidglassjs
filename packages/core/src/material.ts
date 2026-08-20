@@ -1,3 +1,4 @@
+import { colorWithOpacity } from './color'
 import type { LiquidGlassOptions, LiquidGlassPreset, MaterialParams } from './types'
 
 export const MATERIAL_DEFAULTS: MaterialParams = {
@@ -88,6 +89,39 @@ export function glassShadowCss(shadow: number, height: number): string {
   const ambient = (0.22 * shadow).toFixed(3)
   const contact = (0.1 * shadow).toFixed(3)
   return `0 ${lift}px ${spread}px rgba(0, 0, 0, ${ambient}), 0 1px 2px rgba(0, 0, 0, ${contact})`
+}
+
+/**
+ * The interior light: a vertical sheen falling to a faint floor shade, composed over
+ * the tint. This is what keeps the pane reading as glass when the backdrop is too
+ * smooth for the refraction to have anything to bend.
+ */
+export function glassSheenCss(material: MaterialParams): string {
+  const tintLayer = colorWithOpacity(material.tint, material.tintOpacity)
+  if (material.specular <= 0) return tintLayer
+  const top = (0.14 * material.specular).toFixed(3)
+  const floor = (0.08 * material.specular).toFixed(3)
+  return (
+    `linear-gradient(var(--lg-sheen-angle, 180deg), rgba(255, 255, 255, ${top}), ` +
+    `rgba(255, 255, 255, 0) 42%, rgba(0, 0, 0, ${floor})), ${tintLayer}`
+  )
+}
+
+/**
+ * The inner edge: a lit hairline on top, a fainter one below, and a soft pool of
+ * depth inside the bottom rim so the pane has thickness rather than just an outline.
+ */
+export function glassInnerShadowCss(specular: number, height: number): string {
+  const lit = (0.3 * specular).toFixed(3)
+  const under = (0.1 * specular).toFixed(3)
+  const h = Math.max(height, 1)
+  const depth = Math.min(h * 0.16, 22).toFixed(1)
+  const pool = (0.14 * specular).toFixed(3)
+  return (
+    `inset 0 1px 0 rgba(255, 255, 255, ${lit}), ` +
+    `inset 0 -1px 0 rgba(255, 255, 255, ${under}), ` +
+    `inset 0 -${depth}px ${depth}px -${depth}px rgba(0, 0, 0, ${pool})`
+  )
 }
 
 export function resolveMaterial(options: LiquidGlassOptions): MaterialParams {

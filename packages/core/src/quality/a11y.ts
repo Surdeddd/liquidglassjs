@@ -101,7 +101,8 @@ export function applyReducedTransparency(material: MaterialParams): MaterialPara
     tintOpacity: Math.max(material.tintOpacity, 0.85),
     blur: Math.min(material.blur, 4),
     refraction: 0,
-    dispersion: 0
+    dispersion: 0,
+    specular: 0
   }
 }
 

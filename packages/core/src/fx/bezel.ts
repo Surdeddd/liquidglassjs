@@ -17,10 +17,10 @@ export function mountBezel(host: HTMLElement, specular: number): BezelHandle {
   style.borderRadius = 'inherit'
   style.pointerEvents = 'none'
   style.padding = '1.5px'
-  style.setProperty('--lg-bezel-hi', (0.55 * specular).toFixed(3))
-  style.setProperty('--lg-bezel-lo', (0.22 * specular).toFixed(3))
-  style.setProperty('--lg-bezel-dark', (0.25 * specular).toFixed(3))
-  style.setProperty('--lg-bezel-half', (0.12 * specular).toFixed(3))
+  style.setProperty('--lg-bezel-hi', (0.85 * specular).toFixed(3))
+  style.setProperty('--lg-bezel-lo', (0.32 * specular).toFixed(3))
+  style.setProperty('--lg-bezel-dark', (0.3 * specular).toFixed(3))
+  style.setProperty('--lg-bezel-half', (0.15 * specular).toFixed(3))
   style.setProperty(
     'background',
     'conic-gradient(from var(--lg-light-angle, 45deg), ' +
