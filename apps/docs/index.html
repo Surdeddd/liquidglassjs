@@ -190,9 +190,17 @@
         </p>
         <div class="dock-stage stage">
           <div class="wall" data-wall="dawn" data-wall-seed="53" aria-hidden="true"></div>
+          <div class="dock-feed" aria-hidden="true">
+            <div class="feed-tile ft-a"><b>Midnight Run</b><span>Aurora Fields</span></div>
+            <div class="feed-tile ft-b"><b>Glasswork</b><span>Refraction EP</span></div>
+            <div class="feed-tile ft-c"><b>Neon Tide</b><span>Softline</span></div>
+            <div class="feed-tile ft-d"><b>Northern Loop</b><span>Cold Circles</span></div>
+            <div class="feed-tile ft-e"><b>Paper Sun</b><span>Overcast Club</span></div>
+            <div class="feed-tile ft-f"><b>Low Orbit</b><span>Weightless</span></div>
+          </div>
           <div class="dock">
-            <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" blur="14" saturation="1.6" brightness="1.08" tint-opacity="0.1" physics="false"></liquid-glass>
-            <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" blur="10" saturation="1.6" brightness="1.16" tint-opacity="0.14" physics="false"></liquid-glass>
+            <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" blur="10" saturation="1.4" brightness="1" tint-opacity="0.05" bevel-width="12" refraction="0.85" ior="1.7" dispersion="0.22" bevel-depth="0.4" physics="false"></liquid-glass>
+            <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" blur="6" saturation="1.4" brightness="1.04" tint-opacity="0.09" bevel-width="12" refraction="0.9" ior="1.7" dispersion="0.22" bevel-depth="0.4" physics="false"></liquid-glass>
             <nav class="dock-tabs" data-liquid-glass-ignore aria-label="dock demo">
               <button type="button" data-dock="0" class="active">glass</button>
               <button type="button" data-dock="1">physics</button>
