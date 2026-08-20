@@ -1,5 +1,33 @@
 # @surdeddd/liquidglass
 
+## 0.11.1
+
+### Patch Changes
+
+- 5a86121: The glass finally sees the finished page, not a half-drawn one.
+
+  Two texture bugs starved the WebGL tier of its backdrop. The snapshot listened for mutations but
+  not for endings: a CSS transition flips a class once and then animates silently, so the texture
+  froze mid-reveal — surfaces sampled a page at 70% opacity, or plain black. The overlay now also
+  listens for transitionend and animationend near its surfaces and quietly retakes the snapshot when
+  the motion settles.
+
+  Worse, the band crop distorted the page it was photographing: forcing the clone's height and
+  translating it collided with `overflow-x: hidden` on real pages, clipping everything below the
+  fold of the band — the dock sampled a void. The snapshot now renders the page's SVG at its full,
+  untouched layout and crops the band on the canvas side instead, so the clone is never deformed.
+
+  The dock demo also dresses for the theme now: dark smoke over the shelf in dark, white frost in
+  light — the way Apple's own bars follow the system, not the local pixels.
+
+- 9de305a: The smoke and the frost are now measured against Apple's material, not guessed.
+
+  Pixel-probing Apple's own frames put their dark glass at 0.86-1.26x of the backdrop's luminance
+  and their light frost at +24..+55 luminance over it, hue preserved in both. Ours sat outside that
+  envelope: the dark smoke crushed backdrops to 0.58-0.73x, and the light frost blew dark backdrops
+  out to +117. The adaptive floors moved to match - dark smoke to 0.24, light frost to 0.36 - and
+  every surface now lands inside the measured envelope in both themes.
+
 ## 0.11.0
 
 ### Minor Changes
