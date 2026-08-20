@@ -347,13 +347,37 @@
       </section>
     </main>
 
+    <section class="closing reveal" id="start">
+      <div class="closing-wall" data-wall="sea" data-wall-seed="41" aria-hidden="true"></div>
+      <liquid-glass class="closing-card" preset="clear" backdrop=".closing-wall" motion-light>
+        <h2 class="closing-title">Put it on your page</h2>
+        <p class="closing-lead">
+          One import, one call. The engine picks the tier your browser can actually run and steps
+          itself down when the frames say so.
+        </p>
+        <div class="closing-cta">
+          <span class="install">
+            <code data-install>npm i @surdeddd/liquidglass</code>
+            <button class="copy-btn" data-copy-install type="button" aria-label="copy the install command">copy</button>
+          </span>
+          <a class="ghost-btn ghost-btn--primary" href="/api/" target="_blank" rel="noreferrer">read the api</a>
+        </div>
+      </liquid-glass>
+    </section>
+
     <footer class="footer">
-      <span>MIT · built with its own glass</span>
-      <span>
-        <a href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
-        · <a href="/api/" target="_blank" rel="noreferrer">api reference</a>
-        · <a href="https://www.npmjs.com/package/@surdeddd/liquidglass" target="_blank" rel="noreferrer">npm</a>
-      </span>
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="footer-name">liquidglass<span class="nav-logo-dim">js</span></span>
+          <span class="footer-note">Liquid Glass for the whole web. MIT, and built with its own glass.</span>
+        </div>
+        <nav class="footer-links" aria-label="footer">
+          <a href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
+          <a href="/api/" target="_blank" rel="noreferrer">api reference</a>
+          <a href="https://www.npmjs.com/package/@surdeddd/liquidglass" target="_blank" rel="noreferrer">npm</a>
+          <a href="#start">install</a>
+        </nav>
+      </div>
     </footer>
 
     <script type="module" src="/src/main.ts"></script>
