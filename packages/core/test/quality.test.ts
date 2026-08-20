@@ -39,7 +39,27 @@ describe('quality profile', () => {
       thickness: 12,
       magnify: 0.02
     })
-    expect(field.width).toBeLessThanOrEqual(322)
+    const generous = (() => {
+      configure({ mapSide: 600 })
+      return computeOffsets({
+        width: 2000,
+        height: 900,
+        radius: 40,
+        shape: 'rounded',
+        band: 24,
+        ior: 1.5,
+        thickness: 12,
+        magnify: 0.02
+      })
+    })()
+    // The budget is an area now, not a longest side, so the knob still has to move
+    // resolution. The band floor is an aim rather than a guarantee: on a low tier
+    // holding a 2000x900 surface the tier ceiling outvotes it, which is the right
+    // way round. It still lands far above the ~2.7 texels the old longest-side
+    // model left across the same band.
+    expect(field.width).toBeLessThan(generous.width)
+    expect(24 * field.scale).toBeGreaterThan(6)
+    expect(24 * generous.scale).toBeGreaterThanOrEqual(8)
   })
 
   it('resetQuality restores tier defaults', () => {

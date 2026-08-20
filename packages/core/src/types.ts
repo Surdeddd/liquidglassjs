@@ -24,6 +24,7 @@ export interface MaterialParams {
   bevelDepth: number
   dispersion: number
   specular: number
+  shadow: number
   frost: number
   radius: number | 'auto'
   shape: LiquidGlassShape

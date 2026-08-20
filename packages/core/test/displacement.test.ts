@@ -141,6 +141,37 @@ describe('resolveRadiusPx', () => {
   })
 })
 
+describe('map budget', () => {
+  const bar = {
+    width: 1440,
+    height: 64,
+    radius: 24,
+    shape: 'rounded' as const,
+    band: 24,
+    ior: 1.5,
+    thickness: 12,
+    magnify: 0.02
+  }
+
+  it('resolves the bevel band on a wide bar instead of spending texels on its length', () => {
+    // Budgeting by longest side left a 1440x64 bar with under six texels across a
+    // 24px band, so the bend it is supposed to show was interpolated away — on the
+    // one shape this material is used for most.
+    const field = computeOffsets(bar)
+    expect(bar.band * field.scale).toBeGreaterThanOrEqual(16)
+  })
+
+  it('does not spend more on a small pill than it used to', () => {
+    const pill = computeOffsets({ ...bar, width: 320, height: 44 })
+    expect(pill.width * pill.height).toBeLessThan(40000)
+  })
+
+  it('never asks for a map side beyond the cap', () => {
+    const huge = computeOffsets({ ...bar, width: 6000, height: 4000 })
+    expect(Math.max(huge.width, huge.height)).toBeLessThanOrEqual(2048)
+  })
+})
+
 describe('generateLensMap', () => {
   it('always reports maxOffset; url is a data url or null without canvas support', () => {
     const result = generateLensMap(base)

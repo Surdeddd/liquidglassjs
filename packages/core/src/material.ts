@@ -14,6 +14,7 @@ export const MATERIAL_DEFAULTS: MaterialParams = {
   bevelDepth: 0.6,
   dispersion: 0.15,
   specular: 0.6,
+  shadow: 0.55,
   frost: 0,
   radius: 'auto',
   shape: 'rounded'
@@ -47,6 +48,7 @@ const NUMERIC_RANGES: Partial<Record<keyof MaterialParams, [number, number]>> = 
   bevelDepth: [0, 1],
   dispersion: [0, 1],
   specular: [0, 1],
+  shadow: [0, 1],
   frost: [0, 1]
 }
 
@@ -70,6 +72,21 @@ export function clampMaterial(material: MaterialParams): MaterialParams {
     result.radius = Number.isFinite(radius) ? Math.max(0, radius) : MATERIAL_DEFAULTS.radius
   }
   return result
+}
+
+/**
+ * Apple's material is described as three layers — highlight, shadow, illumination.
+ * This is the shadow: a soft ambient cast sized from the element, plus a tight
+ * contact line, which is what stops the glass reading as a hole in the page.
+ */
+export function glassShadowCss(shadow: number, height: number): string {
+  if (shadow <= 0) return ''
+  const h = Math.max(height, 1)
+  const lift = (h * 0.11).toFixed(1)
+  const spread = (h * 0.3).toFixed(1)
+  const ambient = (0.22 * shadow).toFixed(3)
+  const contact = (0.1 * shadow).toFixed(3)
+  return `0 ${lift}px ${spread}px rgba(0, 0, 0, ${ambient}), 0 1px 2px rgba(0, 0, 0, ${contact})`
 }
 
 export function resolveMaterial(options: LiquidGlassOptions): MaterialParams {

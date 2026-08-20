@@ -23,7 +23,7 @@ export function mountBezel(host: HTMLElement, specular: number): BezelHandle {
   style.setProperty('--lg-bezel-half', (0.12 * specular).toFixed(3))
   style.setProperty(
     'background',
-    'conic-gradient(from calc(var(--lg-light-angle, 135deg) - 90deg), ' +
+    'conic-gradient(from var(--lg-light-angle, 45deg), ' +
       'rgba(255,255,255,var(--lg-bezel-hi)) 0deg, rgba(255,255,255,var(--lg-bezel-lo)) 70deg, ' +
       'rgba(0,0,0,var(--lg-bezel-half)) 150deg, rgba(0,0,0,var(--lg-bezel-dark)) 180deg, ' +
       'rgba(0,0,0,var(--lg-bezel-half)) 210deg, rgba(255,255,255,var(--lg-bezel-lo)) 290deg, ' +

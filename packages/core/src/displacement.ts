@@ -68,6 +68,15 @@ export function squircleClipPath(exponent = 4, segments = 64): string {
 
 export const MAP_PAD = 0.2
 
+/** Texels the bevel band is guaranteed, so the bend is resolvable rather than interpolated. */
+const MIN_BAND_TEXELS = 8
+
+/** Nothing is worth a map wider than this; the worker and the PNG encode both pay for it. */
+const MAX_MAP_SIDE = 2048
+
+/** How far the band floor may overrun the tier's area budget before it is pulled back. */
+const MAX_BUDGET_OVERRUN = 3
+
 export interface MapOptions {
   width: number
   height: number
@@ -91,11 +100,24 @@ interface OffsetField {
 }
 
 export function computeOffsets(opts: MapOptions): OffsetField {
-  const scale = Math.min(
-    1,
-    (opts.mapSide ?? getQuality().mapSide) /
-      (Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2))
-  )
+  // Fitting the longest side into the budget starves exactly the shapes this
+  // material is used for most: a 1440x64 bar spent its texels on length and left
+  // the bevel band under four of them, so the rim had no optics left to resolve.
+  // Budget by area instead, then insist on enough texels across the band.
+  const side = opts.mapSide ?? getQuality().mapSide
+  const budget = side * side
+  let scale = Math.min(1, Math.sqrt(budget / Math.max(opts.width * opts.height, 1)))
+  if (opts.band > 0) {
+    scale = Math.min(1, Math.max(scale, MIN_BAND_TEXELS / opts.band))
+  }
+  const longest = Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2)
+  scale = Math.min(scale, MAX_MAP_SIDE / Math.max(longest, 1))
+  // The band floor above can outvote the area budget on a large surface, so hold a
+  // ceiling: a tier that cannot afford the texels must not be handed them anyway.
+  const spread = (1 + MAP_PAD * 2) ** 2
+  const texels = opts.width * opts.height * scale * scale * spread
+  const ceiling = budget * MAX_BUDGET_OVERRUN
+  if (texels > ceiling) scale *= Math.sqrt(ceiling / texels)
   const ew = opts.width * scale
   const eh = opts.height * scale
   const padX = Math.round(ew * MAP_PAD)

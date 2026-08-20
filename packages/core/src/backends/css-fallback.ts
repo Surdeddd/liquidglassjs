@@ -1,9 +1,10 @@
 import { colorWithOpacity } from '../color'
 import { squircleClipPath } from '../displacement'
+import { glassShadowCss } from '../material'
 import { captureInlineStyles } from '../style-restore'
 import type { Backend, BackendInstance, BackendSurface } from './types'
 
-const TOUCHED = ['background', 'backdrop-filter', '-webkit-backdrop-filter', 'border-radius', 'clip-path']
+const TOUCHED = ['background', 'backdrop-filter', '-webkit-backdrop-filter', 'border-radius', 'clip-path', 'box-shadow']
 
 function isStyleable(element: Element): element is HTMLElement {
   return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement
@@ -25,6 +26,9 @@ function apply(surface: BackendSurface): void {
   } else {
     style.removeProperty('clip-path')
   }
+  const cast = glassShadowCss(material.shadow, surface.element.getBoundingClientRect().height)
+  if (cast) style.setProperty('box-shadow', cast)
+  else style.removeProperty('box-shadow')
 }
 
 export const cssFallbackBackend: Backend = {

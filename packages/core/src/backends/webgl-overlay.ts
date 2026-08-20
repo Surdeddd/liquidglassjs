@@ -3,6 +3,7 @@ import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
 import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
 import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
+import { glassShadowCss } from '../material'
 import { pinUsedMargins } from '../runtime/layout'
 import { onViewport } from '../runtime/scheduler'
 import { captureInlineStyles } from '../style-restore'
@@ -404,6 +405,9 @@ function applyBaseStyles(surface: BackendSurface): void {
   if (typeof material.radius === 'number') {
     style.setProperty('border-radius', `${material.radius}px`)
   }
+  const cast = glassShadowCss(material.shadow, surface.element.getBoundingClientRect().height)
+  if (cast) style.setProperty('box-shadow', cast)
+  else style.removeProperty('box-shadow')
   if (typeof getComputedStyle === 'function') {
     const computed = getComputedStyle(surface.element)
     if (computed.position === 'static') style.setProperty('position', 'relative')
@@ -418,6 +422,7 @@ const TOUCHED = [
   '-webkit-backdrop-filter',
   'background',
   'border-radius',
+  'box-shadow',
   'position',
   'z-index'
 ]

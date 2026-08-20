@@ -121,12 +121,16 @@ float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
+float slopeAngle(float depth, float band, float thickness) {
+  if (depth < 0.0 || depth >= band) return 0.0;
+  float u = 1.0 - depth / band;
+  float slope = (thickness / band) * u * u * u * pow(max(1.0 - u * u * u * u, 1e-4), -0.75);
+  return atan(slope);
+}
+
 float lensMag(float depth, float band, float ior, float thickness) {
   if (depth < 0.0 || depth >= band || ior <= 1.0) return 0.0;
-  float t = depth / band;
-  float u = 1.0 - t;
-  float slope = (thickness / band) * u * u * u * pow(max(1.0 - u * u * u * u, 1e-4), -0.75);
-  float alpha = atan(slope);
+  float alpha = slopeAngle(depth, band, thickness);
   float beta = asin(clamp(sin(alpha) / ior, -1.0, 1.0));
   return min(thickness * tan(alpha - beta), band * 0.9);
 }
@@ -152,9 +156,9 @@ void main() {
   vec3 col;
   if (u_dispersion > 0.001) {
     col = vec3(
-      blurredBg(basePx + grad * mag * (1.0 + u_dispersion * 0.6) + zoom, u_blur).r,
+      blurredBg(basePx + grad * mag * (1.0 - u_dispersion * 0.6) + zoom, u_blur).r,
       blurredBg(basePx + grad * mag + zoom, u_blur).g,
-      blurredBg(basePx + grad * mag * (1.0 - u_dispersion * 0.6) + zoom, u_blur).b
+      blurredBg(basePx + grad * mag * (1.0 + u_dispersion * 0.6) + zoom, u_blur).b
     );
   } else {
     col = blurredBg(basePx + grad * mag + zoom, u_blur);
@@ -168,15 +172,29 @@ void main() {
     col += (hash(basePx) - 0.5) * u_frost * 0.12;
   }
 
-  float rim = smoothstep(3.0, 0.0, depth);
-  float facing = clamp(dot(grad, normalize(u_lightDir)), -1.0, 1.0);
-  float sheen = pow(max(facing, 0.0), 2.0);
-  float counterSheen = pow(max(-facing, 0.0), 2.0);
-  col += rim * (0.25 + sheen) * u_specular * 0.5;
-  col -= rim * counterSheen * u_specular * 0.22;
+  // The bevel is a curved surface, so the highlight has to roll across its width as
+  // the light moves rather than sit as a fixed ring on the outline. Build the real
+  // normal from the slope the refraction step already solved for.
+  float band = max(u_bevelWidth, 1e-3);
+  float alpha = slopeAngle(depth, band, u_thickness);
+  vec3 N = normalize(vec3(grad * sin(alpha), max(cos(alpha), 1e-3)));
+  vec2 lightXY = normalize(u_lightDir);
+  vec3 V = vec3(0.0, 0.0, 1.0);
+  vec3 H = normalize(normalize(vec3(lightXY, 0.75)) + V);
+  vec3 Hc = normalize(normalize(vec3(-lightXY, 0.75)) + V);
+  float ndh = max(dot(N, H), 0.0);
+  float spec = pow(ndh, 32.0) * 1.6 + pow(ndh, 4.0) * 0.18;
+  float counter = pow(max(dot(N, Hc), 0.0), 24.0) * 0.35;
+  float onBevel = 1.0 - smoothstep(0.0, band, depth);
+  col += (spec + counter) * u_specular * onBevel;
 
-  float fresnel = smoothstep(u_bevelWidth, 0.0, depth) * 0.08 * u_specular;
-  col += fresnel;
+  // Schlick, so the edge brightening is a hairline where the surface turns edge-on
+  // instead of a linear wash across the whole band, and it reflects an environment
+  // rather than flat white.
+  float f0 = pow((u_ior - 1.0) / (u_ior + 1.0), 2.0);
+  float fresnel = f0 + (1.0 - f0) * pow(1.0 - cos(alpha), 5.0);
+  vec3 env = mix(vec3(0.55, 0.62, 0.72), vec3(0.95, 0.97, 1.0), 1.0 - v_local.y);
+  col = mix(col, env, clamp(fresnel, 0.0, 1.0) * u_specular);
 
   outColor = vec4(col, coverage);
 }`

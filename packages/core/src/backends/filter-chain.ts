@@ -20,9 +20,14 @@ function el<K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap
   return document.createElementNS(SVG_NS, name)
 }
 
-function mkDisplace(role: string, scale: number, result: string): SVGFEDisplacementMapElement {
+function mkDisplace(
+  role: string,
+  scale: number,
+  result: string,
+  source: string
+): SVGFEDisplacementMapElement {
   const node = el('feDisplacementMap')
-  node.setAttribute('in', 'SourceGraphic')
+  node.setAttribute('in', source)
   node.setAttribute('in2', 'lgMap')
   node.setAttribute('xChannelSelector', 'R')
   node.setAttribute('yChannelSelector', 'G')
@@ -68,14 +73,24 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
   feImage.setAttribute('height', '140%')
   filter.appendChild(feImage)
 
+  // Apple's material softens the backdrop and *then* bends it, so the rim shows a
+  // compressed but high-contrast sliver of the surroundings. Blurring after the bend
+  // averages that sliver away and leaves a grey band where the lens should be.
+  const blur = el('feGaussianBlur')
+  blur.setAttribute('in', 'SourceGraphic')
+  blur.setAttribute('stdDeviation', String(material.blur))
+  blur.setAttribute('result', 'lgSoft')
+  blur.setAttribute('data-lg-role', 'blur')
+  filter.appendChild(blur)
+
   const caShift = material.dispersion * 0.25
   let displace: SVGFEDisplacementMapElement
   let lensResult: string
   const displaceNodes: SVGFEDisplacementMapElement[] = []
   if (passes === 3) {
-    const dispR = mkDisplace('displace-r', scale * (1 - caShift), 'lgDispR')
-    displace = mkDisplace('displace', scale, 'lgDispG')
-    const dispB = mkDisplace('displace-b', scale * (1 + caShift), 'lgDispB')
+    const dispR = mkDisplace('displace-r', scale * (1 - caShift), 'lgDispR', 'lgSoft')
+    displace = mkDisplace('displace', scale, 'lgDispG', 'lgSoft')
+    const dispB = mkDisplace('displace-b', scale * (1 + caShift), 'lgDispB', 'lgSoft')
     displaceNodes.push(dispR, displace, dispB)
     filter.append(
       dispR,
@@ -89,7 +104,7 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
     )
     lensResult = 'lgLens'
   } else {
-    displace = mkDisplace('displace', scale, 'lgLens')
+    displace = mkDisplace('displace', scale, 'lgLens', 'lgSoft')
     displaceNodes.push(displace)
     filter.appendChild(displace)
     lensResult = 'lgLens'
@@ -113,14 +128,8 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
     lensResult = 'lgFrost'
   }
 
-  const blur = el('feGaussianBlur')
-  blur.setAttribute('in', lensResult)
-  blur.setAttribute('stdDeviation', String(material.blur))
-  blur.setAttribute('result', 'lgBlur')
-  blur.setAttribute('data-lg-role', 'blur')
-
   const saturate = el('feColorMatrix')
-  saturate.setAttribute('in', 'lgBlur')
+  saturate.setAttribute('in', lensResult)
   saturate.setAttribute('type', 'saturate')
   saturate.setAttribute('values', String(material.saturation))
   saturate.setAttribute('result', 'lgSat')
@@ -134,7 +143,7 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
     brightnessNode.appendChild(fn)
   }
 
-  filter.append(blur, saturate, brightnessNode)
+  filter.append(saturate, brightnessNode)
 
   return {
     feImage,

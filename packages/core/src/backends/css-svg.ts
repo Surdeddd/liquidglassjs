@@ -1,4 +1,5 @@
 import { colorWithOpacity } from '../color'
+import { glassShadowCss } from '../material'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { requestLensMap } from '../worker/host'
 import { buildLensChain } from './filter-chain'
@@ -119,10 +120,11 @@ class CssSvgInstance implements BackendInstance {
       style.removeProperty('clip-path')
     }
     const specularAlpha = material.specular * 0.25
-    style.setProperty(
-      'box-shadow',
-      `inset 0 1px 0 rgba(255, 255, 255, ${specularAlpha.toFixed(3)}), inset 0 -1px 0 rgba(255, 255, 255, ${(specularAlpha * 0.35).toFixed(3)})`
-    )
+    const inner =
+      `inset 0 1px 0 rgba(255, 255, 255, ${specularAlpha.toFixed(3)}), ` +
+      `inset 0 -1px 0 rgba(255, 255, 255, ${(specularAlpha * 0.35).toFixed(3)})`
+    const cast = glassShadowCss(material.shadow, surfaceSize(surface).height)
+    style.setProperty('box-shadow', cast ? `${cast}, ${inner}` : inner)
   }
 
   #refresh(surface: BackendSurface, force: boolean): void {
