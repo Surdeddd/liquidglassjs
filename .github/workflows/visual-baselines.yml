@@ -9,9 +9,18 @@ on:
         options: [verify, capture]
         default: verify
 
+concurrency:
+  group: visual-baselines
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   baselines:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -21,7 +30,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium webkit firefox
+      - name: Resolve playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install browser system dependencies
+        timeout-minutes: 10
+        run: pnpm exec playwright install-deps chromium webkit firefox
+      - name: Download browsers
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 15
+        run: pnpm exec playwright install chromium webkit firefox
 
       - name: Verify committed baselines
         if: inputs.mode == 'verify'
@@ -31,10 +54,36 @@ jobs:
         if: inputs.mode == 'capture'
         run: pnpm e2e --update-snapshots --project=chromium --project=webkit --project=firefox e2e/visual.spec.ts
 
+      # An artifact that expires in three days is not a way to move pixels into the
+      # repository. Capture opens a pull request so the new references can be looked
+      # at side by side and merged like anything else.
+      - name: Open a pull request with the new references
+        if: inputs.mode == 'capture'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- 'e2e/visual.spec.ts-snapshots/*-linux.png'; then
+            echo "references are unchanged; nothing to open"
+            exit 0
+          fi
+          branch="chore/visual-baselines-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add 'e2e/visual.spec.ts-snapshots/*-linux.png'
+          git commit -m "chore(e2e): recapture linux visual references"
+          git push origin "$branch"
+          gh pr create \
+            --title "chore(e2e): recapture linux visual references" \
+            --body "Captured by the Visual baselines workflow from ${GITHUB_SHA}. Review each image before merging: these are what CI compares against." \
+            --base "${GITHUB_REF_NAME}" \
+            --head "$branch"
+
       - uses: actions/upload-artifact@v4
         if: inputs.mode == 'capture'
         with:
           name: visual-baselines-linux
           path: e2e/visual.spec.ts-snapshots/*-linux.png
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 7

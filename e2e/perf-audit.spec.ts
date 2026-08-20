@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-const FLOOR_FPS = 24
+const FLOOR_FPS = Number(process.env['PERF_FLOOR_FPS'] ?? (process.env['CI'] ? 8 : 24))
 
 test('webkit perf profile of the docs landing', async ({ page, browserName }) => {
   test.skip(browserName !== 'webkit', 'safari profiling tool')
@@ -54,7 +54,6 @@ test('webkit perf profile of the docs landing', async ({ page, browserName }) =>
   for (const [label, value] of samples) {
     expect(value, `${label} produced no frames at all`).toBeGreaterThan(0)
   }
-  if (process.env.CI) return
   for (const [label, value] of samples) {
     expect(value, `${label} collapsed to ${value} fps`).toBeGreaterThan(FLOOR_FPS)
   }
