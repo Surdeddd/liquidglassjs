@@ -58,6 +58,7 @@ function fakeGl(uniforms: Map<string, number>): Record<string, unknown> {
     bindTexture: noop,
     pixelStorei: noop,
     texImage2D: noop,
+    generateMipmap: noop,
     texParameteri: noop,
     deleteTexture: noop,
     viewport: noop,

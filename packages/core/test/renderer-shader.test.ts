@@ -67,6 +67,7 @@ function uniformRecorder(): { gl: Record<string, unknown>; floats: Map<string, n
     bindTexture: noop,
     pixelStorei: noop,
     texImage2D: noop,
+    generateMipmap: noop,
     texParameteri: noop,
     deleteTexture: noop,
     viewport: noop,

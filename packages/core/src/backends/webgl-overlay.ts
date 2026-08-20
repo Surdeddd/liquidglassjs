@@ -129,7 +129,13 @@ class OverlayManager {
         subtree: true
       })
     }
-    this.scheduleSnapshot()
+    const idle =
+      typeof requestIdleCallback === 'function'
+        ? requestIdleCallback
+        : (fn: () => void) => setTimeout(fn, 180)
+    idle(() => {
+      if (!this.#destroyed) this.scheduleSnapshot()
+    })
   }
 
   #touchesSurfaces(target: Node): boolean {
@@ -277,7 +283,16 @@ class OverlayManager {
       })
       if (this.#destroyed) return
       this.#renderer.setTexture(snapshot)
-      setLuminanceGrid(buildLuminanceGrid(snapshot, body.scrollWidth, body.scrollHeight))
+      const gridIdle =
+        typeof requestIdleCallback === 'function'
+          ? requestIdleCallback
+          : (fn: () => void) => setTimeout(fn, 120)
+      const gridW = body.scrollWidth
+      const gridH = body.scrollHeight
+      gridIdle(() => {
+        if (this.#destroyed) return
+        setLuminanceGrid(buildLuminanceGrid(snapshot, gridW, gridH))
+      })
       this.scheduleRender()
     } catch {
       this.#snapshotDirty = false

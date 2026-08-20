@@ -87,8 +87,8 @@ export function paintWallpaper(
   seed = 7,
   theme: WallpaperTheme = 'dark'
 ): void {
-  const width = 1440
-  const height = 960
+  const width = 960
+  const height = 640
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height

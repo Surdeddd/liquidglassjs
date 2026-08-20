@@ -65,6 +65,7 @@ precision highp float;
 uniform sampler2D u_tex;
 uniform vec4 u_lensRect;
 uniform vec4 u_texRect;
+uniform vec2 u_texSize;
 uniform vec4 u_shapes[8];
 uniform float u_shapeRadii[8];
 uniform int u_shapeCount;
@@ -130,18 +131,16 @@ vec3 sampleBg(vec2 px) {
 
 vec3 blurredBg(vec2 px, float radius) {
   if (radius < 0.5) return sampleBg(px);
-  vec2 taps[8] = vec2[8](
-    vec2(0.7071, 0.7071), vec2(-0.7071, 0.7071),
-    vec2(0.7071, -0.7071), vec2(-0.7071, -0.7071),
-    vec2(1.0, 0.0), vec2(-1.0, 0.0),
-    vec2(0.0, 1.0), vec2(0.0, -1.0)
-  );
-  vec3 acc = sampleBg(px) * 2.0;
-  for (int i = 0; i < 8; i++) {
-    acc += sampleBg(px + taps[i] * radius);
-    acc += sampleBg(px + taps[i] * radius * 0.45);
-  }
-  return acc / 18.0;
+  float tpp = u_texSize.x / max(u_texRect.z, 1.0);
+  float lod = log2(max(radius * tpp, 1.0));
+  vec2 uv = clamp((px - u_texRect.xy) / u_texRect.zw, 0.001, 0.999);
+  vec2 o = vec2(radius * 0.6) / u_texRect.zw;
+  vec3 acc = textureLod(u_tex, uv, lod).rgb;
+  acc += textureLod(u_tex, clamp(uv + o, vec2(0.001), vec2(0.999)), lod).rgb;
+  acc += textureLod(u_tex, clamp(uv - o, vec2(0.001), vec2(0.999)), lod).rgb;
+  acc += textureLod(u_tex, clamp(uv + vec2(o.x, -o.y), vec2(0.001), vec2(0.999)), lod).rgb;
+  acc += textureLod(u_tex, clamp(uv + vec2(-o.x, o.y), vec2(0.001), vec2(0.999)), lod).rgb;
+  return acc / 5.0;
 }
 
 float hash(vec2 p) {
@@ -245,6 +244,7 @@ export const UNIFORMS = [
   'u_tex',
   'u_lensRect',
   'u_texRect',
+  'u_texSize',
   'u_canvasSize',
   'u_shapes',
   'u_shapeRadii',
@@ -388,8 +388,14 @@ export class GlRenderer {
     return new GlRenderer(gl, program, locations, buffer)
   }
 
+  #texW = 1
+  #texH = 1
+
   setTexture(source: TexImageSource): void {
     const gl = this.#gl
+    const sized = source as { width?: number; height?: number; videoWidth?: number; videoHeight?: number }
+    this.#texW = sized.width ?? sized.videoWidth ?? 1
+    this.#texH = sized.height ?? sized.videoHeight ?? 1
     if (!this.#texture) this.#texture = gl.createTexture()
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.#texture)
@@ -397,8 +403,9 @@ export class GlRenderer {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.generateMipmap(gl.TEXTURE_2D)
   }
 
   get hasTexture(): boolean {
@@ -429,6 +436,7 @@ export class GlRenderer {
       texRect.width,
       texRect.height
     )
+    gl.uniform2f(this.#locations.get('u_texSize') ?? null, this.#texW, this.#texH)
     for (const draw of draws) {
       const { material, quad } = draw
       const shapes = draw.shapes.slice(0, MAX_SHAPES)
