@@ -43,6 +43,25 @@ export function sampleTone(element: Element, backdrop: Element | null): Backdrop
   return observed === 'unpainted' ? 'light' : observed
 }
 
+export function averageGradient(image: string): [number, number, number, number] | null {
+  if (!image.includes('-gradient(') || image.includes('url(')) return null
+  const stops = image.match(/#[0-9a-f]{3,6}\b|rgba?\([^)]*\)/gi)
+  if (!stops) return null
+  const sum: [number, number, number, number] = [0, 0, 0, 0]
+  let count = 0
+  for (const stop of stops) {
+    const parsed = parseColor(stop)
+    if (!parsed) continue
+    sum[0] += parsed[0]
+    sum[1] += parsed[1]
+    sum[2] += parsed[2]
+    sum[3] += parsed[3]
+    count++
+  }
+  if (count === 0) return null
+  return [sum[0] / count, sum[1] / count, sum[2] / count, sum[3] / count]
+}
+
 export function observeTone(
   element: Element,
   backdrop: Element | null
@@ -53,13 +72,27 @@ export function observeTone(
   let node: Element | null = backdrop ?? element.parentElement
   while (node) {
     const computed = getComputedStyle(node)
-    const parsed = parseColor(computed.backgroundColor)
-    if (parsed && parsed[3] > 0.01) {
-      layers.push(parsed)
-      if (parsed[3] >= 0.99) break
-    } else if (computed.backgroundImage && computed.backgroundImage !== 'none') {
-      sawImage = true
+    const image = computed.backgroundImage
+    let settled = false
+    if (image && image !== 'none') {
+      const averaged = averageGradient(image)
+      if (averaged) {
+        if (averaged[3] > 0.01) {
+          layers.push(averaged)
+          settled = averaged[3] >= 0.99
+        }
+      } else {
+        sawImage = true
+      }
     }
+    if (!settled) {
+      const parsed = parseColor(computed.backgroundColor)
+      if (parsed && parsed[3] > 0.01) {
+        layers.push(parsed)
+        settled = parsed[3] >= 0.99
+      }
+    }
+    if (settled) break
     node = node.parentElement
   }
   if (layers.length === 0) {
@@ -111,11 +144,17 @@ export function adaptTintToTone(
   tone: BackdropTone | null,
   defaultTint: string
 ): MaterialParams {
-  if (tone !== 'light' || material.tint !== defaultTint) return material
+  if (!tone || material.tint !== defaultTint) return material
+  if (tone === 'dark') {
+    return {
+      ...material,
+      tint: '#14171e',
+      tintOpacity: Math.max(material.tintOpacity, 0.32)
+    }
+  }
   return {
     ...material,
-    tint: '#141414',
-    tintOpacity: Math.max(material.tintOpacity, 0.12)
+    tintOpacity: Math.max(material.tintOpacity, 0.4)
   }
 }
 

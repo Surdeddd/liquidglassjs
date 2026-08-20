@@ -311,7 +311,7 @@ inside the host. The division that works: style layout on the host — size, mar
 - **Scroll edge** — `mountScrollEdge(document.body, { position: 'top' })` progressively dissolves content under your floating bars, like iOS scroll edge effects.
 - **Morphing** — `morphGlass(from, to)` hands one control's geometry to another on a spring, the glassEffectID transition.
 - **Living physics** — a mass–spring–damper system drives gel squash, wobbly release and magnetic hover on any backend; sleeps when idle.
-- **Adaptive contrast** — glass samples backdrop luminance, flips its own tint over light content and exposes `data-liquid-glass-tone` for your text.
+- **Adaptive contrast** — glass samples backdrop luminance and follows it the way Apple's material does: dark smoke over dark content, white frost over light. It exposes `data-liquid-glass-tone` and a ready `--lg-on-glass` color for your text.
 - **Accessible by default** — reduced motion and reduced transparency are respected live; every injected layer is aria-hidden. Reduced transparency is only observable from a page in Chromium 118+, so the opaque fallback is a bonus rather than a contrast plan.
 - **Fast enough to be honest about** — ten lenses scrolling continuously start in the mid-30s with dispersion at full quality and settle around 100 once the fps watchdog drops the extra passes; render-on-demand everywhere, and nothing keeps a frame loop alive when the page is still. Numbers from the included bench, not a guess.
 
@@ -351,9 +351,10 @@ it into the snapshot.
 **Reduced transparency or Windows High Contrast.** The surface switches to an opaque material
 (refraction and dispersion off, tint raised). This is deliberate, and it follows the OS setting live.
 
-**Text over glass is unreadable.** `adaptive` samples the backdrop and flips the default tint, but it
-cannot resolve a luminance over an unpainted or image-only backdrop. Use the `tonechange` event or
-the `data-liquid-glass-tone` attribute to style text yourself, or set `tint` explicitly.
+**Text over glass is unreadable.** `adaptive` samples the backdrop and matches the default material
+to it — smoke over dark, frost over light — but it cannot resolve a luminance over a raster image
+backdrop. Use `color: var(--lg-on-glass)`, the `tonechange` event or the `data-liquid-glass-tone`
+attribute to style text yourself, or set `tint` explicitly.
 
 More symptoms, and more depth on these, in
 [docs/troubleshooting.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/troubleshooting.md)

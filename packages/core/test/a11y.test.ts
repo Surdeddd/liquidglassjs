@@ -59,9 +59,19 @@ describe('sampleTone', () => {
     parent.remove()
   })
 
-  it('gives up when a gradient hides the true tone', () => {
+  it('averages gradient stops into a tone', () => {
     const parent = document.createElement('div')
-    parent.style.backgroundImage = 'linear-gradient(#000, #fff)'
+    parent.style.backgroundImage = 'linear-gradient(#05070b, #10141f)'
+    const el = document.createElement('div')
+    parent.appendChild(el)
+    document.body.appendChild(parent)
+    expect(sampleTone(el, null)).toBe('dark')
+    parent.remove()
+  })
+
+  it('gives up when a raster image hides the true tone', () => {
+    const parent = document.createElement('div')
+    parent.style.backgroundImage = 'url(data:image/png;base64,AAAA)'
     const el = document.createElement('div')
     parent.appendChild(el)
     document.body.appendChild(parent)
@@ -177,20 +187,25 @@ describe('tone attribute', () => {
 })
 
 describe('adaptTintToTone', () => {
-  it('flips the default tint to dark over light backdrops', () => {
+  it('frosts the default tint over light backdrops', () => {
     const material = adaptTintToTone(MATERIAL_DEFAULTS, 'light', MATERIAL_DEFAULTS.tint)
-    expect(material.tint).toBe('#141414')
+    expect(material.tint).toBe(MATERIAL_DEFAULTS.tint)
+    expect(material.tintOpacity).toBeGreaterThanOrEqual(0.4)
+  })
+
+  it('smokes the default tint over dark backdrops', () => {
+    const material = adaptTintToTone(MATERIAL_DEFAULTS, 'dark', MATERIAL_DEFAULTS.tint)
+    expect(material.tint).toBe('#14171e')
+    expect(material.tintOpacity).toBeGreaterThanOrEqual(0.32)
   })
 
   it('keeps custom tints untouched', () => {
     const custom = { ...MATERIAL_DEFAULTS, tint: '#7c5cff' }
     expect(adaptTintToTone(custom, 'light', MATERIAL_DEFAULTS.tint)).toBe(custom)
+    expect(adaptTintToTone(custom, 'dark', MATERIAL_DEFAULTS.tint)).toBe(custom)
   })
 
-  it('does nothing over dark or unknown backdrops', () => {
-    expect(adaptTintToTone(MATERIAL_DEFAULTS, 'dark', MATERIAL_DEFAULTS.tint)).toBe(
-      MATERIAL_DEFAULTS
-    )
+  it('does nothing over unknown backdrops', () => {
     expect(adaptTintToTone(MATERIAL_DEFAULTS, null, MATERIAL_DEFAULTS.tint)).toBe(MATERIAL_DEFAULTS)
   })
 })

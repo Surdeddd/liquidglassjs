@@ -187,8 +187,14 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     if (tone !== previousTone) emitter.emit('tonechange', tone)
     if (tone !== previousTone || !toneWritten) {
       toneWritten = true
-      if (tone) element.setAttribute('data-liquid-glass-tone', tone)
-      else element.removeAttribute('data-liquid-glass-tone')
+      const styled = element instanceof HTMLElement ? element : null
+      if (tone) {
+        element.setAttribute('data-liquid-glass-tone', tone)
+        styled?.style.setProperty('--lg-on-glass', tone === 'light' ? '#1d1d1f' : '#f5f5f7')
+      } else {
+        element.removeAttribute('data-liquid-glass-tone')
+        styled?.style.removeProperty('--lg-on-glass')
+      }
     }
   }
   applyMaterial()

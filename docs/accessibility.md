@@ -74,18 +74,18 @@ the library. Treat the reduced material as a bonus, not as your contrast plan.
 With `adaptive` left on, which is the default, the engine works out whether the surface is standing
 on light or dark content and reacts twice:
 
-- It flips the **default** tint from `#ffffff` to `#141414` over light backdrops and raises the tint
-  opacity to at least `0.12`. A `tint` you set explicitly is never touched — setting one is how you
-  opt out.
-- It writes `data-liquid-glass-tone="light"` or `"dark"` on your element and emits `tonechange`,
-  which is the hook for styling your own text.
+- It makes the **default** tint follow the backdrop, the way Apple's material does: `#14171e` smoke
+  at an opacity of at least `0.32` over dark content, white frost at an opacity of at least `0.4`
+  over light. A `tint` you set explicitly is never touched — setting one is how you opt out.
+- It writes `data-liquid-glass-tone="light"` or `"dark"` on your element, sets `--lg-on-glass` to a
+  matching content color you can use directly, and emits `tonechange` for anything richer.
 
 The crossover is a relative luminance of `0.179`, which is where black and white text trade places
 for contrast against a grey.
 
-Two sources feed it. The first walks up the ancestor chain compositing background colours, and gives
-up — `null`, no attribute — when it hits a gradient or a background image it cannot reduce to one
-colour. The second is a coarse luminance grid built from the page snapshot, which only exists once a
+Two sources feed it. The first walks up the ancestor chain compositing background colours; a CSS
+gradient is reduced to the average of its stops, and only a raster background image makes it give
+up — `null`, no attribute. The second is a coarse luminance grid built from the page snapshot, which only exists once a
 `webgl-overlay` lens has taken one; `setLuminanceGrid()` is exported so you can supply your own from
 whatever you already know about the page.
 
