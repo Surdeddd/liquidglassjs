@@ -15,6 +15,7 @@ const OPTION_KEY_MAP: Record<keyof LiquidGlassOptions, true> = {
   dispersion: true,
   specular: true,
   shadow: true,
+  lighting: true,
   frost: true,
   radius: true,
   shape: true,

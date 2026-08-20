@@ -15,6 +15,7 @@ export const MATERIAL_DEFAULTS: MaterialParams = {
   dispersion: 0.15,
   specular: 0.6,
   shadow: 0.55,
+  lighting: false,
   frost: 0,
   radius: 'auto',
   shape: 'rounded'

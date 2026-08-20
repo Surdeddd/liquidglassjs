@@ -91,12 +91,25 @@ export interface MapOptions {
 
 interface OffsetField {
   data: Float32Array
+  /** The dome profile, 0 at the outer edge rising to 1 across the flat interior. */
+  dome: Uint8ClampedArray
   width: number
   height: number
   padX: number
   padY: number
   scale: number
   maxOffset: number
+}
+
+/**
+ * The same quartic dome the refraction is derived from, as a height rather than a
+ * slope — this is what a lighting primitive needs to shade a bevel.
+ */
+export function domeHeight(depth: number, band: number): number {
+  if (depth < 0) return 0
+  if (band <= 0 || depth >= band) return 1
+  const u = 1 - depth / band
+  return Math.pow(Math.max(1 - Math.pow(u, 4), 0), 0.25)
 }
 
 export function computeOffsets(opts: MapOptions): OffsetField {
@@ -137,6 +150,7 @@ export function computeOffsets(opts: MapOptions): OffsetField {
   const cx = sdfSpec.width / 2
   const cy = sdfSpec.height / 2
   const data = new Float32Array(w * h * 2)
+  const dome = new Uint8ClampedArray(w * h)
   let maxOffset = 0
 
   const halfW = Math.ceil(w / 2)
@@ -171,9 +185,16 @@ export function computeOffsets(opts: MapOptions): OffsetField {
       writeOffset(data, w, w - 1 - x, y, -dx, dy)
       writeOffset(data, w, x, h - 1 - y, dx, -dy)
       writeOffset(data, w, w - 1 - x, h - 1 - y, -dx, -dy)
+      // Zero is reserved for "outside the shape" so a mask can tell the rim, where
+      // the dome is also near zero, apart from the field around it.
+      const lit = depth < 0 ? 0 : 1 + Math.round(254 * domeHeight(depth, band))
+      dome[y * w + x] = lit
+      dome[y * w + (w - 1 - x)] = lit
+      dome[(h - 1 - y) * w + x] = lit
+      dome[(h - 1 - y) * w + (w - 1 - x)] = lit
     }
   }
-  return { data, width: w, height: h, padX, padY, scale, maxOffset: maxOffset / (scale || 1) }
+  return { data, dome, width: w, height: h, padX, padY, scale, maxOffset: maxOffset / (scale || 1) }
 }
 
 function writeOffset(data: Float32Array, w: number, x: number, y: number, dx: number, dy: number): void {
@@ -260,13 +281,13 @@ export function lensMapKey(opts: MapOptions): string {
 }
 
 export function renderLensPixels(opts: MapOptions): LensPixels {
-  const { data, width, height, scale, maxOffset } = computeOffsets(opts)
+  const { data, dome, width, height, scale, maxOffset } = computeOffsets(opts)
   const pixels = new Uint8ClampedArray(width * height * 4)
   const norm = maxOffset * scale || 1
   for (let p = 0, i = 0; p < data.length; p += 2, i += 4) {
     pixels[i] = 128 + Math.round((data[p]! / norm) * 127)
     pixels[i + 1] = 128 + Math.round((data[p + 1]! / norm) * 127)
-    pixels[i + 2] = 128
+    pixels[i + 2] = dome[p >> 1] ?? 128
     pixels[i + 3] = 255
   }
   return { pixels, width, height, maxOffset }

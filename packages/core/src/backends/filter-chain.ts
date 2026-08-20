@@ -14,6 +14,27 @@ export interface LensChainNodes {
   displace: SVGFEDisplacementMapElement
   blur: SVGFEGaussianBlurElement
   setScale(scale: number): void
+  /** Points the highlight at a compass bearing, or does nothing when unlit. */
+  setLightAngle(deg: number): void
+}
+
+interface LensLightNodes {
+  distant: SVGFEDistantLightElement
+}
+
+const DEFAULT_AZIMUTH = 225
+
+/**
+ * `feDistantLight` measures anticlockwise from the +x axis; the engine's light angle
+ * is a compass bearing with 0 above the element.
+ */
+function azimuthFromBearing(deg: number): number {
+  return (((90 - deg) % 360) + 360) % 360
+}
+
+function resolveSurfaceScale(material: MaterialParams): number {
+  const thickness = typeof material.thickness === 'number' ? material.thickness : 12
+  return Math.max(2, Math.min(thickness, 40))
 }
 
 function el<K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] {
@@ -128,6 +149,74 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
     lensResult = 'lgFrost'
   }
 
+  // The map's blue channel carries the dome height, so the same texture that bends
+  // the backdrop can light it. Without this the default backends have no specular at
+  // all and the whole light response falls to one gradient ring in the DOM.
+  let lightNodes: LensLightNodes | null = null
+  if (material.lighting && material.specular > 0.001) {
+    const height = el('feColorMatrix')
+    height.setAttribute('in', 'lgMap')
+    height.setAttribute('type', 'matrix')
+    height.setAttribute('values', '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0')
+    height.setAttribute('result', 'lgHeight')
+
+    const distant = el('feDistantLight')
+    distant.setAttribute('azimuth', String(DEFAULT_AZIMUTH))
+    distant.setAttribute('elevation', '58')
+
+    const specular = el('feSpecularLighting')
+    specular.setAttribute('in', 'lgHeight')
+    specular.setAttribute('surfaceScale', String(resolveSurfaceScale(material)))
+    specular.setAttribute('specularConstant', (material.specular * 1.1).toFixed(3))
+    specular.setAttribute('specularExponent', '22')
+    specular.setAttribute('lighting-color', '#ffffff')
+    specular.setAttribute('result', 'lgSpec')
+    specular.setAttribute('data-lg-role', 'specular')
+    specular.appendChild(distant)
+
+    // A flat interior under a distant light returns a constant highlight across the
+    // whole surface, which is a wash rather than a lens. Confine it to the bevel:
+    // step the height to "inside", subtract the dome, and what is left is the band.
+    const inside = el('feComponentTransfer')
+    inside.setAttribute('in', 'lgHeight')
+    inside.setAttribute('result', 'lgInside')
+    const insideFn = el('feFuncA')
+    insideFn.setAttribute('type', 'linear')
+    insideFn.setAttribute('slope', '255')
+    insideFn.setAttribute('intercept', '0')
+    inside.appendChild(insideFn)
+
+    const rim = el('feComposite')
+    rim.setAttribute('in', 'lgInside')
+    rim.setAttribute('in2', 'lgHeight')
+    rim.setAttribute('operator', 'arithmetic')
+    rim.setAttribute('k1', '0')
+    rim.setAttribute('k2', '1')
+    rim.setAttribute('k3', '-1')
+    rim.setAttribute('k4', '0')
+    rim.setAttribute('result', 'lgRim')
+
+    const clip = el('feComposite')
+    clip.setAttribute('in', 'lgSpec')
+    clip.setAttribute('in2', 'lgRim')
+    clip.setAttribute('operator', 'in')
+    clip.setAttribute('result', 'lgSpecClipped')
+
+    const add = el('feComposite')
+    add.setAttribute('in', lensResult)
+    add.setAttribute('in2', 'lgSpecClipped')
+    add.setAttribute('operator', 'arithmetic')
+    add.setAttribute('k1', '0')
+    add.setAttribute('k2', '1')
+    add.setAttribute('k3', '1')
+    add.setAttribute('k4', '0')
+    add.setAttribute('result', 'lgLit')
+
+    filter.append(height, inside, rim, specular, clip, add)
+    lensResult = 'lgLit'
+    lightNodes = { distant }
+  }
+
   const saturate = el('feColorMatrix')
   saturate.setAttribute('in', lensResult)
   saturate.setAttribute('type', 'saturate')
@@ -149,6 +238,10 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
     feImage,
     displace,
     blur,
+    setLightAngle(deg: number) {
+      if (!lightNodes) return
+      lightNodes.distant.setAttribute('azimuth', azimuthFromBearing(deg).toFixed(0))
+    },
     setScale(next: number) {
       const shift = material.dispersion * 0.25
       for (const node of displaceNodes) {

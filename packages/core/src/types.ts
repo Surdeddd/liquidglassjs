@@ -25,6 +25,7 @@ export interface MaterialParams {
   dispersion: number
   specular: number
   shadow: number
+  lighting: boolean
   frost: number
   radius: number | 'auto'
   shape: LiquidGlassShape

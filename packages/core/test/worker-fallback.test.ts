@@ -34,11 +34,15 @@ describe('requestLensMap fallback path', () => {
     expect(spy.mock.calls[0]?.[0]).toBe(spy.mock.calls[1]?.[0])
   })
 
-  it('renderLensPixels produces neutral-centered rgba data', () => {
+  it('renderLensPixels carries offsets in rg and the dome height in b', () => {
     const rendered = renderLensPixels(OPTS)
     expect(rendered.pixels.length).toBe(rendered.width * rendered.height * 4)
-    expect(rendered.pixels[2]).toBe(128)
+    // Top-left corner sits in the padding, outside the shape entirely.
+    expect(rendered.pixels[2]).toBe(0)
     expect(rendered.pixels[3]).toBe(255)
+    // Dead centre is flat interior, so the dome is at full height there.
+    const mid = ((rendered.height >> 1) * rendered.width + (rendered.width >> 1)) * 4
+    expect(rendered.pixels[mid + 2]).toBe(255)
     expect(lensMapKey(OPTS)).toContain('240|120')
   })
 
