@@ -29,6 +29,7 @@ export default defineConfig({
   },
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    colorScheme: 'dark',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure'

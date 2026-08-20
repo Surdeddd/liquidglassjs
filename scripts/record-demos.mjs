@@ -8,6 +8,7 @@ const browser = await chromium.launch({ headless: true })
 async function record(name, run) {
   const context = await browser.newContext({
     viewport: { width: 1920, height: 1120 },
+    colorScheme: 'dark',
     recordVideo: { dir: OUT, size: { width: 1920, height: 1120 } }
   })
   const page = await context.newPage()

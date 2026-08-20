@@ -10,6 +10,7 @@ import {
 import { attach } from '../src/engine'
 import { colorWithOpacity } from '../src/color'
 import { MATERIAL_DEFAULTS } from '../src/material'
+import { setLuminanceGrid } from '../src/quality/contrast'
 
 describe('parseColor', () => {
   it('parses hex and rgb forms', () => {
@@ -133,6 +134,45 @@ describe('tone crossover', () => {
   it('puts the crossover where white and black text trade places', () => {
     expect(relativeLuminance(110, 110, 110)).toBeLessThan(TONE_CROSSOVER)
     expect(relativeLuminance(125, 125, 125)).toBeGreaterThan(TONE_CROSSOVER)
+  })
+})
+
+describe('tone attribute', () => {
+  function toneWrites(spy: ReturnType<typeof vi.spyOn>): number {
+    return spy.mock.calls.filter((call: unknown[]) => call[0] === 'data-liquid-glass-tone').length
+  }
+
+  it('touches the element only when the sampled tone changes', () => {
+    const parent = document.createElement('div')
+    parent.style.backgroundColor = '#ffffff'
+    const el = document.createElement('div')
+    parent.appendChild(el)
+    document.body.appendChild(parent)
+    const handle = attach(el, { backend: 'css-fallback', physics: false })
+    expect(el.getAttribute('data-liquid-glass-tone')).toBe('light')
+
+    const writes = vi.spyOn(el, 'setAttribute')
+    for (let i = 0; i < 4; i++) setLuminanceGrid(null)
+    expect(toneWrites(writes)).toBe(0)
+
+    parent.style.backgroundColor = '#101418'
+    setLuminanceGrid(null)
+    expect(el.getAttribute('data-liquid-glass-tone')).toBe('dark')
+    expect(toneWrites(writes)).toBe(1)
+
+    writes.mockRestore()
+    handle.destroy()
+    parent.remove()
+  })
+
+  it('clears a tone left in the markup when the surface is not adaptive', () => {
+    const el = document.createElement('div')
+    el.setAttribute('data-liquid-glass-tone', 'dark')
+    document.body.appendChild(el)
+    const handle = attach(el, { backend: 'css-fallback', adaptive: false, physics: false })
+    expect(el.hasAttribute('data-liquid-glass-tone')).toBe(false)
+    handle.destroy()
+    el.remove()
   })
 })
 

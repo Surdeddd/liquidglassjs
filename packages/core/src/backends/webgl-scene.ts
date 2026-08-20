@@ -1,6 +1,6 @@
 import { colorWithOpacity } from '../color'
-import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
-import { GlRenderer, type GlDraw, type GlRect } from '../gl/renderer'
+import { resolveRadiusPx } from '../displacement'
+import { GlRenderer, scaleMaterialToDevice, type GlDraw, type GlRect } from '../gl/renderer'
 import { glassShadowCss } from '../material'
 import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
@@ -150,25 +150,26 @@ class WebglSceneInstance implements BackendInstance {
     const reference = surface.backdrop ?? this.#host
     const refBox = reference.getBoundingClientRect()
     const quad = { x: 0, y: 0, width: hostBox.width * dpr, height: hostBox.height * dpr }
+    const radius = resolveRadiusPx(
+      surface.material.radius,
+      surface.element,
+      hostBox.width,
+      hostBox.height
+    )
     const painted = this.#gl.paint(
       width,
       height,
       [
         {
           quad,
-          shapes: [
-            {
-              rect: quad,
-              radius:
-                resolveRadiusPx(surface.material.radius, surface.element, hostBox.width, hostBox.height) *
-                dpr
-            }
-          ],
-          material: {
-            ...surface.material,
-            thickness:
-              resolveThicknessPx(surface.material.thickness, hostBox.width, hostBox.height) * dpr
-          },
+          shapes: [{ rect: quad, radius: radius * dpr }],
+          material: scaleMaterialToDevice(surface.material, {
+            radius,
+            width: hostBox.width,
+            height: hostBox.height,
+            ratio: dpr
+          }),
+          pxRatio: dpr,
           mergeK: 1
         }
       ],

@@ -7,20 +7,48 @@
       name="description"
       content="LiquidGlassJS — Liquid Glass for the whole web. One engine, every browser, every framework: real Snell lens optics, spring physics, metaball merging, adaptive contrast."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://liquidglassjs.vercel.app/" />
+    <meta property="og:site_name" content="LiquidGlassJS" />
     <meta property="og:title" content="LiquidGlassJS" />
     <meta
       property="og:description"
       content="Liquid Glass for the whole web — one engine, every browser, every framework."
     />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>" />
+    <meta property="og:image" content="https://liquidglassjs.vercel.app/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="LIQUID GLASS set in outlined display type behind a refracting glass lens." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LiquidGlassJS" />
+    <meta
+      name="twitter:description"
+      content="Liquid Glass for the whole web — one engine, every browser, every framework."
+    />
+    <meta name="twitter:image" content="https://liquidglassjs.vercel.app/og.jpg" />
+    <meta name="theme-color" data-theme="light" media="(prefers-color-scheme: light)" content="#f6f8fd" />
+    <meta name="theme-color" data-theme="dark" media="(prefers-color-scheme: dark)" content="#04060c" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/fonts/fonts.css" />
     <title>LiquidGlassJS — Liquid Glass for the whole web</title>
+    <script>
+      // Runs before first paint so a stored light preference never flashes dark.
+      try {
+        var stored = null
+        try { stored = localStorage.getItem('lgjs-theme') } catch (e) {}
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.dataset.theme = stored
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div class="wp" data-wall="aurora" data-wall-seed="7" aria-hidden="true"></div>
     <div class="grain" data-liquid-glass-ignore aria-hidden="true"></div>
 
-    <liquid-glass class="nav" preset="clear" physics="false" motion-light>
+    <liquid-glass class="nav" preset="clear" physics="false" dispersion="0" motion-light>
       <span class="nav-logo">
         <svg class="nav-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <defs>
@@ -33,15 +61,25 @@
           <ellipse cx="9.2" cy="8.8" rx="3.1" ry="2.2" fill="#ffffff" opacity="0.72" transform="rotate(-28 9.2 8.8)" />
         </svg>
         liquidglass<span class="nav-logo-dim">js</span></span>
-      <span class="nav-links">
-        <a href="#ios">showcase</a>
-        <a href="#playground">playground</a>
-        <a href="/api/" target="_blank" rel="noreferrer">api</a>
-        <a href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
-      </span>
+      <nav class="nav-links" aria-label="page sections">
+        <a href="#tiers" data-spy="tiers physics metaballs adaptive">engine</a>
+        <a href="#ios" data-spy="ios">showcase</a>
+        <a href="#playground" data-spy="playground frameworks budget start">playground</a>
+        <a class="nav-out nav-api" href="/api/" target="_blank" rel="noreferrer">api</a>
+        <a class="nav-out" href="https://github.com/Surdeddd/liquidglassjs" target="_blank" rel="noreferrer">github</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="switch to the light theme">
+        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="4.4" />
+          <path d="M12 1.6v3M12 19.4v3M1.6 12h3M19.4 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1" />
+        </svg>
+        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20.4 14.6A8.8 8.8 0 0 1 9.4 3.6a8.8 8.8 0 1 0 11 11Z" />
+        </svg>
+      </button>
     </liquid-glass>
 
-    <header class="hero">
+    <header class="hero" id="top">
       <div class="hero-titles" aria-hidden="true">
         <span class="hero-word">LIQUID</span>
         <span class="hero-word hero-word-outline">GLASS</span>
@@ -121,6 +159,7 @@
           The iOS 26 signature move: SDF smooth-min metaballs in a WebGL2 shader. Give two lenses the
           same <code>merge</code> group and they flow into each other — over your real page.
         </p>
+        <p class="demo-kicker">metaballs</p>
         <div class="stage merge-stage">
           <div class="wall" data-wall="sea" data-wall-seed="3" aria-hidden="true"></div>
           <liquid-glass-group spacing="64" class="m-group">
@@ -128,11 +167,9 @@
             <liquid-glass class="m-blob m-blob-b" preset="clear" ior="1.8" physics="false"></liquid-glass>
           </liquid-glass-group>
         </div>
-        <p class="section-lead dock-lead">
-          The same trick powers the tab bar: the pill rides a spring and bulges through the dock as it
-          passes.
-        </p>
-        <p class="section-lead dock-lead">
+
+        <p class="demo-kicker">morph</p>
+        <p class="section-lead demo-lead">
           And whole controls morph: hand one glass its sibling and the material rides a spring
           between them.
         </p>
@@ -145,11 +182,18 @@
             <span class="morph-panel-row morph-panel-hint">tap to morph back</span>
           </liquid-glass>
         </div>
-        <div class="dock-stage">
+
+        <p class="demo-kicker">dock</p>
+        <p class="section-lead demo-lead">
+          The same trick powers the tab bar: the pill rides a spring and bulges through the dock as it
+          passes.
+        </p>
+        <div class="dock-stage stage">
+          <div class="wall" data-wall="dawn" data-wall-seed="53" aria-hidden="true"></div>
           <div class="dock">
             <liquid-glass class="dock-bar" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
             <liquid-glass class="dock-pill" backend="webgl-overlay" merge="dock" merge-strength="36" preset="clear" physics="false"></liquid-glass>
-            <nav class="dock-tabs" data-liquid-glass-ignore>
+            <nav class="dock-tabs" data-liquid-glass-ignore aria-label="dock demo">
               <button type="button" data-dock="0" class="active">glass</button>
               <button type="button" data-dock="1">physics</button>
               <button type="button" data-dock="2">merge</button>
@@ -292,14 +336,21 @@
       <section class="section reveal" id="frameworks">
         <p class="section-index">07</p>
         <h2 class="section-title">One core, your framework</h2>
-        <div class="fw-tabs" role="tablist">
-          <button type="button" class="active" data-tab="vanilla">vanilla</button>
-          <button type="button" data-tab="element">element</button>
-          <button type="button" data-tab="react">react</button>
-          <button type="button" data-tab="vue">vue</button>
-          <button type="button" data-tab="svelte">svelte</button>
+        <p class="section-lead">
+          The same engine ships five ways. Wrappers are thin — they mount the core and hand back the
+          identical handle — so nothing about the optics changes when your stack does.
+        </p>
+        <div class="fw-tabs" role="tablist" aria-label="framework">
+          <button type="button" class="active" role="tab" id="fw-tab-vanilla" aria-controls="fw-snippet" aria-selected="true" data-tab="vanilla">vanilla</button>
+          <button type="button" role="tab" id="fw-tab-element" aria-controls="fw-snippet" aria-selected="false" tabindex="-1" data-tab="element">element</button>
+          <button type="button" role="tab" id="fw-tab-react" aria-controls="fw-snippet" aria-selected="false" tabindex="-1" data-tab="react">react</button>
+          <button type="button" role="tab" id="fw-tab-vue" aria-controls="fw-snippet" aria-selected="false" tabindex="-1" data-tab="vue">vue</button>
+          <button type="button" role="tab" id="fw-tab-svelte" aria-controls="fw-snippet" aria-selected="false" tabindex="-1" data-tab="svelte">svelte</button>
         </div>
-        <pre class="fw-code"><code data-fw-code></code></pre>
+        <div class="fw-panel">
+          <pre class="fw-code" id="fw-snippet" role="tabpanel" aria-labelledby="fw-tab-vanilla" tabindex="0"><code data-fw-code></code></pre>
+          <button class="copy-btn" data-copy-fw type="button" aria-label="copy the snippet">copy</button>
+        </div>
       </section>
 
       <section class="section reveal" id="budget">

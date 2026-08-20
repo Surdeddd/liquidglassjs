@@ -1,0 +1,96 @@
+name: fps bench
+
+# Nothing gates on this. A shared runner rasterises in software, so the absolute
+# number lands far under what real hardware reports and no pass mark drawn from it
+# would describe the library. What it can do is hold a line across weeks on the same
+# runner class, which is where a regression in the optics would show up.
+on:
+  schedule:
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: fps-bench
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Resolve playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      # A key of its own: the e2e cache under the shared key holds three browsers, and
+      # a chromium-only entry saved over it would leave e2e without webkit or firefox.
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install browser system dependencies
+        timeout-minutes: 10
+        run: pnpm exec playwright install-deps chromium
+      - name: Download browser
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 15
+        run: pnpm exec playwright install chromium
+
+      # Server and bench share a step on purpose: a process backgrounded in an earlier
+      # `run:` does not survive into the next one. BENCH_URL is spelled out because the
+      # runner resolves localhost to ::1 first and vite preview is bound to 127.0.0.1.
+      - name: Measure
+        env:
+          BENCH_URL: http://127.0.0.1:4173/bench.html
+        run: |
+          set -euo pipefail
+
+          pnpm --filter demo exec vite build
+          pnpm --filter demo exec vite preview --host 127.0.0.1 --port 4173 --strictPort &
+          preview=$!
+          trap 'kill "${preview}" 2>/dev/null || true' EXIT
+
+          ready=0
+          for _ in $(seq 1 60); do
+            if curl -sf -o /dev/null "${BENCH_URL}"; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "${ready}" -ne 1 ]; then
+            echo "the preview server never answered on ${BENCH_URL}"
+            exit 1
+          fi
+
+          output=$(node scripts/fps-bench.mjs 2>&1 || true)
+          printf '%s\n' "${output}"
+
+          {
+            echo '## fps bench'
+            echo
+            echo '```'
+            printf '%s\n' "${output}"
+            echo '```'
+            echo
+            echo "Runner \`${RUNNER_OS}\`, chromium headless on a software rasteriser."
+            echo 'Compare against previous runs of this workflow, not against the target.'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          # A reading under the script's own 55 fps target is what this hardware gives
+          # and says nothing; a run that produced no reading at all is a broken bench.
+          if ! printf '%s' "${output}" | grep -q '^fps bench:'; then
+            echo "the bench finished without reporting a measurement"
+            exit 1
+          fi

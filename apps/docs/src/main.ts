@@ -11,12 +11,15 @@ import {
   type LiquidGlassPreset,
   type MaterialParams
 } from '@surdeddd/liquidglass/element'
+import { mountTheme } from './theme'
 import { paintAllWallpapers } from './wallpaper'
 import './style.css'
 
 paintAllWallpapers()
 define()
 mountScrollEdge(document.body, { position: 'top', size: 108, strength: 10 })
+
+mountTheme(() => paintAllWallpapers())
 
 const heroLensB = document.querySelector<HTMLElement>('[data-hero-lens-b]')
 if (heroLensB) {
@@ -62,6 +65,44 @@ for (const el of document.querySelectorAll('.reveal')) {
   else el.classList.add('in')
 }
 
+const nav = document.querySelector('.nav')
+const spyLinks = [...document.querySelectorAll<HTMLAnchorElement>('.nav-links a[data-spy]')]
+const spyOwner = new Map<string, HTMLAnchorElement>()
+for (const link of spyLinks) {
+  for (const id of (link.dataset['spy'] ?? '').split(' ')) spyOwner.set(id, link)
+}
+
+if (spyOwner.size > 0 && typeof IntersectionObserver !== 'undefined') {
+  const visible = new Set<string>()
+  const watched = [...spyOwner.keys(), 'top']
+  let active: HTMLAnchorElement | null = null
+  const mark = (): void => {
+    const first = watched.find(id => visible.has(id))
+    if (first) active = spyOwner.get(first) ?? null
+    for (const link of spyLinks) link.classList.toggle('current', link === active)
+  }
+  const spy = new IntersectionObserver(
+    entries => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(entry.target.id)
+        else visible.delete(entry.target.id)
+      }
+      mark()
+    },
+    { rootMargin: '-45% 0px -45% 0px' }
+  )
+  for (const id of watched) {
+    const target = document.getElementById(id)
+    if (target) spy.observe(target)
+  }
+}
+
+const setScrolled = (): void => {
+  nav?.classList.toggle('scrolled', window.scrollY > 60)
+}
+setScrolled()
+addEventListener('scroll', setScrolled, { passive: true })
+
 const probeLens = document.querySelector('liquid-glass[data-probe]')
 const backendChip = document.querySelector('[data-backend-chip]')
 if (probeLens && backendChip) {
@@ -73,22 +114,23 @@ if (probeLens && backendChip) {
 }
 
 function wireCopy(button: Element | null, text: () => string): void {
-  button?.addEventListener('click', () => {
+  if (!button) return
+  const idle = button.textContent ?? 'copy'
+  button.addEventListener('click', () => {
     void navigator.clipboard?.writeText(text()).then(() => {
       button.classList.add('done')
       button.textContent = 'copied'
       setTimeout(() => {
         button.classList.remove('done')
-        button.textContent = button.hasAttribute('data-copy-install') ? 'copy' : 'copy config'
+        button.textContent = idle
       }, 1600)
     })
   })
 }
 
-wireCopy(
-  document.querySelector('[data-copy-install]'),
-  () => document.querySelector('[data-install]')?.textContent ?? ''
-)
+for (const button of document.querySelectorAll('[data-copy-install]')) {
+  wireCopy(button, () => document.querySelector('[data-install]')?.textContent ?? '')
+}
 
 const pgLens = document.querySelector<HTMLElement>('[data-pg-lens]')
 const snippetNode = document.querySelector('[data-snippet]')
@@ -297,15 +339,35 @@ import { LiquidGlass, vLiquidGlass } from '@surdeddd/liquidglass/vue'
 }
 
 const fwCode = document.querySelector('[data-fw-code]')
+const fwPanel = document.getElementById('fw-snippet')
 const fwTabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')]
+
 function showTab(name: string): void {
   if (fwCode) fwCode.textContent = FRAMEWORK_SNIPPETS[name] ?? ''
-  fwTabs.forEach(tab => tab.classList.toggle('active', tab.dataset['tab'] === name))
+  for (const tab of fwTabs) {
+    const on = tab.dataset['tab'] === name
+    tab.classList.toggle('active', on)
+    tab.setAttribute('aria-selected', String(on))
+    tab.tabIndex = on ? 0 : -1
+    if (on) fwPanel?.setAttribute('aria-labelledby', tab.id)
+  }
 }
-for (const tab of fwTabs) {
+
+for (const [index, tab] of fwTabs.entries()) {
   tab.addEventListener('click', () => showTab(tab.dataset['tab'] ?? 'vanilla'))
+  tab.addEventListener('keydown', event => {
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+    if (step === 0) return
+    event.preventDefault()
+    const next = fwTabs[(index + step + fwTabs.length) % fwTabs.length]
+    if (!next) return
+    showTab(next.dataset['tab'] ?? 'vanilla')
+    next.focus()
+  })
 }
 showTab('vanilla')
+
+wireCopy(document.querySelector('[data-copy-fw]'), () => fwCode?.textContent ?? '')
 
 wireCopy(document.querySelector('[data-copy-snippet]'), () => snippetNode?.textContent ?? '')
 

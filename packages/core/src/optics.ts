@@ -2,15 +2,32 @@ export interface LensOptions {
   band: number
   ior: number
   thickness: number
+  bevelDepth?: number | undefined
 }
 
 const FOLD_CAP = 0.9
 
-export function lensProfile(depth: number, { band, ior, thickness }: LensOptions): number {
+export const DEFAULT_BEVEL_DEPTH = 0.6
+
+/**
+ * The bevel is a superellipse of revolution: height rises as (1 - u^n)^(1/n) across the
+ * band. n = 2 is a circular roll-off; larger n holds the surface flat and turns down late.
+ */
+export function domeExponent(bevelDepth: number): number {
+  return 2 + 4 * bevelDepth
+}
+
+export function lensProfile(
+  depth: number,
+  { band, ior, thickness, bevelDepth }: LensOptions
+): number {
   if (depth < 0 || depth >= band || band <= 0 || ior <= 1) return 0
-  const t = depth / band
-  const u = 1 - t
-  const slope = (thickness / band) * u * u * u * Math.pow(Math.max(1 - u * u * u * u, 1e-4), -0.75)
+  const n = domeExponent(bevelDepth ?? DEFAULT_BEVEL_DEPTH)
+  const u = 1 - depth / band
+  const slope =
+    (thickness / band) *
+    Math.pow(u, n - 1) *
+    Math.pow(Math.max(1 - Math.pow(u, n), 1e-4), (1 - n) / n)
   const alpha = Math.atan(slope)
   const beta = Math.asin(Math.min(1, Math.sin(alpha) / ior))
   const offset = thickness * Math.tan(alpha - beta)

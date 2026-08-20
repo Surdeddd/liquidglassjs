@@ -126,6 +126,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   let backend: Backend = pickBackend()
   const emitter = createEmitter()
   let tone: BackdropTone | null = null
+  let toneWritten = false
   let lastToneSample = 0
 
   const surface: BackendSurface = {
@@ -181,8 +182,11 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     }
     surface.material = material
     if (tone !== previousTone) emitter.emit('tonechange', tone)
-    if (tone) element.setAttribute('data-liquid-glass-tone', tone)
-    else element.removeAttribute('data-liquid-glass-tone')
+    if (tone !== previousTone || !toneWritten) {
+      toneWritten = true
+      if (tone) element.setAttribute('data-liquid-glass-tone', tone)
+      else element.removeAttribute('data-liquid-glass-tone')
+    }
   }
   applyMaterial()
 

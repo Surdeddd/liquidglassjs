@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { computeOffsets, generateLensMap, resolveRadiusPx, sdfRoundedRect } from '../src/displacement'
+import {
+  computeOffsets,
+  domeHeight,
+  generateLensMap,
+  lensMapKey,
+  resolveRadiusPx,
+  sdfRoundedRect,
+  type MapOptions
+} from '../src/displacement'
 
 describe('sdfRoundedRect', () => {
   it('is negative inside the shape', () => {
@@ -41,7 +49,7 @@ const base = {
   magnify: 0,
 }
 
-function offsetAt(opts: typeof base, x: number, y: number): [number, number] {
+function offsetAt(opts: MapOptions, x: number, y: number): [number, number] {
   const { data, width, padX, padY } = computeOffsets(opts)
   const i = ((y + padY) * width + (x + padX)) * 2
   return [data[i]!, data[i + 1]!]
@@ -154,9 +162,6 @@ describe('map budget', () => {
   }
 
   it('resolves the bevel band on a wide bar instead of spending texels on its length', () => {
-    // Budgeting by longest side left a 1440x64 bar with under six texels across a
-    // 24px band, so the bend it is supposed to show was interpolated away — on the
-    // one shape this material is used for most.
     const field = computeOffsets(bar)
     expect(bar.band * field.scale).toBeGreaterThanOrEqual(16)
   })
@@ -184,5 +189,31 @@ describe('generateLensMap', () => {
 
   it('caches identical option sets', () => {
     expect(generateLensMap({ ...base })).toBe(generateLensMap({ ...base }))
+  })
+})
+
+describe('bevelDepth reaches the map', () => {
+  const rimOffset = (bevelDepth: number): number =>
+    Math.abs(offsetAt({ ...base, bevelDepth }, 4, 50)[0])
+
+  it('deflects the rim harder on a circular bevel than on a deep one', () => {
+    expect(rimOffset(0)).toBeGreaterThan(rimOffset(1))
+  })
+
+  it('keys the cache on the depth, so a changed knob never serves a stale map', () => {
+    expect(lensMapKey({ ...base, bevelDepth: 0 })).not.toBe(lensMapKey({ ...base, bevelDepth: 1 }))
+    expect(lensMapKey({ ...base, bevelDepth: 0.6 })).not.toBe(
+      lensMapKey({ ...base, bevelDepth: 0.4 })
+    )
+    expect(generateLensMap({ ...base, bevelDepth: 0 })).not.toBe(
+      generateLensMap({ ...base, bevelDepth: 1 })
+    )
+  })
+
+  it('shapes the dome height by the same exponent as the refraction', () => {
+    const u = 0.5
+    const depth = base.band * (1 - u)
+    expect(domeHeight(depth, base.band, 0)).toBeCloseTo(Math.sqrt(1 - u ** 2), 6)
+    expect(domeHeight(depth, base.band, 1)).toBeCloseTo((1 - u ** 6) ** (1 / 6), 6)
   })
 })

@@ -154,6 +154,7 @@ class CssSvgInstance implements BackendInstance {
         band: this.#band,
         ior: material.ior,
         thickness: resolveThicknessPx(material.thickness, width, height),
+        bevelDepth: material.bevelDepth,
         magnify: material.magnify,
         mapSide: getQuality(surface.quality).mapSide
       },

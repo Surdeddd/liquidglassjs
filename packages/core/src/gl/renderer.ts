@@ -1,4 +1,4 @@
-import { resolveBandPx } from '../displacement'
+import { resolveBandPx, resolveThicknessPx } from '../displacement'
 import { globalLightDir } from '../fx/light'
 import type { MaterialParams } from '../types'
 
@@ -19,9 +19,34 @@ export interface GlDraw {
   shapes: GlShape[]
   material: MaterialParams
   mergeK: number
+  /** Device pixels per CSS pixel for this draw; every length above is already in device pixels. */
+  pxRatio?: number | undefined
 }
 
 export const MAX_SHAPES = 8
+
+/** Matches the feDisplacementMap scale the SVG chain gives its frost turbulence. */
+export const FROST_SCALE = 6
+
+export interface DeviceScale {
+  radius: number
+  width: number
+  height: number
+  ratio: number
+}
+
+/**
+ * Material lengths are authored in CSS pixels; the GL paths draw in device pixels, so
+ * a rim asked for in CSS pixels must be resolved before it is scaled, not after.
+ */
+export function scaleMaterialToDevice(material: MaterialParams, scale: DeviceScale): MaterialParams {
+  return {
+    ...material,
+    blur: material.blur * scale.ratio,
+    bevelWidth: resolveBandPx(material.bevelWidth, scale.radius, scale.width, scale.height) * scale.ratio,
+    thickness: resolveThicknessPx(material.thickness, scale.width, scale.height) * scale.ratio
+  }
+}
 
 const VERT = `#version 300 es
 layout(location=0) in vec2 a_pos;
@@ -59,6 +84,8 @@ uniform float u_brightness;
 uniform vec4 u_tint;
 uniform float u_specular;
 uniform float u_frost;
+uniform float u_bevelDepth;
+uniform float u_pxRatio;
 in vec2 v_local;
 out vec4 outColor;
 
@@ -123,9 +150,18 @@ float hash(vec2 p) {
 
 float slopeAngle(float depth, float band, float thickness) {
   if (depth < 0.0 || depth >= band) return 0.0;
-  float u = 1.0 - depth / band;
-  float slope = (thickness / band) * u * u * u * pow(max(1.0 - u * u * u * u, 1e-4), -0.75);
+  float n = 2.0 + 4.0 * u_bevelDepth;
+  float u = max(1.0 - depth / band, 1e-4);
+  float slope = (thickness / band) * pow(u, n - 1.0) * pow(max(1.0 - pow(u, n), 1e-4), (1.0 - n) / n);
   return atan(slope);
+}
+
+vec2 frostOffset(vec2 px) {
+  if (u_frost <= 0.001) return vec2(0.0);
+  float ratio = max(u_pxRatio, 1e-3);
+  vec2 cell = floor(px / ratio);
+  vec2 noise = vec2(hash(cell), hash(cell + vec2(37.0, 17.0)));
+  return (noise - 0.5) * u_frost * ${FROST_SCALE}.0 * ratio;
 }
 
 float lensMag(float depth, float band, float ior, float thickness) {
@@ -151,7 +187,7 @@ void main() {
   grad /= gradLen;
 
   float mag = lensMag(depth, max(u_bevelWidth, 1e-3), u_ior, u_thickness) * u_displace;
-  vec2 zoom = (basePx - u_center) * -u_magnify;
+  vec2 zoom = (basePx - u_center) * -u_magnify + frostOffset(basePx);
 
   vec3 col;
   if (u_dispersion > 0.001) {
@@ -167,10 +203,6 @@ void main() {
   float grey = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(grey), col, u_saturation) * u_brightness;
   col = mix(col, u_tint.rgb, u_tint.a);
-
-  if (u_frost > 0.001) {
-    col += (hash(basePx) - 0.5) * u_frost * 0.12;
-  }
 
   float band = max(u_bevelWidth, 1e-3);
   float alpha = slopeAngle(depth, band, u_thickness);
@@ -231,7 +263,9 @@ export const UNIFORMS = [
   'u_brightness',
   'u_tint',
   'u_specular',
-  'u_frost'
+  'u_frost',
+  'u_bevelDepth',
+  'u_pxRatio'
 ] as const
 
 type UniformName = (typeof UNIFORMS)[number]
@@ -439,6 +473,8 @@ export class GlRenderer {
       gl.uniform4f(this.#locations.get('u_tint') ?? null, tint[0], tint[1], tint[2], material.tintOpacity)
       gl.uniform1f(this.#locations.get('u_specular') ?? null, material.specular)
       gl.uniform1f(this.#locations.get('u_frost') ?? null, material.frost)
+      gl.uniform1f(this.#locations.get('u_bevelDepth') ?? null, material.bevelDepth)
+      gl.uniform1f(this.#locations.get('u_pxRatio') ?? null, draw.pxRatio ?? 1)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
   }

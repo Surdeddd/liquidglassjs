@@ -53,3 +53,66 @@ describe('globalLightDir', () => {
     expect(Math.hypot(x, y)).toBeCloseTo(1, 5)
   })
 })
+
+describe('pointer flush', () => {
+  function boxAt(left: number, top: number): DOMRect {
+    return {
+      left,
+      top,
+      right: left + 20,
+      bottom: top + 20,
+      width: 20,
+      height: 20
+    } as DOMRect
+  }
+
+  it('measures every client before the first one writes', async () => {
+    const order: string[] = []
+    const stops: Array<() => void> = []
+    const hosts: HTMLElement[] = []
+    for (const name of ['a', 'b', 'c']) {
+      const host = document.createElement('div')
+      document.body.appendChild(host)
+      hosts.push(host)
+      vi.spyOn(host, 'getBoundingClientRect').mockImplementation(() => {
+        order.push(`read ${name}`)
+        return boxAt(10, 10)
+      })
+      stops.push(
+        registerLight({
+          host,
+          motion: false,
+          update: () => {
+            order.push(`write ${name}`)
+          }
+        })
+      )
+    }
+    window.dispatchEvent(new MouseEvent('pointermove', { clientX: 0, clientY: 0 }))
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    expect(order).toEqual(['read a', 'read b', 'read c', 'write a', 'write b', 'write c'])
+    for (const stop of stops) stop()
+    for (const host of hosts) host.remove()
+  })
+
+  it('skips clients that are scrolled far out of view', async () => {
+    const order: string[] = []
+    const near = document.createElement('div')
+    const far = document.createElement('div')
+    document.body.append(near, far)
+    vi.spyOn(near, 'getBoundingClientRect').mockImplementation(() => boxAt(10, 10))
+    vi.spyOn(far, 'getBoundingClientRect').mockImplementation(() =>
+      boxAt(10, window.innerHeight + 400)
+    )
+    const stops = [
+      registerLight({ host: near, motion: false, update: () => order.push('near') }),
+      registerLight({ host: far, motion: false, update: () => order.push('far') })
+    ]
+    window.dispatchEvent(new MouseEvent('pointermove', { clientX: 0, clientY: 0 }))
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    expect(order).toEqual(['near'])
+    for (const stop of stops) stop()
+    near.remove()
+    far.remove()
+  })
+})

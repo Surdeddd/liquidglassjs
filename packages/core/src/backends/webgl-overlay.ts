@@ -1,7 +1,15 @@
 import { colorWithOpacity } from '../color'
 import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
-import { resolveRadiusPx, resolveThicknessPx } from '../displacement'
-import { GlRenderer, MAX_SHAPES, unionRect, type GlDraw, type GlRect, type GlShape } from '../gl/renderer'
+import { resolveRadiusPx } from '../displacement'
+import {
+  GlRenderer,
+  MAX_SHAPES,
+  scaleMaterialToDevice,
+  unionRect,
+  type GlDraw,
+  type GlRect,
+  type GlShape
+} from '../gl/renderer'
 import { getQuality } from '../quality/profile'
 import { glassShadowCss } from '../material'
 import { pinUsedMargins } from '../runtime/layout'
@@ -354,11 +362,13 @@ class OverlayManager {
         rect: toCanvas(shape.rect),
         radius: shape.radius * ratio
       })),
-      material: {
-        ...draw.material,
-        thickness:
-          resolveThicknessPx(draw.material.thickness, draw.quad.width, draw.quad.height) * ratio
-      },
+      material: scaleMaterialToDevice(draw.material, {
+        radius: draw.shapes[0]?.radius ?? 0,
+        width: draw.quad.width,
+        height: draw.quad.height,
+        ratio
+      }),
+      pxRatio: ratio,
       mergeK: draw.mergeK * ratio
     }))
     const bodyBox = document.body.getBoundingClientRect()

@@ -52,11 +52,6 @@ describe('quality profile', () => {
         magnify: 0.02
       })
     })()
-    // The budget is an area now, not a longest side, so the knob still has to move
-    // resolution. The band floor is an aim rather than a guarantee: on a low tier
-    // holding a 2000x900 surface the tier ceiling outvotes it, which is the right
-    // way round. It still lands far above the ~2.7 texels the old longest-side
-    // model left across the same band.
     expect(field.width).toBeLessThan(generous.width)
     expect(24 * field.scale).toBeGreaterThan(6)
     expect(24 * generous.scale).toBeGreaterThanOrEqual(8)
@@ -67,6 +62,36 @@ describe('quality profile', () => {
     resetQuality()
     expect([1, 3]).toContain(getQuality().caPasses)
     expect(getQuality().mapSide).toBeGreaterThanOrEqual(320)
+  })
+
+  it('resolves the profile once and re-resolves after configure or reset', () => {
+    const first = getQuality()
+    expect(getQuality()).toBe(first)
+    configure({ mapSide: 320 })
+    const configured = getQuality()
+    expect(configured).not.toBe(first)
+    expect(configured.mapSide).toBe(320)
+    expect(getQuality()).toBe(configured)
+    resetQuality()
+    expect(getQuality()).not.toBe(configured)
+  })
+
+  it('keeps a surface override out of the shared profile', () => {
+    const shared = getQuality()
+    const local = getQuality({ mapSide: 96 })
+    expect(local).not.toBe(shared)
+    expect(local.mapSide).toBe(96)
+    expect(getQuality().mapSide).toBe(shared.mapSide)
+    expect(getQuality()).toBe(shared)
+  })
+
+  it('re-probes the device tier after a reset', () => {
+    vi.stubGlobal('navigator', { hardwareConcurrency: 2 })
+    expect(getQuality().mapSide).toBe(320)
+    resetQuality()
+    vi.stubGlobal('navigator', { hardwareConcurrency: 10 })
+    vi.stubGlobal('devicePixelRatio', 2)
+    expect(getQuality().mapSide).toBe(600)
   })
 })
 

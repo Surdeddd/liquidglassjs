@@ -1,8 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-// This spec does not run on CI — see the testIgnore in playwright.config.ts. A
-// shared runner measured this page at 0-4 fps in software-rendered WebKit against
-// 48-61 on a laptop, so no floor there describes the library. Locally it is strict.
 const FLOOR_FPS = Number(process.env['PERF_FLOOR_FPS'] ?? 24)
 
 test('webkit perf profile of the docs landing', async ({ page, browserName }) => {

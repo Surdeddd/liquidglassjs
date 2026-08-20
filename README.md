@@ -171,6 +171,13 @@ import { LiquidGlass, vLiquidGlass } from '@surdeddd/liquidglass/vue'
 The Vue directive is registered locally by importing `vLiquidGlass` into `<script setup>`; register
 it globally with `app.directive('liquid-glass', vLiquidGlass)` if you prefer.
 
+Each entry has a guide of its own, covering how options map to that framework's idioms, the escape
+hatch back to the engine handle, server rendering and cleanup:
+[React](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/react.md) ·
+[Vue](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/vue.md) ·
+[Svelte](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/svelte.md) ·
+[web component](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/web-component.md).
+
 On Safari and Firefox the engine refracts a designated element rather than the whole page. It picks
 the nearest ancestor that paints a background on its own; pass `backdrop` when you want a specific
 one — it is also the cheaper choice, because that element gets cloned into the refraction layer.
@@ -348,6 +355,28 @@ it into the snapshot.
 cannot resolve a luminance over an unpainted or image-only backdrop. Use the `tonechange` event or
 the `data-liquid-glass-tone` attribute to style text yourself, or set `tint` explicitly.
 
+More symptoms, and more depth on these, in
+[docs/troubleshooting.md](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/troubleshooting.md)
+— stacking order under a merge group, the two CSP directives, hydration, and how to get off a
+watchdog demotion.
+
+## Stability
+
+Pre-1.0. A minor bump can carry a breaking change, and the release notes say so when one does.
+
+The public API is what `@surdeddd/liquidglass` and its `/element`, `/react`, `/vue` and `/svelte`
+entries export. Within that:
+
+| | |
+| --- | --- |
+| Stable in a minor | `attach`, `detach`, `getInstance`, `autoAttach`, the `LiquidGlassHandle` shape, the five event names and their payloads, the option names in the table above, the `data-liquid-glass*` attributes, the `<liquid-glass>` attribute surface |
+| May change in a minor | Rendered output — optics, defaults, the values a preset resolves to. Which backend `auto` picks on a given engine. The clamp ranges. Anything a new browser API makes better |
+| Not public at all | Everything exported for the demo and the tests — `GlRenderer`, `sdfSuperellipse`, `setLuminanceGrid`, `MAX_SHAPES`, the `backends/*` objects. These can change in a patch |
+
+The five workspace packages (`-core`, `-element`, `-react`, `-vue`, `-svelte`) are private build
+inputs versioned in lockstep with the published package; only `@surdeddd/liquidglass` is installable.
+Release history is [packages/liquidglass/CHANGELOG.md](https://github.com/Surdeddd/liquidglassjs/blob/main/packages/liquidglass/CHANGELOG.md).
+
 ## Development
 
 ```sh
@@ -386,9 +415,15 @@ The landing + playground lives in `apps/docs`, the test harness in `apps/demo`, 
 
 ## Documentation
 
+[docs/](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/README.md) is the index — what each
+document is for and the order to read them in.
+
 | | |
 | --- | --- |
+| [React](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/react.md) · [Vue](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/vue.md) · [Svelte](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/svelte.md) · [Web component](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/web-component.md) | One guide per entry: options as idioms, the handle escape hatch, SSR, cleanup, a composed example |
 | [Recipes](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/recipes.md) | Whole components: nav bar, tactile card, melting tab bar, morph, lens over your own art |
+| [Accessibility](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/accessibility.md) | What the engine handles, what stays yours, and how to check either |
+| [Troubleshooting](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/troubleshooting.md) | Symptom first: flat lenses, merge groups, stacking order, CSP, hydration, a stuck watchdog |
 | [Performance](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/performance.md) | What each surface costs, which knob moves it, how the fps watchdog behaves |
 | [Browser support](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/browser-support.md) | Engine-by-engine behaviour, the per-backend fidelity matrix, version floors |
 | [Architecture](https://github.com/Surdeddd/liquidglassjs/blob/main/docs/architecture.md) | Module map, dependency direction, how tiers are selected |

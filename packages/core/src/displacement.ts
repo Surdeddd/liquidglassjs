@@ -1,4 +1,10 @@
-import { interiorZoomOffsetX, interiorZoomOffsetY, lensProfile } from './optics'
+import {
+  DEFAULT_BEVEL_DEPTH,
+  domeExponent,
+  interiorZoomOffsetX,
+  interiorZoomOffsetY,
+  lensProfile
+} from './optics'
 import { getQuality } from './quality/profile'
 import type { LensOptions } from './optics'
 
@@ -85,6 +91,7 @@ export interface MapOptions {
   band: number
   ior: number
   thickness: number
+  bevelDepth?: number | undefined
   magnify: number
   mapSide?: number | undefined
 }
@@ -102,21 +109,18 @@ interface OffsetField {
 }
 
 /**
- * The same quartic dome the refraction is derived from, as a height rather than a
- * slope — this is what a lighting primitive needs to shade a bevel.
+ * The same dome the refraction is derived from, as a height rather than a slope —
+ * this is what a lighting primitive needs to shade a bevel.
  */
-export function domeHeight(depth: number, band: number): number {
+export function domeHeight(depth: number, band: number, bevelDepth = DEFAULT_BEVEL_DEPTH): number {
   if (depth < 0) return 0
   if (band <= 0 || depth >= band) return 1
+  const n = domeExponent(bevelDepth)
   const u = 1 - depth / band
-  return Math.pow(Math.max(1 - Math.pow(u, 4), 0), 0.25)
+  return Math.pow(Math.max(1 - Math.pow(u, n), 0), 1 / n)
 }
 
 export function computeOffsets(opts: MapOptions): OffsetField {
-  // Fitting the longest side into the budget starves exactly the shapes this
-  // material is used for most: a 1440x64 bar spent its texels on length and left
-  // the bevel band under four of them, so the rim had no optics left to resolve.
-  // Budget by area instead, then insist on enough texels across the band.
   const side = opts.mapSide ?? getQuality().mapSide
   const budget = side * side
   let scale = Math.min(1, Math.sqrt(budget / Math.max(opts.width * opts.height, 1)))
@@ -125,8 +129,6 @@ export function computeOffsets(opts: MapOptions): OffsetField {
   }
   const longest = Math.max(opts.width, opts.height) * (1 + MAP_PAD * 2)
   scale = Math.min(scale, MAX_MAP_SIDE / Math.max(longest, 1))
-  // The band floor above can outvote the area budget on a large surface, so hold a
-  // ceiling: a tier that cannot afford the texels must not be handed them anyway.
   const spread = (1 + MAP_PAD * 2) ** 2
   const texels = opts.width * opts.height * scale * scale * spread
   const ceiling = budget * MAX_BUDGET_OVERRUN
@@ -137,16 +139,17 @@ export function computeOffsets(opts: MapOptions): OffsetField {
   const padY = Math.round(eh * MAP_PAD)
   const w = Math.max(2, Math.round(ew) + padX * 2)
   const h = Math.max(2, Math.round(eh) + padY * 2)
+  const bevelDepth = opts.bevelDepth ?? DEFAULT_BEVEL_DEPTH
   const sdfSpec: DisplacementSpec = {
     width: Math.round(ew),
     height: Math.round(eh),
     radius: opts.radius * scale,
     bevelWidth: 0,
-    bevelDepth: 0,
+    bevelDepth,
     shape: opts.shape,
   }
   const band = opts.band * scale
-  const lens: LensOptions = { band, ior: opts.ior, thickness: opts.thickness * scale }
+  const lens: LensOptions = { band, ior: opts.ior, thickness: opts.thickness * scale, bevelDepth }
   const cx = sdfSpec.width / 2
   const cy = sdfSpec.height / 2
   const data = new Float32Array(w * h * 2)
@@ -185,9 +188,7 @@ export function computeOffsets(opts: MapOptions): OffsetField {
       writeOffset(data, w, w - 1 - x, y, -dx, dy)
       writeOffset(data, w, x, h - 1 - y, dx, -dy)
       writeOffset(data, w, w - 1 - x, h - 1 - y, -dx, -dy)
-      // Zero is reserved for "outside the shape" so a mask can tell the rim, where
-      // the dome is also near zero, apart from the field around it.
-      const lit = depth < 0 ? 0 : 1 + Math.round(254 * domeHeight(depth, band))
+      const lit = depth < 0 ? 0 : 1 + Math.round(254 * domeHeight(depth, band, bevelDepth))
       dome[y * w + x] = lit
       dome[y * w + (w - 1 - x)] = lit
       dome[(h - 1 - y) * w + x] = lit
@@ -266,6 +267,7 @@ export interface LensPixels {
 
 const SIZE_BUCKET = 8
 const DETAIL_BUCKET = 0.5
+const DEPTH_BUCKET = 0.05
 
 function bucket(value: number, step: number): number {
   return Math.round(value / step) * step
@@ -277,7 +279,8 @@ export function lensMapKey(opts: MapOptions): string {
   const radius = bucket(opts.radius, DETAIL_BUCKET)
   const band = bucket(opts.band, DETAIL_BUCKET)
   const thickness = bucket(opts.thickness, DETAIL_BUCKET)
-  return `${w}|${h}|${radius}|${opts.shape}|${band}|${opts.ior}|${thickness}|${opts.magnify}`
+  const bevelDepth = bucket(opts.bevelDepth ?? DEFAULT_BEVEL_DEPTH, DEPTH_BUCKET)
+  return `${w}|${h}|${radius}|${opts.shape}|${band}|${opts.ior}|${thickness}|${bevelDepth}|${opts.magnify}`
 }
 
 export function renderLensPixels(opts: MapOptions): LensPixels {

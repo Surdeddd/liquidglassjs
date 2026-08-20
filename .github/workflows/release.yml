@@ -3,6 +3,12 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_ci_gate:
+        description: publish without waiting for CI to finish on this commit
+        type: boolean
+        default: false
 
 concurrency: release-${{ github.ref }}
 
@@ -10,42 +16,80 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write
+  actions: read
 
 jobs:
-  verify:
+  # This used to be a private copy of CI's verify list, which meant a release could
+  # conclude green while the same commit's e2e was still running - and on 19 Aug one
+  # did, against an e2e that went on to hang for six hours. Publication now waits for
+  # the whole CI run on this exact commit, e2e and docs included.
+  await-ci:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.skip_ci_gate != true }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 50
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm coverage
-      - run: pnpm ssr
-      - run: pnpm size
+      - name: Wait for CI to conclude on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          deadline=$(( SECONDS + 45 * 60 ))
+
+          while true; do
+            if runs=$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${SHA}&per_page=20"); then
+              run=$(printf '%s' "${runs}" | jq -c '.workflow_runs | sort_by(.created_at) | last // empty')
+              if [ -n "${run}" ]; then
+                status=$(printf '%s' "${run}" | jq -r '.status')
+                conclusion=$(printf '%s' "${run}" | jq -r '.conclusion // "none"')
+                url=$(printf '%s' "${run}" | jq -r '.html_url')
+                if [ "${status}" = completed ]; then
+                  echo "CI concluded ${conclusion}: ${url}"
+                  if [ "${conclusion}" != success ]; then
+                    exit 1
+                  fi
+                  exit 0
+                fi
+                echo "CI is ${status}: ${url}"
+              else
+                echo "no CI run recorded for ${SHA} yet"
+              fi
+            else
+              echo "the run list could not be read; retrying"
+            fi
+
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "CI did not conclude for ${SHA} inside the wait window"
+              exit 1
+            fi
+
+            sleep 20
+          done
+
   release:
-    needs: verify
+    needs: await-ci
+    # `success()` is implicit and would drop this job whenever the gate is skipped,
+    # which is exactly what the manual override asks for. Name both outcomes instead.
+    # The ref check is what keeps the dispatch button from publishing a side branch.
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && (needs.await-ci.result == 'success' || needs.await-ci.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to commit SHAs: this job holds the npm token, and a moving major tag
+      # is a promise from whoever can retag it. Dependabot advances the pins weekly.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - uses: changesets/action@v1
+      - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           publish: pnpm release
           version: pnpm changeset version

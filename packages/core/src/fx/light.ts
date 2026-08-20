@@ -17,9 +17,13 @@ let flushPending = false
 let lastX = 0
 let lastY = 0
 
+const onscreen: LightClient[] = []
+const angles: number[] = []
+
 function flush(): void {
   const vh = typeof window === 'undefined' ? 0 : window.innerHeight
   const vw = typeof window === 'undefined' ? 0 : window.innerWidth
+  let count = 0
   for (const client of clients) {
     const rect = client.host.getBoundingClientRect()
     if (rect.bottom < -80 || rect.top > vh + 80 || rect.right < -80 || rect.left > vw + 80) {
@@ -27,8 +31,13 @@ function flush(): void {
     }
     const cx = rect.left + rect.width / 2
     const cy = rect.top + rect.height / 2
-    client.update(pointerAngle(cx, cy, lastX, lastY))
+    onscreen[count] = client
+    angles[count] = pointerAngle(cx, cy, lastX, lastY)
+    count += 1
   }
+  for (let i = 0; i < count; i++) onscreen[i]!.update(angles[i]!)
+  onscreen.length = 0
+  angles.length = 0
 }
 
 function onPointerMove(event: PointerEvent | MouseEvent): void {

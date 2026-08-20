@@ -28,18 +28,30 @@ export function deviceTier(): 'high' | 'mid' | 'low' {
 }
 
 let overrides: Partial<QualityProfile> = {}
+let tier: 'high' | 'mid' | 'low' | null = null
+let base: QualityProfile | null = null
+let cachedDpr = 0
 
 export function getQuality(local?: Partial<QualityProfile> | null): QualityProfile {
-  const base = { ...TIERS[deviceTier()], ...overrides }
+  const dpr = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1
+  if (!base || dpr !== cachedDpr) {
+    cachedDpr = dpr
+    tier = deviceTier()
+    base = { ...TIERS[tier], ...overrides }
+  }
   return local ? { ...base, ...local } : base
 }
 
 export function configure(next: Partial<QualityProfile>): void {
   overrides = { ...overrides, ...next }
+  base = null
 }
 
 export function resetQuality(): void {
   overrides = {}
+  tier = null
+  base = null
+  cachedDpr = 0
   windowSamples.length = 0
   windowSeconds = 0
   slowWindows = 0

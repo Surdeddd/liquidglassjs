@@ -1,0 +1,16 @@
+version: 2
+
+updates:
+  # release.yml pins its actions to commit SHAs so the workflow that holds the npm
+  # token cannot be moved under us by a retagged release. A pin only stays honest if
+  # something keeps advancing it, which is what this is for.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      github-actions:
+        patterns: ['*']

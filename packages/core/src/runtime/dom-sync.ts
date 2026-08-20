@@ -9,10 +9,13 @@ export interface SurfaceRect {
 
 export interface SurfaceState {
   rect: SurfaceRect
+  /** Within OFFSCREEN_MARGIN of the viewport — near enough to prepare, not yet on screen. */
   visible: boolean
 }
 
 export type SurfaceListener = (state: SurfaceState) => void
+
+const OFFSCREEN_MARGIN = '200px'
 
 export class SurfaceTracker {
   #element: Element
@@ -40,16 +43,23 @@ export class SurfaceTracker {
       this.#resizeObserver.observe(this.#element)
     }
     if (typeof IntersectionObserver !== 'undefined') {
-      this.#intersectionObserver = new IntersectionObserver(entries => {
-        const entry = entries[entries.length - 1]
-        if (entry) {
-          this.#state = { ...this.#state, visible: entry.isIntersecting }
+      this.#intersectionObserver = new IntersectionObserver(
+        entries => {
+          const entry = entries[entries.length - 1]
+          if (!entry) return
+          const visible = entry.isIntersecting
+          const appeared = visible && !this.#state.visible
+          this.#state = { ...this.#state, visible }
+          if (appeared) this.#readRect()
           this.#listener(this.#state)
-        }
-      })
+        },
+        { rootMargin: OFFSCREEN_MARGIN }
+      )
       this.#intersectionObserver.observe(this.#element)
     }
-    this.#offViewport = onViewport(() => this.#measure())
+    this.#offViewport = onViewport(() => {
+      if (this.#state.visible) this.#measure()
+    })
     this.#measure()
   }
 
@@ -65,19 +75,24 @@ export class SurfaceTracker {
   }
 
   #measure(): void {
+    if (this.#readRect()) this.#listener(this.#state)
+  }
+
+  #readRect(): boolean {
     const box = this.#element.getBoundingClientRect()
     const previous = this.#state.rect
     if (
-      box.x !== previous.x ||
-      box.y !== previous.y ||
-      box.width !== previous.width ||
-      box.height !== previous.height
+      box.x === previous.x &&
+      box.y === previous.y &&
+      box.width === previous.width &&
+      box.height === previous.height
     ) {
-      this.#state = {
-        ...this.#state,
-        rect: { x: box.x, y: box.y, width: box.width, height: box.height }
-      }
-      this.#listener(this.#state)
+      return false
     }
+    this.#state = {
+      ...this.#state,
+      rect: { x: box.x, y: box.y, width: box.width, height: box.height }
+    }
+    return true
   }
 }
