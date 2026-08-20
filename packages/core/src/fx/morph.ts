@@ -54,6 +54,8 @@ export function morphGlass(
   style.position = 'fixed'
   style.margin = '0'
   style.zIndex = '2147483002'
+  const startScrollX = typeof window === 'undefined' ? 0 : window.scrollX
+  const startScrollY = typeof window === 'undefined' ? 0 : window.scrollY
 
   return new Promise(resolve => {
     let last = 0
@@ -64,8 +66,10 @@ export function morphGlass(
       for (const spring of Object.values(springs)) {
         moving = spring.step(dt) || moving
       }
-      style.left = `${springs.x.value.toFixed(2)}px`
-      style.top = `${springs.y.value.toFixed(2)}px`
+      const dx = (typeof window === 'undefined' ? 0 : window.scrollX) - startScrollX
+      const dy = (typeof window === 'undefined' ? 0 : window.scrollY) - startScrollY
+      style.left = `${(springs.x.value - dx).toFixed(2)}px`
+      style.top = `${(springs.y.value - dy).toFixed(2)}px`
       style.width = `${springs.w.value.toFixed(2)}px`
       style.height = `${springs.h.value.toFixed(2)}px`
       if (moving) {
