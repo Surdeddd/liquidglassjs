@@ -5,8 +5,22 @@ import { resolveMaterial } from '../src/material'
 import { configure, getQuality, resetQuality } from '../src/quality/profile'
 
 vi.mock('html-to-image', () => ({
-  toCanvas: async (): Promise<HTMLCanvasElement> => document.createElement('canvas')
+  toSvg: async (): Promise<string> =>
+    'data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg"/>'
 }))
+
+vi.stubGlobal(
+  'Image',
+  class {
+    decoding = ''
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    set src(_value: string) {}
+    decode(): Promise<void> {
+      return Promise.resolve()
+    }
+  }
+)
 
 const HOST_WIDTH = 200
 const HOST_HEIGHT = 100
@@ -110,6 +124,9 @@ async function overlayUniformsAt(ratio: number): Promise<Map<string, number>> {
   const originalDpr = Object.getOwnPropertyDescriptor(globalThis, 'devicePixelRatio')
 
   HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, id: string) {
+    if (id === '2d') {
+      return { scale: () => {}, drawImage: () => {} } as unknown as CanvasRenderingContext2D
+    }
     if (id !== 'webgl2') return null
     const gl = fakeGl(uniforms)
     gl['canvas'] = this

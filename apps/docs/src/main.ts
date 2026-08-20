@@ -11,7 +11,7 @@ import {
   type LiquidGlassPreset,
   type MaterialParams
 } from '@surdeddd/liquidglass/element'
-import { mountTheme } from './theme'
+import { currentTheme, mountTheme } from './theme'
 import { paintAllWallpapers } from './wallpaper'
 import './style.css'
 
@@ -19,7 +19,30 @@ paintAllWallpapers()
 define()
 mountScrollEdge(document.body, { position: 'top', size: 108, strength: 10 })
 
-mountTheme(() => paintAllWallpapers())
+const DOCK_TINTS = {
+  dark: {
+    '.dock-bar': ['#10141f', '0.38'],
+    '.dock-pill': ['#8b96b4', '0.42']
+  },
+  light: {
+    '.dock-bar': ['#f4f6fb', '0.5'],
+    '.dock-pill': ['#ffffff', '0.62']
+  }
+} as const
+
+function tintDock(theme: 'dark' | 'light'): void {
+  for (const [selector, [tint, opacity]] of Object.entries(DOCK_TINTS[theme])) {
+    const el = document.querySelector<HTMLElement>(selector)
+    el?.setAttribute('tint', tint)
+    el?.setAttribute('tint-opacity', opacity)
+  }
+}
+
+tintDock(currentTheme())
+mountTheme(theme => {
+  paintAllWallpapers()
+  tintDock(theme)
+})
 
 const heroLensB = document.querySelector<HTMLElement>('[data-hero-lens-b]')
 if (heroLensB) {

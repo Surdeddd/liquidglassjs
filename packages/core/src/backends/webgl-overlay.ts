@@ -105,10 +105,20 @@ class OverlayManager {
     this.scheduleRender()
   }
 
+  #onMotionSettled = (event: Event): void => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    if (target.closest('[data-liquid-glass], [data-liquid-glass-overlay]')) return
+    if (!this.#touchesSurfaces(target)) return
+    this.scheduleSnapshot()
+  }
+
   private constructor(canvas: HTMLCanvasElement, renderer: GlRenderer) {
     this.#canvas = canvas
     this.#renderer = renderer
     window.addEventListener('resize', this.#onResize, { passive: true })
+    document.addEventListener('transitionend', this.#onMotionSettled, { capture: true, passive: true })
+    document.addEventListener('animationend', this.#onMotionSettled, { capture: true, passive: true })
     this.#unwatchViewport = onViewport(() => {
       this.#quietUntil = Date.now() + SCROLL_QUIET_MS
     })
@@ -281,14 +291,12 @@ class OverlayManager {
     this.#snapshotting = true
     let restorePins: Array<() => void> = []
     try {
-      const { toCanvas } = await import('html-to-image')
+      const { toSvg } = await import('html-to-image')
       if (this.#destroyed) return
       const body = document.body
       const pageW = Math.max(body.scrollWidth, 1)
       const pageH = Math.max(body.scrollHeight, 1)
-      const bodyStill =
-        typeof getComputedStyle !== 'function' || getComputedStyle(body).transform === 'none'
-      const band = bodyStill ? this.#snapshotBand(pageH) : { y: 0, height: pageH }
+      const band = this.#snapshotBand(pageH)
       const bandBottom = band.y + band.height
       const partial = band.height < pageH
       const scrollYAtStart = window.scrollY
@@ -301,13 +309,9 @@ class OverlayManager {
         [...this.#surfaces].map(surface => surface.element),
         body
       )
-      const snapshot = await toCanvas(body, {
-        pixelRatio: scale,
+      const svgUrl = await toSvg(body, {
         width: pageW,
-        height: band.height,
-        ...(band.y > 0
-          ? { style: { transform: `translateY(${-band.y}px)`, transformOrigin: 'top left' } }
-          : {}),
+        height: pageH,
         filter: node => {
           if (!(node instanceof Element)) return true
           if (
@@ -326,6 +330,25 @@ class OverlayManager {
         }
       })
       if (this.#destroyed) return
+      const image = new Image()
+      image.decoding = 'async'
+      image.src = svgUrl
+      if (typeof image.decode === 'function') {
+        await image.decode()
+      } else {
+        await new Promise<void>((resolve, reject) => {
+          image.onload = () => resolve()
+          image.onerror = () => reject(new Error('snapshot image failed'))
+        })
+      }
+      if (this.#destroyed) return
+      const snapshot = document.createElement('canvas')
+      snapshot.width = Math.max(1, Math.round(pageW * scale))
+      snapshot.height = Math.max(1, Math.round(band.height * scale))
+      const context = snapshot.getContext('2d')
+      if (!context) throw new Error('snapshot 2d context unavailable')
+      context.scale(scale, scale)
+      context.drawImage(image, 0, -band.y)
       this.#texBand = { y: band.y, height: band.height, fullHeight: pageH }
       this.#renderer.setTexture(snapshot)
       const gridIdle =
@@ -460,6 +483,8 @@ class OverlayManager {
     this.#destroyed = true
     setLuminanceGrid(null)
     window.removeEventListener('resize', this.#onResize)
+    document.removeEventListener('transitionend', this.#onMotionSettled, { capture: true })
+    document.removeEventListener('animationend', this.#onMotionSettled, { capture: true })
     this.#unwatchViewport?.()
     this.#unwatchViewport = null
     this.#mutationObserver?.disconnect()
