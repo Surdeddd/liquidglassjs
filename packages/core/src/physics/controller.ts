@@ -34,6 +34,7 @@ const PRESS_SPRING = { stiffness: 550, damping: 30, mass: 1 }
 const STRETCH_SPRING = { stiffness: 260, damping: 22, mass: 1 }
 const STRETCH_REFERENCE_SPEED = 1600
 const STRETCH_LIMIT = 0.18
+const STRETCH_DECAY = 9
 const HOVER_SPRING = { stiffness: 220, damping: 18, mass: 1 }
 const MAGNET_RATIO = 0.05
 
@@ -52,13 +53,15 @@ export class PhysicsController {
   #lastX = 0
   #lastY = 0
   #seen = false
+  #speed = 0
+  #alongX = true
   #offFrame: (() => void) | null = null
 
   #onDown = (event: PointerEvent): void => {
     if (!this.#config.press) return
     this.#configureScale(PRESS_SPRING.stiffness, PRESS_SPRING.damping)
-    this.#scaleX.target = 1.04
-    this.#scaleY.target = 0.94
+    this.#scaleX.target = 1.045
+    this.#scaleY.target = 1.045
     const box = this.#element.getBoundingClientRect()
     this.#hooks?.onPress?.(event.clientX - box.left, event.clientY - box.top)
     this.#pressed = true
@@ -157,21 +160,21 @@ export class PhysicsController {
     this.#lastY = y
     const step = Math.max(dt, 1 / 240)
     const speed = Math.hypot(dx, dy) / step
-    if (speed < 1) {
-      this.#stretchX.target = 1
-      this.#stretchY.target = 1
-      return
-    }
-    const amount =
-      Math.min(speed / STRETCH_REFERENCE_SPEED, 1) * STRETCH_LIMIT * this.#config.stretch
-    const axis = Math.abs(dx) >= Math.abs(dy)
-    this.#stretchX.target = axis ? 1 + amount : 1 - amount * 0.6
-    this.#stretchY.target = axis ? 1 - amount * 0.6 : 1 + amount
+    this.#speed = (this.#speed + speed) / 2
+    if (speed >= 1) this.#alongX = Math.abs(dx) >= Math.abs(dy)
     this.#wake()
   }
 
   tick(dt: number): boolean {
     const clamped = Math.min(dt, 1 / 30)
+    if (this.#config.stretch > 0) {
+      this.#speed *= Math.exp(-clamped * STRETCH_DECAY)
+      if (this.#speed < 1) this.#speed = 0
+      const amount =
+        Math.min(this.#speed / STRETCH_REFERENCE_SPEED, 1) * STRETCH_LIMIT * this.#config.stretch
+      this.#stretchX.target = this.#alongX ? 1 + amount : 1 - amount * 0.6
+      this.#stretchY.target = this.#alongX ? 1 - amount * 0.6 : 1 + amount
+    }
     let active = false
     active = this.#scaleX.step(clamped) || active
     active = this.#scaleY.step(clamped) || active
@@ -180,7 +183,7 @@ export class PhysicsController {
     active = this.#stretchX.step(clamped) || active
     active = this.#stretchY.step(clamped) || active
     this.#apply(active)
-    return active
+    return active || this.#speed > 0
   }
 
   destroy(): void {

@@ -269,7 +269,9 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
     surface.state = state
     if (physics && state.visible) {
       const stamp = frameNow()
-      physics.travelled(state.rect.x, state.rect.y, lastTravel ? (stamp - lastTravel) / 1000 : 0)
+      const pageX = state.rect.x + (typeof window === 'undefined' ? 0 : window.scrollX)
+      const pageY = state.rect.y + (typeof window === 'undefined' ? 0 : window.scrollY)
+      physics.travelled(pageX, pageY, lastTravel ? (stamp - lastTravel) / 1000 : 0)
       lastTravel = stamp
     }
     if (current.adaptive !== false) {

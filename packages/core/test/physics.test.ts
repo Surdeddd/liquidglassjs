@@ -44,7 +44,7 @@ describe('PhysicsController', () => {
     el.dispatchEvent(new PointerEvent('pointerdown'))
     for (let i = 0; i < 30; i++) controller.tick(1 / 60)
     expect(el.style.transform).toContain('scale(')
-    expect(el.style.transform).toMatch(/scale\(1\.0[0-9]+, 0\.9[0-9]+\)/)
+    expect(el.style.transform).toMatch(/scale\(1\.0[0-9]+, 1\.0[0-9]+\)/)
     el.dispatchEvent(new PointerEvent('pointerup'))
     tickUntilSettled(controller)
     expect(el.style.transform).toBe('')
@@ -135,6 +135,23 @@ describe('travel stretch', () => {
       controller.travelled(x, 0, 1 / 60)
       controller.tick(1 / 60)
     }
+    expect(el.style.transform).toBe('')
+    el.remove()
+  })
+
+  it('relaxes on its own when position reports simply stop coming', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    mockRect(el)
+    const controller = new PhysicsController(el, { ...PHYSICS_DEFAULTS }, {})
+    let x = 0
+    for (let i = 0; i < 8; i++) {
+      x += 24
+      controller.travelled(x, 0, 1 / 60)
+      controller.tick(1 / 60)
+    }
+    expect(scaleOf(el)[0]).toBeGreaterThan(1)
+    for (let i = 0; i < 500; i++) controller.tick(1 / 60)
     expect(el.style.transform).toBe('')
     el.remove()
   })
