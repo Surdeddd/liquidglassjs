@@ -10,7 +10,8 @@ import {
   type GlShape
 } from '../gl/renderer'
 import { getQuality } from '../quality/profile'
-import { glassShadowCss, glassSheenCss } from '../material'
+import { colorWithOpacity } from '../color'
+import { glassShadowCss } from '../material'
 import { pinUsedMargins } from '../runtime/layout'
 import { onViewport } from '../runtime/scheduler'
 import { captureInlineStyles } from '../style-restore'
@@ -410,7 +411,7 @@ function applyBaseStyles(surface: BackendSurface): void {
   const filter = `blur(${material.blur}px) saturate(${material.saturation}) brightness(${material.brightness})`
   style.setProperty('backdrop-filter', filter)
   style.setProperty('-webkit-backdrop-filter', filter)
-  style.setProperty('background', glassSheenCss(material))
+  style.setProperty('background', colorWithOpacity(material.tint, material.tintOpacity))
   if (typeof material.radius === 'number') {
     style.setProperty('border-radius', `${material.radius}px`)
   }

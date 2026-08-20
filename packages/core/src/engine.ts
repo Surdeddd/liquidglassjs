@@ -228,6 +228,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   let bezel: BezelHandle | null = null
   let bezelSpecular = -1
   let bezelMotion: boolean | null = null
+  let bezelGl: boolean | null = null
   let releaseLight: (() => void) | null = null
 
   const syncBezel = (): void => {
@@ -243,14 +244,16 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       return
     }
     const motion = !reducedMotion && current.motionLight === true
-    if (bezel && surface.material.specular === bezelSpecular && motion === bezelMotion) return
+    const glBackend = backend.id === 'webgl-overlay' || backend.id === 'webgl-scene'
+    if (surface.material.specular === bezelSpecular && motion === bezelMotion && glBackend === bezelGl) return
     releaseLight?.()
     releaseLight = null
     bezel?.destroy()
     const host = element as HTMLElement
-    bezel = mountBezel(host, surface.material.specular)
+    bezel = glBackend ? null : mountBezel(host, surface.material.specular)
     bezelSpecular = surface.material.specular
     bezelMotion = motion
+    bezelGl = glBackend
     if (!reducedMotion) {
       releaseLight = registerLight({
         host,

@@ -212,15 +212,16 @@ void main() {
   vec3 H = normalize(normalize(vec3(lightXY, 0.75)) + V);
   vec3 Hc = normalize(normalize(vec3(-lightXY, 0.75)) + V);
   float ndh = max(dot(N, H), 0.0);
-  float spec = pow(ndh, 32.0) * 1.6 + pow(ndh, 4.0) * 0.18;
-  float counter = pow(max(dot(N, Hc), 0.0), 24.0) * 0.35;
-  float onBevel = 1.0 - smoothstep(0.0, band, depth);
-  col += (spec + counter) * u_specular * onBevel;
+  float px = max(u_pxRatio, 1.0);
+  float edge = 1.0 - smoothstep(0.0, min(band, 14.0 * px), depth);
+  float spec = pow(ndh, 48.0) * 1.1 + pow(ndh, 8.0) * 0.05;
+  float counter = pow(max(dot(N, Hc), 0.0), 32.0) * 0.14;
+  col += (spec + counter) * u_specular * edge;
 
   float f0 = pow((u_ior - 1.0) / (u_ior + 1.0), 2.0);
   float fresnel = f0 + (1.0 - f0) * pow(1.0 - cos(alpha), 5.0);
-  vec3 env = mix(vec3(0.55, 0.62, 0.72), vec3(0.95, 0.97, 1.0), 1.0 - v_local.y);
-  col = mix(col, env, clamp(fresnel, 0.0, 1.0) * u_specular);
+  vec3 env = mix(vec3(0.6, 0.66, 0.75), vec3(0.95, 0.97, 1.0), 1.0 - v_local.y);
+  col += env * clamp(fresnel, 0.0, 1.0) * u_specular * 0.5 * edge;
 
   outColor = vec4(col, coverage);
 }`
