@@ -16,7 +16,7 @@ test.describe('lens optics visual regression', () => {
     if (!box) throw new Error('clear panel not laid out')
 
     await expect(page).toHaveScreenshot('rim-left.png', {
-      clip: { x: box.x - 10, y: box.y + box.height / 2 - 28, width: 56, height: 56 }
+      clip: { x: box.x - 2, y: box.y + box.height / 2 - 28, width: 56, height: 56 }
     })
 
     await expect(page).toHaveScreenshot('lens-center.png', {
@@ -39,7 +39,7 @@ test.describe('lens optics visual regression', () => {
     if (!box) throw new Error('frosted panel not laid out')
 
     await expect(page).toHaveScreenshot('frosted-rim.png', {
-      clip: { x: box.x - 10, y: box.y + box.height / 2 - 28, width: 56, height: 56 }
+      clip: { x: box.x - 2, y: box.y + box.height / 2 - 28, width: 56, height: 56 }
     })
   })
 
