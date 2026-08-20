@@ -36,7 +36,7 @@
     {
       "name": "cdn global build",
       "path": "packages/liquidglass/dist/liquidglass.global.js",
-      "limit": "28.25 kB"
+      "limit": "28.5 kB"
     },
     {
       "name": "snapshot chunk (lazy)",

@@ -33,6 +33,22 @@ describe('backdropLuminance', () => {
     expect(mixed).toBeGreaterThan(0.1)
     expect(mixed).toBeLessThan(0.9)
   })
+
+  it('shifts sampling by the grid band offset', () => {
+    const cols = 2
+    const rows = 2
+    const data = new Float32Array([0.1, 0.1, 0.9, 0.9])
+    setLuminanceGrid({ data, cols, rows, docWidth: 200, docHeight: 200, docTop: 1000 })
+    expect(backdropLuminance({ left: 0, top: 1010, width: 200, height: 80 })).toBeCloseTo(0.1, 5)
+    expect(backdropLuminance({ left: 0, top: 1110, width: 200, height: 80 })).toBeCloseTo(0.9, 5)
+  })
+
+  it('admits ignorance outside the band', () => {
+    const data = new Float32Array([0.5])
+    setLuminanceGrid({ data, cols: 1, rows: 1, docWidth: 200, docHeight: 200, docTop: 1000 })
+    expect(backdropLuminance({ left: 0, top: 100, width: 100, height: 100 })).toBeNull()
+    expect(backdropLuminance({ left: 0, top: 1300, width: 100, height: 100 })).toBeNull()
+  })
 })
 
 describe('engine tone from the luminance grid', () => {

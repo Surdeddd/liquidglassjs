@@ -6,6 +6,7 @@ export interface LuminanceGrid {
   rows: number
   docWidth: number
   docHeight: number
+  docTop?: number
 }
 
 let grid: LuminanceGrid | null = null
@@ -43,10 +44,12 @@ export function backdropLuminance(rect: {
   if (!grid || rect.width < 1 || rect.height < 1) return null
   const { data, cols, rows, docWidth, docHeight } = grid
   if (docWidth < 1 || docHeight < 1) return null
+  const top = rect.top - (grid.docTop ?? 0)
+  if (top + rect.height < 0 || top > docHeight) return null
   const x0 = Math.max(0, Math.floor((rect.left / docWidth) * cols))
   const x1 = Math.min(cols - 1, Math.ceil(((rect.left + rect.width) / docWidth) * cols) - 1)
-  const y0 = Math.max(0, Math.floor((rect.top / docHeight) * rows))
-  const y1 = Math.min(rows - 1, Math.ceil(((rect.top + rect.height) / docHeight) * rows) - 1)
+  const y0 = Math.max(0, Math.floor((top / docHeight) * rows))
+  const y1 = Math.min(rows - 1, Math.ceil(((top + rect.height) / docHeight) * rows) - 1)
   if (x1 < x0 || y1 < y0) return null
   let sum = 0
   let count = 0
@@ -63,7 +66,8 @@ export function buildLuminanceGrid(
   source: HTMLCanvasElement,
   docWidth: number,
   docHeight: number,
-  cols = 48
+  cols = 48,
+  docTop = 0
 ): LuminanceGrid | null {
   if (typeof document === 'undefined' || docWidth < 1 || docHeight < 1) return null
   const rows = Math.max(1, Math.round((cols * docHeight) / docWidth))
@@ -80,7 +84,7 @@ export function buildLuminanceGrid(
       const p = i * 4
       data[i] = relativeLuminance(image.data[p]!, image.data[p + 1]!, image.data[p + 2]!)
     }
-    return { data, cols, rows, docWidth, docHeight }
+    return { data, cols, rows, docWidth, docHeight, docTop }
   } catch {
     return null
   }

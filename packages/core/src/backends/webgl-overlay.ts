@@ -21,6 +21,8 @@ const DEFAULT_MERGE_K = 30
 
 const MAX_SNAPSHOT_SIDE = 4096
 
+const SNAPSHOT_TEXEL_DENSITY = 0.75
+
 const SCROLL_QUIET_MS = 180
 
 function isStyleable(element: Element): element is HTMLElement {
@@ -250,6 +252,27 @@ class OverlayManager {
     })
   }
 
+  #texBand: { y: number; height: number; fullHeight: number } | null = null
+
+  #snapshotBand(pageH: number): { y: number; height: number } {
+    if (typeof window === 'undefined') return { y: 0, height: pageH }
+    const bodyTop = document.body.getBoundingClientRect().top + window.scrollY
+    let top = Infinity
+    let bottom = -Infinity
+    for (const surface of this.#surfaces) {
+      const box = surface.element.getBoundingClientRect()
+      if (box.width < 1 || box.height < 1) continue
+      top = Math.min(top, box.top + window.scrollY - bodyTop)
+      bottom = Math.max(bottom, box.bottom + window.scrollY - bodyTop)
+    }
+    if (!Number.isFinite(top)) return { y: 0, height: pageH }
+    const margin = Math.max(window.innerHeight, 600)
+    const y = Math.max(0, Math.floor(top - margin))
+    const height = Math.min(pageH, Math.ceil(bottom + margin)) - y
+    if (height >= pageH * 0.8) return { y: 0, height: pageH }
+    return { y, height: Math.max(1, height) }
+  }
+
   async #snapshot(): Promise<void> {
     if (this.#snapshotting || this.#destroyed) {
       this.#snapshotDirty = !this.#destroyed
@@ -261,9 +284,18 @@ class OverlayManager {
       const { toCanvas } = await import('html-to-image')
       if (this.#destroyed) return
       const body = document.body
+      const pageW = Math.max(body.scrollWidth, 1)
+      const pageH = Math.max(body.scrollHeight, 1)
+      const bodyStill =
+        typeof getComputedStyle !== 'function' || getComputedStyle(body).transform === 'none'
+      const band = bodyStill ? this.#snapshotBand(pageH) : { y: 0, height: pageH }
+      const bandBottom = band.y + band.height
+      const partial = band.height < pageH
+      const scrollYAtStart = window.scrollY
+      const bodyTop = body.getBoundingClientRect().top + scrollYAtStart
       const scale = Math.min(
-        1,
-        MAX_SNAPSHOT_SIDE / Math.max(body.scrollWidth, body.scrollHeight, 1)
+        SNAPSHOT_TEXEL_DENSITY,
+        MAX_SNAPSHOT_SIDE / Math.max(pageW, band.height, 1)
       )
       restorePins = pinUsedMargins(
         [...this.#surfaces].map(surface => surface.element),
@@ -271,27 +303,38 @@ class OverlayManager {
       )
       const snapshot = await toCanvas(body, {
         pixelRatio: scale,
-        width: body.scrollWidth,
-        height: body.scrollHeight,
-        filter: node =>
-          !(
-            node instanceof Element &&
-            (node.hasAttribute('data-liquid-glass') ||
-              node.hasAttribute('data-liquid-glass-overlay') ||
-              node.hasAttribute('data-liquid-glass-ignore'))
-          )
+        width: pageW,
+        height: band.height,
+        ...(band.y > 0
+          ? { style: { transform: `translateY(${-band.y}px)`, transformOrigin: 'top left' } }
+          : {}),
+        filter: node => {
+          if (!(node instanceof Element)) return true
+          if (
+            node.hasAttribute('data-liquid-glass') ||
+            node.hasAttribute('data-liquid-glass-overlay') ||
+            node.hasAttribute('data-liquid-glass-ignore')
+          ) {
+            return false
+          }
+          if (!partial || node === body || typeof node.getBoundingClientRect !== 'function') {
+            return true
+          }
+          const box = node.getBoundingClientRect()
+          if (box.height === 0 && box.width === 0) return true
+          return box.top + scrollYAtStart - bodyTop < bandBottom
+        }
       })
       if (this.#destroyed) return
+      this.#texBand = { y: band.y, height: band.height, fullHeight: pageH }
       this.#renderer.setTexture(snapshot)
       const gridIdle =
         typeof requestIdleCallback === 'function'
           ? requestIdleCallback
           : (fn: () => void) => setTimeout(fn, 120)
-      const gridW = body.scrollWidth
-      const gridH = body.scrollHeight
       gridIdle(() => {
         if (this.#destroyed) return
-        setLuminanceGrid(buildLuminanceGrid(snapshot, gridW, gridH))
+        setLuminanceGrid(buildLuminanceGrid(snapshot, pageW, band.height, 48, bodyTop + band.y))
       })
       this.scheduleRender()
     } catch {
@@ -387,11 +430,27 @@ class OverlayManager {
       mergeK: draw.mergeK * ratio
     }))
     const bodyBox = document.body.getBoundingClientRect()
+    const band = this.#texBand
+    if (band && band.height < band.fullHeight) {
+      const bodyTop = bodyBox.top + scrollY
+      for (const draw of draws) {
+        const top = draw.quad.y - bodyTop
+        if (
+          (band.y > 0 && top < band.y + 160) ||
+          (band.y + band.height < band.fullHeight &&
+            top + draw.quad.height > band.y + band.height - 160)
+        ) {
+          this.scheduleSnapshot()
+          break
+        }
+      }
+    }
+    const bandScale = band ? bodyBox.height / Math.max(band.fullHeight, 1) : 1
     this.#renderer.render(canvasDraws, {
       x: (bodyBox.left + scrollX - anchor.x) * ratio,
-      y: (bodyBox.top + scrollY - anchor.y) * ratio,
+      y: (bodyBox.top + scrollY + (band ? band.y * bandScale : 0) - anchor.y) * ratio,
       width: bodyBox.width * ratio,
-      height: bodyBox.height * ratio
+      height: (band ? band.height * bandScale : bodyBox.height) * ratio
     })
   }
 
