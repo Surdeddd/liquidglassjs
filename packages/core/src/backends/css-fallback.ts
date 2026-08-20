@@ -1,4 +1,3 @@
-import { colorWithOpacity } from '../color'
 import { squircleClipPath } from '../displacement'
 import { glassShadowCss, glassSheenCss } from '../material'
 import { captureInlineStyles } from '../style-restore'

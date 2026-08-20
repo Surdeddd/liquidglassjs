@@ -1,4 +1,3 @@
-import { colorWithOpacity } from '../color'
 import { buildLuminanceGrid, setLuminanceGrid } from '../quality/contrast'
 import { resolveRadiusPx } from '../displacement'
 import {

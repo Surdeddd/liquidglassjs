@@ -1,4 +1,3 @@
-import { colorWithOpacity } from '../color'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { glassInnerShadowCss, glassShadowCss, glassSheenCss } from '../material'
 import { parseColor } from '../quality/a11y'

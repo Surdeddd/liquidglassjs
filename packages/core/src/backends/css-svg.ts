@@ -1,4 +1,3 @@
-import { colorWithOpacity } from '../color'
 import { glassInnerShadowCss, glassShadowCss, glassSheenCss } from '../material'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { requestLensMap } from '../worker/host'
