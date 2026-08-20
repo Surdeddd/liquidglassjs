@@ -1,5 +1,172 @@
 # @surdeddd/liquidglass
 
+## 0.11.0
+
+### Minor Changes
+
+- 3a88d8f: Glass that stretches when it travels, and one switch that turns the whole material off.
+
+  Apple's material is liquid, and the tell is what happens when a control moves: it elongates along
+  its own travel and pinches across it, like a drop, then settles round again. Nothing here did that —
+  the physics could squash on press and drift toward a pointer, but a surface crossing the screen
+  arrived the same shape it left.
+
+  `physics.stretch` (0 to 1, default `0.6`) drives it from the element's measured velocity, so it works
+  for anything that moves the box: a spring-driven tab pill, a drag, a layout animation. The elongation
+  is capped at 18% and volume-compensated on the cross axis, and it rides its own spring, so it
+  overshoots slightly and recovers rather than snapping. It costs no extra layout reads — the velocity
+  comes from the rect the surface tracker already measures each frame. Set it to `0` for travel without
+  deformation.
+
+  `effects: false` turns everything off: no backend, no bevel, no physics, no injected layers — the
+  element renders exactly as authored, and flipping it back to `true` brings the material and the
+  chosen backend back. It is a real switch rather than a preset, so a page can offer "reduce effects"
+  next to its dark-mode toggle, and a consumer who wants glass on some devices and not others does not
+  have to branch around `attach` at all. `handle.backend` reports `'inert'` while it is off.
+
+- dc4a243: The page stops freezing while you scroll, and the fps watchdog can finally see what it is guarding.
+
+  Three faults compounded into the stutter people actually felt.
+
+  The overlay backend rasterized the **whole document** through `html-to-image` whenever anything
+  relevant mutated — and scrolling a page with reveal-on-scroll sections mutates constantly, because
+  each section that fades in is an attribute change. A profile of the docs site showed the cost plainly:
+  `setProperty`, `getPropertyValue` and `serializeToString` at the top, with main-thread freezes up to
+  1054 ms. Yet the texture never needed re-capturing for a scroll at all: it lives in document
+  coordinates, so panning cannot invalidate it. Snapshots are now held back while the viewport is
+  moving and taken once it settles. Measured on the docs site, interleaved A/B under matched load:
+  78–82 fps and 1073–1219 ms of blocking became 113–114 fps and **zero** long tasks.
+
+  The watchdog was measuring nothing. It listened on the passive frame channel, but that channel only
+  reports a gap when the previous frame scheduled the next one — and on a page whose only motion is
+  scrolling, the loop sleeps between events, so every sample it received was exactly `0` and was
+  discarded on arrival. It now measures in short bursts while the viewport is actually moving, taking
+  real timestamps instead of the delta the physics integrator clamps to 1/20 s for stability.
+
+  Its window was also counted in frames: 90 frames, three windows. At 60 fps that is a 4.5 s reaction,
+  but at 8 fps it is 38 s — the worse the stall, the longer the rescue took. Windows now close on
+  elapsed time as well, so relief arrives in seconds no matter how bad it gets. On the ten-lens
+  benchmark the watchdog now drops dispersion from three passes to one in both headed and software
+  rendering, and the settled figure went from 7–9 fps to 119.
+
+- 98e70ff: The material reads as glass now: light bends at the rim instead of being smeared across it, and the pane finally sits on a shadow.
+
+  Apple describes Liquid Glass as three layers — highlight, shadow, illumination — and as a material
+  that _bends_ light where earlier ones scattered it. Measured against that, five things were wrong.
+
+  **The blur ran after the displacement**, where Apple's material softens the backdrop and then bends
+  it. The SVG chain now matches that order. Measured honestly, this one is a small correction rather
+  than a visible win: over a frosted panel the two orders differ by at most 8 levels out of 255, on
+  3.68% of pixels, with rim and interior detail unchanged — a Gaussian is near enough shift-invariant
+  that the orders only diverge in the thin band where the displacement gradient is steep. It is kept
+  because it is the right order, not because it repaints the material.
+
+  **There was no shadow at all, on any backend.** A new `shadow` parameter (default `0.55`) draws a
+  soft ambient cast sized from the element plus a tight contact line, so the glass stops reading as a
+  hole cut in the page. `box-shadow` also joins the overlay backend's restore list, so a shadow you
+  authored yourself now survives a backend swap.
+
+  **Wide elements had no rim optics left.** The displacement map budgeted by longest side, so a
+  1440×64 bar spent its texels on length and resolved a 24px bevel with 5.7 of them — on the one shape
+  this material is used for most. The budget is an area now, with a floor on texels across the band and
+  a ceiling so a weak tier is never handed more than it can afford: that bar goes from 5.7 to 24 texels
+  across the band, a 420×280 card from 19.6 to 24, and a small pill is unchanged.
+
+  **Dispersion was inverted in the WebGL shader.** Blue refracts more than red; the shader displaced
+  red more, so the two backends drew mirrored fringes and the GL one was backwards.
+
+  **The highlight could not move.** The shader tested a flat three-pixel mask with a very broad lobe,
+  giving a ring that changed brightness around the perimeter but never shifted position — and the rim
+  brightening was a linear white ramp across the whole bevel. Both now use the surface slope the
+  refraction step already solves for: Blinn-Phong against a real normal, so the highlight rolls across
+  the bevel as the light moves, with a weak second lobe opposite it, and Schlick instead of the ramp,
+  so the edge brightening is a hairline where the surface turns edge-on and it reflects an environment
+  rather than flat white.
+
+  Also: the bezel's conic highlight sat 90° from the light direction it tracks, so on the default
+  backends — where that ring is the entire light response — the material was lit from the wrong side.
+
+- 156ada2: The SVG backends can light the rim now — measured, and off by default because of what it costs.
+
+  Until now the entire light model lived in the WebGL shader, which is not the backend anyone gets
+  unless they ask: Chromium routes to `css-svg` and Safari and Firefox to `svg-content`, and neither
+  had a lighting primitive at all. Every specular improvement landed where almost nobody could see it,
+  and the default material's whole light response was one conic gradient in the DOM.
+
+  The displacement map was already carrying a wasted channel — blue held a constant 128 — so it now
+  carries the dome height instead, and the same texture that bends the backdrop can shade it. The
+  chain lifts that channel into alpha, runs `feSpecularLighting` against a distant light, and masks
+  the result to the bevel by subtracting the dome from a stepped "inside" mask, because a flat
+  interior under a distant light returns a uniform wash rather than a rim. Verified by differencing
+  the panel with the highlight on and off: the change is a bright band around the perimeter, brightest
+  toward the light, with a completely unchanged interior.
+
+  It is opt-in through a new `lighting` option, defaulting to `false`, and that is the honest part.
+  On the ten-lens benchmark it takes the settled figure from 119 fps to 14 — an eight-fold cost, where
+  the threshold for keeping it on by default was ten percent. It is meant for one or two surfaces that
+  carry a page, not for a page made of glass.
+
+- e5e2d03: The material now follows the backdrop, the way Apple's does.
+
+  Adaptive glass used to fight what was beneath it: a white film over dark pages, near-black pucks
+  over light ones. Apple's material does the opposite — dark backdrops get dark smoke, light
+  backdrops get white frost, and it is the content color that flips. The default tint now follows
+  that rule, and every surface carries `--lg-on-glass`, a ready-to-use color for whatever you set
+  on the glass.
+
+  Tone detection also learned to read gradients. Pages rarely sit on a flat color; the observer now
+  averages a gradient's stops instead of giving up, so surfaces over gradient walls resolve a tone
+  instead of keeping the old film. Raster images still yield, honestly, to `null`.
+
+  Explicit `tint` attributes are untouched — this only moves surfaces that never chose a color.
+
+- 38d1286: The pane reads as glass on a smooth backdrop — sheen, edge light and interior depth on every tier.
+
+  Refraction only shows where the backdrop has structure. Over a flat wall the material used to
+  collapse into a tinted rectangle, because everything else was too faint: a 0.33-alpha ring and two
+  hairlines. Apple's material stays glass on any backdrop, and the cues it uses are cheap.
+
+  Three of them now ship on all CSS/SVG tiers, composed from the existing layers with no new DOM:
+
+  - an interior sheen — light falling down the surface to a faint floor shade, composed behind the
+    tint (`--lg-sheen-angle` rotates it);
+  - a lit inner edge and a soft pool of depth inside the bottom rim, so the pane has thickness;
+  - a bezel ring bright enough to see (0.85·specular at the lit arc, up from 0.55).
+
+  All three scale with `specular` and vanish at `specular: 0`. Forced-colors and reduced-transparency
+  modes now zero `specular` too, so a high-contrast surface is genuinely flat rather than decorated.
+
+  The press is honest gel now as well: a uniform swell with the specular flash rather than the old
+  wider-and-shorter squash, and travel stretch follows real page-space movement and always relaxes on
+  its own.
+
+### Patch Changes
+
+- 9481396: Scrolling is no longer mistaken for travel, and the page stops paying for it.
+
+  Travel stretch reads the surface's own motion, but every element moves in one coordinate space
+  when the page scrolls: in-flow content through the viewport, fixed bars through the page. The
+  first fix pinned travel to page space, which silenced in-flow surfaces and quietly woke every
+  fixed one — a fixed bar kept its physics running for the whole scroll, rewriting transforms and
+  re-rasterizing its backdrop every frame. On the ten-lens bench that cost two thirds of the frame
+  rate.
+
+  Travel is now the smaller of the page-space and viewport-space motions per axis. A scroll moves
+  an element in exactly one of those spaces, so it reads as zero; a drag, a morph flight or any
+  real journey moves both, so the stretch is untouched. The bench went from 35 fps back to the 80s.
+
+- 291ec0d: The page snapshot learned to photograph only where the glass stands.
+
+  The overlay tier used to rasterize the entire document for its backdrop texture — on a long page
+  that meant serializing thousands of nodes and megabytes of pixels nobody would ever sample. The
+  snapshot now covers a band around the surfaces that actually need it, with a viewport of margin on
+  each side: subtrees below the band are pruned before serialization, texel density is capped where
+  blur would hide the difference anyway, and the luminance grid follows the band instead of the whole
+  page. If a surface ever walks toward the band's edge, the snapshot quietly retakes itself.
+
+  Same picture through the glass — sharper, if anything — for roughly half the cloning work and a
+  fraction of the texture memory on long pages.
+
 ## 0.10.0
 
 ### Minor Changes

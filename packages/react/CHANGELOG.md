@@ -1,5 +1,11 @@
 # @surdeddd/liquidglass-react
 
+## 0.11.0
+
+### Patch Changes
+
+- @surdeddd/liquidglass-core@0.11.0
+
 ## 0.10.0
 
 ### Patch Changes
