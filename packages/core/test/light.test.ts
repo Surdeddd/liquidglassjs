@@ -45,7 +45,7 @@ describe('registerLight', () => {
 
 describe('globalLightDir', () => {
   it('falls back to the default direction before any pointer movement', () => {
-    expect(globalLightDir()).toEqual([0.6, -0.8])
+    expect(globalLightDir()).toEqual([-Math.SQRT1_2, -Math.SQRT1_2])
   })
 
   it('returns a unit vector', () => {

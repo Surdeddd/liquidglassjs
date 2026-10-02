@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   FRAGMENT_SRC,
-  FROST_SCALE,
+  FROST_SPREAD,
   GlRenderer,
   scaleMaterialToDevice,
   UNIFORMS,
@@ -115,14 +115,21 @@ describe('gl lens shader', () => {
   })
 
   it('keeps the optical terms the material model depends on', () => {
-    expect(FRAGMENT_SRC).toContain('asin(')
+    expect(FRAGMENT_SRC).toContain('exp(-depth / band / decay)')
+    expect(FRAGMENT_SRC).toContain('vec2 bend = -grad * mag')
     expect(FRAGMENT_SRC).toContain('u_ior')
     expect(FRAGMENT_SRC).toContain('u_magnify')
     expect(FRAGMENT_SRC).toContain('u_dispersion')
   })
 
+  it('draws the rim along the light axis, lifting in light and saturating in dark', () => {
+    expect(FRAGMENT_SRC).toContain('u_rimTone')
+    expect(FRAGMENT_SRC).toContain('abs(dot(grad, light))')
+    expect(FRAGMENT_SRC).not.toContain('pow(ndh, 48.0)')
+  })
+
   it('derives the dome exponent from the material instead of a fixed quartic', () => {
-    expect(FRAGMENT_SRC).toContain('2.0 + 4.0 * u_bevelDepth')
+    expect(FRAGMENT_SRC).toContain('(1.6 - u_bevelDepth)')
     expect(FRAGMENT_SRC).not.toContain('u * u * u * pow(max(1.0 - u * u * u * u')
   })
 
@@ -145,32 +152,38 @@ describe('gl lens shader', () => {
             ratio: 2
           }),
           mergeK: 1,
-          pxRatio: 2
+          pxRatio: 2,
+          rimTone: 1
         }
       ],
       quad
     )
     expect(floats.get('u_bevelDepth')).toBe(0.25)
     expect(floats.get('u_pxRatio')).toBe(2)
+    expect(floats.get('u_rimTone')).toBe(1)
     expect(floats.get('u_bevelWidth')).toBe(48)
     renderer!.destroy()
   })
 })
 
 describe('frost parity between backends', () => {
-  it('offsets the sample coordinate instead of adding luminance grain', () => {
-    expect(FRAGMENT_SRC).toContain('frostOffset(basePx)')
-    expect(FRAGMENT_SRC).not.toContain('u_frost * 0.12')
+  it('scatters a share of the light into a wide blur instead of adding grain', () => {
+    expect(FRAGMENT_SRC).toContain('mix(col, scattered, u_frost)')
+    expect(FRAGMENT_SRC).toContain(`${FROST_SPREAD}.0 * px`)
+    expect(FRAGMENT_SRC).not.toContain('frostOffset')
   })
 
-  it('jitters at the scale the svg chain displaces by, in css pixels', () => {
+  it('spreads by the same deviation the svg chain uses, in css pixels', () => {
     const material = resolveMaterial({ frost: 0.5 })
     const filter = makeFilter()
     buildLensChain({ filter, material, scale: 8, passes: 1 })
     const node = filter.querySelector('[data-lg-role="frost"]')
-    expect(node?.getAttribute('scale')).toBe(String(material.frost * FROST_SCALE))
-    expect(FRAGMENT_SRC).toContain(`u_frost * ${FROST_SCALE}.0 * ratio`)
-    expect(FRAGMENT_SRC).toContain('floor(px / ratio)')
+    expect(node?.tagName.toLowerCase()).toBe('fegaussianblur')
+    expect(node?.getAttribute('stdDeviation')).toBe(String(FROST_SPREAD))
+    expect(node?.getAttribute('edgeMode')).toBe('duplicate')
+    const blend = filter.querySelector('[data-lg-role="frost-mix"]')
+    expect(blend?.getAttribute('k2')).toBe('0.5')
+    expect(blend?.getAttribute('k3')).toBe('0.5')
     filter.ownerSVGElement?.remove()
   })
 })
@@ -186,8 +199,8 @@ describe('scaleMaterialToDevice', () => {
 
   it('resolves an auto band in css pixels before scaling it', () => {
     const material = resolveMaterial({ bevelWidth: 'auto' })
-    expect(scaleMaterialToDevice(material, { ...css, radius: 4, ratio: 1 }).bevelWidth).toBe(12)
-    expect(scaleMaterialToDevice(material, { ...css, radius: 4, ratio: 2 }).bevelWidth).toBe(24)
+    expect(scaleMaterialToDevice(material, { ...css, radius: 4, ratio: 1 }).bevelWidth).toBe(20)
+    expect(scaleMaterialToDevice(material, { ...css, radius: 4, ratio: 2 }).bevelWidth).toBe(40)
   })
 
   it('keeps thickness on the device scale it already used', () => {

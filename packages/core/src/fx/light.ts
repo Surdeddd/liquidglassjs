@@ -99,12 +99,12 @@ export function registerLight(client: LightClient): () => void {
 }
 
 export function globalLightDir(): [number, number] {
-  if (typeof window === 'undefined' || (lastX === 0 && lastY === 0)) return [0.6, -0.8]
+  if (typeof window === 'undefined' || (lastX === 0 && lastY === 0)) return [-Math.SQRT1_2, -Math.SQRT1_2]
   const cx = window.innerWidth / 2
   const cy = window.innerHeight / 2
   const dx = lastX - cx
   const dy = lastY - cy
   const len = Math.hypot(dx, dy)
-  if (len < 1) return [0.6, -0.8]
+  if (len < 1) return [-Math.SQRT1_2, -Math.SQRT1_2]
   return [dx / len, dy / len]
 }

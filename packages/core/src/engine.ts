@@ -1,14 +1,16 @@
 import {
-  adaptTintToTone,
   applyReducedTransparency,
+  readAppearance,
   readForcedColors,
   readReducedMotion,
   readReducedTransparency,
   observeTone,
+  watchAppearance,
   TONE_CROSSOVER,
   watchMedia,
   type BackdropTone
 } from './quality/a11y'
+import { adaptMaterial, frostTone } from './quality/adapt'
 import { frameNow } from './runtime/scheduler'
 import { inertBackend } from './backends/inert'
 import { mountBezel } from './fx/bezel'
@@ -23,7 +25,7 @@ import type { Backend, BackendInstance, BackendSurface } from './backends/types'
 import { configure, watchFps } from './quality/profile'
 import { createEmitter } from './runtime/events'
 import { SurfaceTracker } from './runtime/dom-sync'
-import { MATERIAL_DEFAULTS, resolveMaterial } from './material'
+import { resolveMaterial } from './material'
 import { PhysicsController, resolvePhysics } from './physics/controller'
 import type { PhysicsHooks } from './physics/controller'
 import { probeCapabilities } from './quality/probe'
@@ -129,6 +131,8 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   let backend: Backend = pickBackend()
   const emitter = createEmitter()
   let tone: BackdropTone | null = null
+  let frost: BackdropTone | null = null
+  let shownTone: BackdropTone | null = null
   let toneWritten = false
   let lastToneSample = 0
 
@@ -145,7 +149,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   }
 
   const applyMaterial = (): void => {
-    const previousTone = tone
+    const previousShown = shownTone
     let material = resolveMaterial(current)
     if (readReducedTransparency() || readForcedColors()) {
       material = applyReducedTransparency(material)
@@ -158,6 +162,7 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
       }
     }
     if (current.adaptive !== false) {
+      let surroundLuminance: number | null = null
       const painted = observeTone(element, surface.backdrop)
       if (painted === 'light' || painted === 'dark') {
         tone = painted
@@ -173,24 +178,36 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
           if (tone === null || Math.abs(luminance - TONE_CROSSOVER) >= 0.04) {
             tone = luminance > TONE_CROSSOVER ? 'light' : 'dark'
           }
+          const margin = Math.min(box.width, box.height)
+          surroundLuminance = backdropLuminance({
+            left: box.left - margin + (typeof window === 'undefined' ? 0 : window.scrollX),
+            top: box.top - margin + (typeof window === 'undefined' ? 0 : window.scrollY),
+            width: box.width + margin * 2,
+            height: box.height + margin * 2
+          }) ?? luminance
         } else {
           tone = painted === 'unpainted' ? 'light' : null
         }
       }
+      if (painted === 'light' || painted === 'dark') surroundLuminance = painted === 'dark' ? 0 : 1
+      frost = frostTone(readAppearance(element), surroundLuminance, frost)
       if (current.tint === undefined) {
-        material = adaptTintToTone(material, tone, MATERIAL_DEFAULTS.tint)
+        material = adaptMaterial(material, current.preset ?? 'clear', frost, current)
       }
     } else {
       tone = null
     }
     surface.material = material
-    if (tone !== previousTone) emitter.emit('tonechange', tone)
-    if (tone !== previousTone || !toneWritten) {
+    surface.appearance = readAppearance(element)
+    const materialTone = current.adaptive !== false && current.preset === 'frosted' && current.tint === undefined
+    shownTone = materialTone ? frost : tone
+    if (shownTone !== previousShown) emitter.emit('tonechange', shownTone)
+    if (shownTone !== previousShown || !toneWritten) {
       toneWritten = true
       const styled = element instanceof HTMLElement ? element : null
-      if (tone) {
-        element.setAttribute('data-liquid-glass-tone', tone)
-        styled?.style.setProperty('--lg-on-glass', tone === 'light' ? '#1d1d1f' : '#f5f5f7')
+      if (shownTone) {
+        element.setAttribute('data-liquid-glass-tone', shownTone)
+        styled?.style.setProperty('--lg-on-glass', shownTone === 'light' ? '#1d1d1f' : '#f5f5f7')
       } else {
         element.removeAttribute('data-liquid-glass-tone')
         styled?.style.removeProperty('--lg-on-glass')
@@ -350,13 +367,21 @@ export function attach(element: Element, options: LiquidGlassOptions = {}): Liqu
   const retoneFromBackdrop = (): void => {
     if (current.adaptive === false) return
     const previousTone = tone
+    const previousFrost = frost
     lastToneSample = Date.now()
     applyMaterial()
-    if (tone !== previousTone) instance.update(surface)
+    if (tone !== previousTone || frost !== previousFrost) instance.update(surface)
   }
 
+  let appearance = readAppearance(element)
   const unsubscribers: Array<() => void> = [
     onLuminanceGrid(retoneFromBackdrop),
+    watchAppearance(() => {
+      const next = readAppearance(element)
+      if (next === appearance) return
+      appearance = next
+      retoneFromBackdrop()
+    }),
     watchMedia('(prefers-reduced-motion: reduce)', matches => {
       reducedMotion = matches
       physics?.destroy()

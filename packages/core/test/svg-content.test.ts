@@ -46,7 +46,7 @@ describe('svg-content backend', () => {
     const surface = makeSurface(null)
     const instance = svgContentBackend.mount(surface)
     const style = (surface.element as HTMLElement).style
-    expect(style.getPropertyValue('backdrop-filter')).toContain('blur(10px)')
+    expect(style.getPropertyValue('backdrop-filter')).toContain(`blur(${surface.material.blur}px)`)
     expect(surface.element.querySelector('[data-liquid-glass-layer]')).toBeNull()
     instance.destroy()
     surface.element.remove()
@@ -92,6 +92,21 @@ describe('svg-content backend', () => {
     source.remove()
   })
 
+  it('places the lens map in element pixels, not in the zero-sized defs viewport', () => {
+    const source = document.createElement('div')
+    document.body.appendChild(source)
+    const surface = makeSurface(source)
+    const instance = svgContentBackend.mount(surface)
+    const filters = document.querySelectorAll('svg defs filter')
+    const image = filters[filters.length - 1]!.querySelector('feImage')
+    expect(image?.getAttribute('x')).toBe(String(-0.2 * 240))
+    expect(image?.getAttribute('width')).toBe(String(1.4 * 240))
+    expect(image?.getAttribute('height')).toBe(String(1.4 * 120))
+    instance.destroy()
+    surface.element.remove()
+    source.remove()
+  })
+
   it('stays single-pass regardless of dispersion (software filter tier)', () => {
     const source = document.createElement('div')
     document.body.appendChild(source)
@@ -101,7 +116,7 @@ describe('svg-content backend', () => {
     const filters = document.querySelectorAll('svg defs filter')
     const filter = filters[filters.length - 1]!
     expect(filter.querySelectorAll('feDisplacementMap[data-lg-role^="displace"]').length).toBe(1)
-    expect(filter.querySelector('feComponentTransfer feFuncR')?.getAttribute('slope')).toBe('1')
+    expect(filter.querySelector('feComponentTransfer feFuncR')?.getAttribute('slope')).toBe(String(surface.material.brightness))
     const scale = Number(filter.querySelector('[data-lg-role="displace"]')?.getAttribute('scale'))
     expect(scale).toBeGreaterThan(0)
     expect(instance.debug?.().band).toBeGreaterThan(0)

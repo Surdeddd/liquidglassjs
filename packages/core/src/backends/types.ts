@@ -1,7 +1,7 @@
 import type { SurfaceState } from '../runtime/dom-sync'
 import type { Capabilities } from '../quality/probe'
 import type { QualityProfile } from '../quality/profile'
-import type { BackendId, LiquidGlassPreset, MaterialParams } from '../types'
+import type { BackdropTone, BackendId, LiquidGlassPreset, MaterialParams } from '../types'
 
 export interface BackendSurface {
   readonly element: Element
@@ -13,6 +13,7 @@ export interface BackendSurface {
   merge?: string | null
   mergeStrength?: number | null
   quality?: Partial<QualityProfile> | null
+  appearance?: BackdropTone | null
 }
 
 export interface BackendInstance {

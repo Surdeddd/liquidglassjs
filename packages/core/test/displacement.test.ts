@@ -8,6 +8,7 @@ import {
   sdfRoundedRect,
   type MapOptions
 } from '../src/displacement'
+import { EDGE_REACH } from '../src/optics'
 
 describe('sdfRoundedRect', () => {
   it('is negative inside the shape', () => {
@@ -85,10 +86,10 @@ describe('computeOffsets (lens model)', () => {
     expect(mid).toBeGreaterThan(0)
   })
 
-  it('points outward on each edge', () => {
-    expect(offsetAt(base, 2, 50)[0]).toBeLessThan(0)
-    expect(offsetAt(base, 197, 50)[0]).toBeGreaterThan(0)
-    expect(offsetAt(base, 100, 97)[1]).toBeGreaterThan(0)
+  it('samples inward from each edge, like the native lens', () => {
+    expect(offsetAt(base, 2, 50)[0]).toBeGreaterThan(0)
+    expect(offsetAt(base, 197, 50)[0]).toBeLessThan(0)
+    expect(offsetAt(base, 100, 97)[1]).toBeLessThan(0)
   })
 
   it('is symmetric across both axes (quarter-symmetry correctness)', () => {
@@ -110,12 +111,12 @@ describe('computeOffsets (lens model)', () => {
   it('reports the max offset in element pixels', () => {
     const { maxOffset } = computeOffsets(base)
     expect(maxOffset).toBeGreaterThan(0)
-    expect(maxOffset).toBeLessThanOrEqual(base.band * 0.9 + base.width * 0.02)
+    expect(maxOffset).toBeLessThanOrEqual(EDGE_REACH * base.band + base.width * 0.02)
   })
 
   it('supports the squircle shape', () => {
     const [dx] = offsetAt({ ...base, shape: 'squircle' as never }, 2, 50)
-    expect(dx).toBeLessThan(0)
+    expect(dx).toBeGreaterThan(0)
   })
 })
 

@@ -195,21 +195,21 @@ default column reads `clear / frosted / tinted` — `clear` is what you get when
 | Option | Type | Default | Range | Notes |
 | --- | --- | --- | --- | --- |
 | `preset` | `'clear' \| 'frosted' \| 'tinted'` | `'clear'` | — | Starting point for every material value below |
-| `blur` | number | 2 / 10 / 8 | 0–100 | Backdrop blur in px |
-| `saturation` | number | 1.4 / 1.6 / 1.4 | 0–3 | Backdrop saturation multiplier |
-| `brightness` | number | 1 / 1.05 / 1 | 0–3 | Backdrop brightness multiplier |
+| `blur` | number | 1.2 / 1.5 / 8 | 0–100 | Backdrop blur in px — the same strength on every tier, WebGL included |
+| `saturation` | number | 1 / 5.5 / 1 | 0–8 | Backdrop saturation multiplier; `frosted` needs the headroom to keep colour through its frost |
+| `brightness` | number | 1.121 / 0.936 / 1 | 0–3 | Backdrop brightness multiplier |
 | `tint` | string | `#ffffff`, `#7c5cff` under `tinted` | hex or `rgb()` | Set it explicitly to opt out of adaptive tinting |
-| `tintOpacity` | number | 0.06 / 0.14 / 0.28 | 0–1 | Tint alpha |
-| `refraction` | number | 0.65 / 0.45 / 0.5 | 0–1 | Strength of the rim bend |
+| `tintOpacity` | number | 0.0765 / 0.86 / 0.96 | 0–1 | Tint alpha |
+| `refraction` | number | 0.5 | 0–1 | Strength of the rim bend; 0.5 is the strength measured on Apple's renderer |
 | `ior` | number | 1.5 | 1–2.5 | Index of refraction; 1 bends nothing |
-| `magnify` | number | 0.02 / 0.015 / 0.015 | 0–0.1 | Whole-body magnification |
-| `thickness` | number \| `'auto'` | `'auto'` | 0–100 | Glass depth in px |
-| `bevelWidth` | number \| `'auto'` | `'auto'` | 0–200 | Rim band width; `auto` tracks the corner radius |
-| `bevelDepth` | number | 0.6 | 0–1 | Rim profile curvature |
-| `dispersion` | number | 0.15 | 0–1 | Chromatic split at the rim — Chromium and WebGL tiers only |
-| `specular` | number | 0.6 | 0–1 | Bezel highlight strength; 0 removes the bezel layer |
-| `shadow` | number | 0.55 | 0–1 | Cast shadow under the glass — a soft ambient sized from the element plus a contact line; 0 removes it. Painted on every tier |
-| `frost` | number | 0 / 0.35 / 0 | 0–1 | Grain displacement |
+| `magnify` | number | 0 | 0–0.1 | Whole-body magnification — Apple's glass has none |
+| `thickness` | number \| `'auto'` | `'auto'` | 0–100 | Dome height for `lighting: true`; it no longer changes the bend |
+| `bevelWidth` | number \| `'auto'` | `'auto'` | 0–200 | Rim band width; `auto` is 20 px, narrowing to 0.7 of the half side on controls under 60 px |
+| `bevelDepth` | number | 0.6 | 0–1 | How close to the rim the bend is held; higher is tighter |
+| `dispersion` | number | 0 | 0–1 | Chromatic split at the rim — Chromium and WebGL tiers only |
+| `specular` | number | 0.8 / 0.8 / 0.1 | 0–1 | Strength of the one-pixel rim light along the light axis; 0 removes it |
+| `shadow` | number | 0 / 0.35 / 0.35 | 0–1 | Cast shadow under the glass — a soft ambient sized from the element plus a contact line; 0 removes it. Painted on every tier |
+| `frost` | number | 0 / 0.09 / 0 | 0–1 | Share of light scattered diffusely inside the glass |
 | `radius` | number \| `'auto'` | `'auto'` | ≥ 0 | `auto` reads the element's border-radius |
 | `shape` | `'rounded' \| 'squircle'` | `'rounded'` | — | Squircle also clips the host |
 | `backend` | `BackendId \| 'auto'` | `'auto'` | — | Honoured only if the tier is supported |
@@ -218,7 +218,7 @@ default column reads `clear / frosted / tinted` — `clear` is what you get when
 | `physics` | boolean \| `{ press, hover, wobble }` | `true` — `press` and `hover` on, `wobble` 0.6 | `wobble` 0–1 | Disabled entirely under reduced motion; `hover` turns itself off on coarse pointers unless you pass it explicitly |
 | `merge` | string \| null | `null` | — | Metaball group name; needs `webgl-overlay`, and a group holds at most 8 lenses |
 | `mergeStrength` | number | 30 | px, unclamped | Distance at which group members melt together; `<liquid-glass-group spacing>` sets it to 40 |
-| `adaptive` | boolean | `true` | — | Backdrop tone sampling and automatic tint flip |
+| `adaptive` | boolean | `true` | — | Backdrop tone sampling; `frosted` follows the page's declared `color-scheme` and turns to smoke over dark surroundings |
 | `motionLight` | boolean | `false` | — | Drive the bezel highlight from device orientation |
 | `quality` | `{ mapSide: number, caPasses: 1 \| 3, maxDpr: number }` | device tier | — | Per-surface override of the quality profile; layers on top of `configure()` |
 

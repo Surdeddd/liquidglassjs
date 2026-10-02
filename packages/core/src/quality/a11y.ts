@@ -114,6 +114,45 @@ export function observeTone(
   return relativeLuminance(r, g, b) > TONE_CROSSOVER ? 'light' : 'dark'
 }
 
+export function readAppearance(element: Element): BackdropTone | null {
+  if (typeof getComputedStyle !== 'function') return null
+  const tokens = (getComputedStyle(element).getPropertyValue('color-scheme') || '').split(/\s+/)
+  const light = tokens.includes('light')
+  const dark = tokens.includes('dark')
+  if (light && dark) {
+    return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  if (dark) return 'dark'
+  if (light) return 'light'
+  return null
+}
+
+const appearanceListeners = new Set<() => void>()
+let appearanceObserver: MutationObserver | null = null
+let appearanceMedia: (() => void) | null = null
+
+function notifyAppearance(): void {
+  for (const listener of [...appearanceListeners]) listener()
+}
+
+export function watchAppearance(listener: () => void): () => void {
+  appearanceListeners.add(listener)
+  if (!appearanceObserver && typeof MutationObserver === 'function' && typeof document !== 'undefined') {
+    appearanceObserver = new MutationObserver(notifyAppearance)
+    appearanceObserver.observe(document.documentElement, { attributes: true })
+    if (document.body) appearanceObserver.observe(document.body, { attributes: true })
+    appearanceMedia = watchMedia('(prefers-color-scheme: dark)', notifyAppearance)
+  }
+  return () => {
+    appearanceListeners.delete(listener)
+    if (appearanceListeners.size > 0) return
+    appearanceObserver?.disconnect()
+    appearanceObserver = null
+    appearanceMedia?.()
+    appearanceMedia = null
+  }
+}
+
 export function readReducedTransparency(): boolean {
   return (
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-transparency: reduce)').matches

@@ -21,7 +21,7 @@ const DEFAULT_MERGE_K = 30
 
 const MAX_SNAPSHOT_SIDE = 4096
 
-const SNAPSHOT_TEXEL_DENSITY = 0.75
+const SNAPSHOT_DENSITY_CAP = 2
 
 const SCROLL_QUIET_MS = 180
 
@@ -85,6 +85,7 @@ class OverlayManager {
     }
     const manager = new OverlayManager(canvas, renderer)
     renderer.onContextRestored(() => manager.scheduleSnapshot())
+    renderer.onContextLost(() => manager.releaseMaterial())
     OverlayManager.#instance = manager
     return manager
   }
@@ -92,6 +93,7 @@ class OverlayManager {
   #canvas: HTMLCanvasElement
   #renderer: GlRenderer
   #surfaces = new Set<BackendSurface>()
+  #owned = new Set<Element>()
   #renderFrame = 0
   #snapshotTimer: ReturnType<typeof setTimeout> | null = null
   #snapshotting = false
@@ -179,6 +181,7 @@ class OverlayManager {
 
   remove(surface: BackendSurface): void {
     this.#surfaces.delete(surface)
+    this.#owned.delete(surface.element)
     if (this.#surfaces.size === 0) {
       this.#teardown()
       return
@@ -302,7 +305,7 @@ class OverlayManager {
       const scrollYAtStart = window.scrollY
       const bodyTop = body.getBoundingClientRect().top + scrollYAtStart
       const scale = Math.min(
-        SNAPSHOT_TEXEL_DENSITY,
+        Math.min(dpr(), SNAPSHOT_DENSITY_CAP),
         MAX_SNAPSHOT_SIDE / Math.max(pageW, band.height, 1)
       )
       restorePins = pinUsedMargins(
@@ -378,10 +381,12 @@ class OverlayManager {
     const scrollX = window.scrollX
     const scrollY = window.scrollY
     const draws: GlDraw[] = []
+    const drawn: BackendSurface[] = []
     const groups = new Map<string, { shapes: GlShape[]; surface: BackendSurface; mergeK: number }>()
     for (const surface of this.#surfaces) {
       const box = surface.element.getBoundingClientRect()
       if (box.width < 1 || box.height < 1) continue
+      drawn.push(surface)
       const shape: GlShape = {
         rect: {
           x: box.left + scrollX,
@@ -403,7 +408,13 @@ class OverlayManager {
         }
         continue
       }
-      draws.push({ quad: shape.rect, shapes: [shape], material: surface.material, mergeK: 1 })
+      draws.push({
+        quad: shape.rect,
+        shapes: [shape],
+        material: surface.material,
+        mergeK: 1,
+        rimTone: surface.appearance === 'dark' ? 1 : 0
+      })
     }
     for (const group of groups.values()) {
       const quad = unionRect(
@@ -411,7 +422,13 @@ class OverlayManager {
         group.mergeK
       )
       if (quad.width < 1 || quad.height < 1) continue
-      draws.push({ quad, shapes: group.shapes, material: group.surface.material, mergeK: group.mergeK })
+      draws.push({
+        quad,
+        shapes: group.shapes,
+        material: group.surface.material,
+        mergeK: group.mergeK,
+        rimTone: group.surface.appearance === 'dark' ? 1 : 0
+      })
     }
     if (draws.length === 0) return
 
@@ -450,7 +467,8 @@ class OverlayManager {
         ratio
       }),
       pxRatio: ratio,
-      mergeK: draw.mergeK * ratio
+      mergeK: draw.mergeK * ratio,
+      rimTone: draw.rimTone
     }))
     const bodyBox = document.body.getBoundingClientRect()
     const band = this.#texBand
@@ -469,12 +487,29 @@ class OverlayManager {
       }
     }
     const bandScale = band ? bodyBox.height / Math.max(band.fullHeight, 1) : 1
+    const painting = this.#renderer.hasTexture && !this.#renderer.contextLost
     this.#renderer.render(canvasDraws, {
       x: (bodyBox.left + scrollX - anchor.x) * ratio,
       y: (bodyBox.top + scrollY + (band ? band.y * bandScale : 0) - anchor.y) * ratio,
       width: bodyBox.width * ratio,
       height: (band ? band.height * bandScale : bodyBox.height) * ratio
     })
+    if (!painting) return
+    for (const surface of drawn) {
+      if (this.#owned.has(surface.element)) continue
+      this.#owned.add(surface.element)
+      applyBaseStyles(surface, true)
+    }
+  }
+
+  owns(surface: BackendSurface): boolean {
+    return this.#owned.has(surface.element)
+  }
+
+  releaseMaterial(): void {
+    for (const surface of this.#surfaces) {
+      if (this.#owned.delete(surface.element)) applyBaseStyles(surface, false)
+    }
   }
 
   #destroyed = false
@@ -503,14 +538,16 @@ class OverlayManager {
   }
 }
 
-function applyBaseStyles(surface: BackendSurface): void {
+function applyBaseStyles(surface: BackendSurface, owned: boolean): void {
   if (!isStyleable(surface.element)) return
   const { material } = surface
   const style = surface.element.style
-  const filter = `blur(${material.blur}px) saturate(${material.saturation}) brightness(${material.brightness})`
+  const filter = owned
+    ? 'none'
+    : `blur(${material.blur}px) saturate(${material.saturation}) brightness(${material.brightness})`
   style.setProperty('backdrop-filter', filter)
   style.setProperty('-webkit-backdrop-filter', filter)
-  style.setProperty('background', colorWithOpacity(material.tint, material.tintOpacity))
+  style.setProperty('background', owned ? 'transparent' : colorWithOpacity(material.tint, material.tintOpacity))
   if (typeof material.radius === 'number') {
     style.setProperty('border-radius', `${material.radius}px`)
   }
@@ -546,12 +583,12 @@ export const webglOverlayBackend: Backend = {
   },
   mount(surface) {
     const restore = captureInlineStyles(surface.element, TOUCHED)
-    applyBaseStyles(surface)
+    applyBaseStyles(surface, false)
     const manager = OverlayManager.acquire()
     if (!manager) {
       const fallback: BackendInstance = {
         update(next) {
-          applyBaseStyles(next)
+          applyBaseStyles(next, false)
         },
         sync() {},
         destroy() {
@@ -564,7 +601,7 @@ export const webglOverlayBackend: Backend = {
     let wasVisible = surface.state.visible
     return {
       update(next) {
-        applyBaseStyles(next)
+        applyBaseStyles(next, manager.owns(next))
         manager.add(next)
       },
       sync(next) {

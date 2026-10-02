@@ -1,4 +1,5 @@
 import {
+  appleBand,
   DEFAULT_BEVEL_DEPTH,
   domeExponent,
   interiorZoomOffsetX,
@@ -173,8 +174,8 @@ export function computeOffsets(opts: MapOptions): OffsetField {
           const gy = surfaceSdf(sx, sy + 1, sdfSpec) - surfaceSdf(sx, sy - 1, sdfSpec)
           const len = Math.hypot(gx, gy)
           if (len > 0) {
-            dx = (gx / len) * mag
-            dy = (gy / len) * mag
+            dx = (-gx / len) * mag
+            dy = (-gy / len) * mag
           }
         }
       }
@@ -242,8 +243,6 @@ export function resolveThicknessPx(
   return 12 * factor
 }
 
-const MIN_AUTO_BAND = 12
-
 export function resolveBandPx(
   bevelWidth: number | 'auto',
   radiusPx: number,
@@ -251,8 +250,7 @@ export function resolveBandPx(
   height: number
 ): number {
   if (typeof bevelWidth === 'number') return bevelWidth
-  const halfMin = Math.min(width, height) / 2
-  return Math.min(Math.max(radiusPx, MIN_AUTO_BAND), halfMin)
+  return appleBand(Math.min(width, height) / 2)
 }
 
 const lensMapCache = new Map<string, LensMap>()

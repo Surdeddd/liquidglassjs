@@ -38,10 +38,10 @@ describe('buildLensChain', () => {
     filter.ownerSVGElement?.remove()
   })
 
-  it('adds the frost turbulence only when frost is on', () => {
+  it('adds the frost scatter only when frost is on', () => {
     const plain = makeFilter()
     buildLensChain({ filter: plain, material: resolveMaterial({ frost: 0 }), scale: 8, passes: 1 })
-    expect(plain.querySelector('feTurbulence')).toBeNull()
+    expect(plain.querySelector('[data-lg-role="frost"]')).toBeNull()
 
     const frosted = makeFilter()
     buildLensChain({
@@ -50,7 +50,7 @@ describe('buildLensChain', () => {
       scale: 8,
       passes: 1
     })
-    expect(frosted.querySelector('feTurbulence')).not.toBeNull()
+    expect(frosted.querySelector('feTurbulence')).toBeNull()
     expect(frosted.querySelector('[data-lg-role="frost"]')).not.toBeNull()
     plain.ownerSVGElement?.remove()
     frosted.ownerSVGElement?.remove()

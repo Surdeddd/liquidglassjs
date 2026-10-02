@@ -1,3 +1,4 @@
+import { FROST_SPREAD } from '../material'
 import type { MaterialParams } from '../types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -7,6 +8,7 @@ export interface LensChainSpec {
   material: MaterialParams
   scale: number
   passes: 1 | 3
+  spread?: number
 }
 
 export interface LensChainNodes {
@@ -81,6 +83,13 @@ function mkComposite(a: string, b: string, out: string): SVGFECompositeElement {
   return c
 }
 
+export function placeLensMap(image: SVGFEImageElement, width: number, height: number): void {
+  image.setAttribute('x', String(-0.2 * width))
+  image.setAttribute('y', String(-0.2 * height))
+  image.setAttribute('width', String(1.4 * width))
+  image.setAttribute('height', String(1.4 * height))
+}
+
 export function buildLensChain(spec: LensChainSpec): LensChainNodes {
   const { filter, material, scale, passes } = spec
   filter.replaceChildren()
@@ -132,20 +141,23 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
   }
 
   if (material.frost > 0) {
-    const turb = el('feTurbulence')
-    turb.setAttribute('type', 'fractalNoise')
-    turb.setAttribute('baseFrequency', '0.9')
-    turb.setAttribute('numOctaves', '2')
-    turb.setAttribute('result', 'lgNoise')
-    const frostDisplace = el('feDisplacementMap')
-    frostDisplace.setAttribute('in', lensResult)
-    frostDisplace.setAttribute('in2', 'lgNoise')
-    frostDisplace.setAttribute('xChannelSelector', 'R')
-    frostDisplace.setAttribute('yChannelSelector', 'G')
-    frostDisplace.setAttribute('scale', String(material.frost * 6))
-    frostDisplace.setAttribute('result', 'lgFrost')
-    frostDisplace.setAttribute('data-lg-role', 'frost')
-    filter.append(turb, frostDisplace)
+    const spread = el('feGaussianBlur')
+    spread.setAttribute('in', lensResult)
+    spread.setAttribute('stdDeviation', String(spec.spread ?? FROST_SPREAD))
+    spread.setAttribute('edgeMode', 'duplicate')
+    spread.setAttribute('result', 'lgScatter')
+    spread.setAttribute('data-lg-role', 'frost')
+    const blend = el('feComposite')
+    blend.setAttribute('in', lensResult)
+    blend.setAttribute('in2', 'lgScatter')
+    blend.setAttribute('operator', 'arithmetic')
+    blend.setAttribute('k1', '0')
+    blend.setAttribute('k2', String(Number((1 - material.frost).toFixed(4))))
+    blend.setAttribute('k3', String(material.frost))
+    blend.setAttribute('k4', '0')
+    blend.setAttribute('result', 'lgFrost')
+    blend.setAttribute('data-lg-role', 'frost-mix')
+    filter.append(spread, blend)
     lensResult = 'lgFrost'
   }
 
