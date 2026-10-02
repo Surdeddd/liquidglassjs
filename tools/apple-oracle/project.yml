@@ -1,0 +1,39 @@
+name: AppleGlassOracle
+options:
+  minimumXcodeGenVersion: 2.40.0
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+    COMPRESS_PNG_FILES: NO
+    STRIP_PNG_TEXT: NO
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    SDKROOT: iphonesimulator
+    SUPPORTED_PLATFORMS: iphonesimulator
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  AppleGlassOracle:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Sources
+      - path: ../glass-match/scenes.json
+        buildPhase: resources
+      - path: ../../e2e/fixtures/apple-glass/backgrounds
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        INFOPLIST_KEY_UIStatusBarHidden: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        PRODUCT_BUNDLE_IDENTIFIER: dev.liquidglassjs.apple-oracle
+        PRODUCT_NAME: AppleGlassOracle

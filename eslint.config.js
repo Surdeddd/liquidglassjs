@@ -9,6 +9,8 @@ export default tseslint.config(
       '**/dist-worker/**',
       '**/node_modules/**',
       'memory-bank/**',
+      'artifacts/**',
+      'tools/apple-oracle/**',
       'playwright-report/**',
       'test-results/**',
       '.vercel/**',
@@ -18,7 +20,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['scripts/**'],
+    files: ['scripts/**', 'tools/**'],
     languageOptions: {
       globals: {
         ...globals.node,

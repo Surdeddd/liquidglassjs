@@ -79,6 +79,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/liquidglass
 
+  apps/glass-match: {}
+
   apps/react18-smoke:
     dependencies:
       '@surdeddd/liquidglass-react':
