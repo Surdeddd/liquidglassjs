@@ -1,0 +1,2592 @@
+{
+  "version": 1,
+  "viewport": {
+    "width": 402,
+    "height": 874,
+    "scale": 3
+  },
+  "scenes": [
+    {
+      "id": "B0.phase-grid",
+      "family": "B0",
+      "phase": "phase-grid",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "B0.checker-bars",
+      "family": "B0",
+      "phase": "checker-bars",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "B0.split-luminance",
+      "family": "B0",
+      "phase": "split-luminance",
+      "background": "split-luminance.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "B0.saturated-patches",
+      "family": "B0",
+      "phase": "saturated-patches",
+      "background": "saturated-patches.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "B0.color-chart",
+      "family": "B0",
+      "phase": "color-chart",
+      "background": "color-chart.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "B0.luminance-sweep",
+      "family": "B0",
+      "phase": "luminance-sweep",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "B0.project-photo",
+      "family": "B0",
+      "phase": "project-photo",
+      "background": "project-photo.png",
+      "backgroundOffset": 0,
+      "material": "none",
+      "container": "none",
+      "shapes": [],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "O1.rest",
+      "family": "O1",
+      "phase": "rest",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "O2.rest",
+      "family": "O2",
+      "phase": "rest",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "O3.rest",
+      "family": "O3",
+      "phase": "rest",
+      "background": "split-luminance.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 179,
+          "y": 415,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "O4.rest",
+      "family": "O4",
+      "phase": "rest",
+      "background": "saturated-patches.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 405,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "O5.rest",
+      "family": "O5",
+      "phase": "rest",
+      "background": "project-photo.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "O6.rest",
+      "family": "O6",
+      "phase": "rest",
+      "background": "color-chart.png",
+      "backgroundOffset": 0,
+      "material": "tinted",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 405,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        }
+      ],
+      "tint": "#0a84ff"
+    },
+    {
+      "id": "S1.height-44",
+      "family": "S1",
+      "phase": "height-44",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 415,
+          "width": 180,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "S1.height-72",
+      "family": "S1",
+      "phase": "height-72",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 401,
+          "width": 180,
+          "height": 72,
+          "radius": 24
+        }
+      ]
+    },
+    {
+      "id": "S1.height-220",
+      "family": "S1",
+      "phase": "height-220",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 327,
+          "width": 180,
+          "height": 220,
+          "radius": 28
+        }
+      ]
+    },
+    {
+      "id": "A1.step-00",
+      "family": "A1",
+      "phase": "step-00",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 191.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-01",
+      "family": "A1",
+      "phase": "step-01",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 172.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-02",
+      "family": "A1",
+      "phase": "step-02",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 153.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-03",
+      "family": "A1",
+      "phase": "step-03",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 134,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-04",
+      "family": "A1",
+      "phase": "step-04",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 114.857,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-05",
+      "family": "A1",
+      "phase": "step-05",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 95.714,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-06",
+      "family": "A1",
+      "phase": "step-06",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 76.571,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-07",
+      "family": "A1",
+      "phase": "step-07",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 57.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-08",
+      "family": "A1",
+      "phase": "step-08",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 38.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-09",
+      "family": "A1",
+      "phase": "step-09",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 19.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-10",
+      "family": "A1",
+      "phase": "step-10",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-11",
+      "family": "A1",
+      "phase": "step-11",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -19.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-12",
+      "family": "A1",
+      "phase": "step-12",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -38.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-13",
+      "family": "A1",
+      "phase": "step-13",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -57.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-14",
+      "family": "A1",
+      "phase": "step-14",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -76.571,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-15",
+      "family": "A1",
+      "phase": "step-15",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -95.714,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-16",
+      "family": "A1",
+      "phase": "step-16",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -114.857,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-17",
+      "family": "A1",
+      "phase": "step-17",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -134,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-18",
+      "family": "A1",
+      "phase": "step-18",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -153.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-19",
+      "family": "A1",
+      "phase": "step-19",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -172.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A1.step-20",
+      "family": "A1",
+      "phase": "step-20",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -191.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A2.step-00",
+      "family": "A2",
+      "phase": "step-00",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 191.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-01",
+      "family": "A2",
+      "phase": "step-01",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 172.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-02",
+      "family": "A2",
+      "phase": "step-02",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 153.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-03",
+      "family": "A2",
+      "phase": "step-03",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 134,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-04",
+      "family": "A2",
+      "phase": "step-04",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 114.857,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-05",
+      "family": "A2",
+      "phase": "step-05",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 95.714,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-06",
+      "family": "A2",
+      "phase": "step-06",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 76.571,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-07",
+      "family": "A2",
+      "phase": "step-07",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 57.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-08",
+      "family": "A2",
+      "phase": "step-08",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 38.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-09",
+      "family": "A2",
+      "phase": "step-09",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 19.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-10",
+      "family": "A2",
+      "phase": "step-10",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-11",
+      "family": "A2",
+      "phase": "step-11",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -19.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-12",
+      "family": "A2",
+      "phase": "step-12",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -38.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-13",
+      "family": "A2",
+      "phase": "step-13",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -57.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-14",
+      "family": "A2",
+      "phase": "step-14",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -76.571,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-15",
+      "family": "A2",
+      "phase": "step-15",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -95.714,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-16",
+      "family": "A2",
+      "phase": "step-16",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -114.857,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-17",
+      "family": "A2",
+      "phase": "step-17",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -134,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-18",
+      "family": "A2",
+      "phase": "step-18",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -153.143,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-19",
+      "family": "A2",
+      "phase": "step-19",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -172.286,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "A2.step-20",
+      "family": "A2",
+      "phase": "step-20",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -191.429,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "M1.separate",
+      "family": "M1",
+      "phase": "separate",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "merge",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 61,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "glass-1",
+          "x": 241,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        }
+      ],
+      "spacing": 30
+    },
+    {
+      "id": "M1.onset",
+      "family": "M1",
+      "phase": "onset",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "merge",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 91,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "glass-1",
+          "x": 211,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        }
+      ],
+      "spacing": 30
+    },
+    {
+      "id": "M1.merged",
+      "family": "M1",
+      "phase": "merged",
+      "background": "phase-grid.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "merge",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "glass-1",
+          "x": 191,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        }
+      ],
+      "spacing": 30
+    },
+    {
+      "id": "E2.separate",
+      "family": "E2",
+      "phase": "separate",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "merge",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 61,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "glass-1",
+          "x": 241,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        }
+      ],
+      "spacing": 36
+    },
+    {
+      "id": "E2.onset",
+      "family": "E2",
+      "phase": "onset",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "merge",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 91,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "glass-1",
+          "x": 211,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        }
+      ],
+      "spacing": 36
+    },
+    {
+      "id": "E2.merged",
+      "family": "E2",
+      "phase": "merged",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "merge",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "glass-1",
+          "x": 191,
+          "y": 387,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        }
+      ],
+      "spacing": 36
+    },
+    {
+      "id": "H1.selected-0",
+      "family": "H1",
+      "phase": "selected-0",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "tabview",
+      "shapes": [
+        {
+          "id": "glass-track",
+          "x": 10,
+          "y": 770,
+          "width": 382,
+          "height": 84,
+          "radius": 30
+        },
+        {
+          "id": "glass-selector",
+          "x": 18,
+          "y": 778,
+          "width": 68,
+          "height": 68,
+          "radius": 26
+        }
+      ],
+      "spacing": 36,
+      "symbols": [
+        "house.fill",
+        "magnifyingglass",
+        "plus",
+        "heart",
+        "person"
+      ],
+      "selectedIndex": 0
+    },
+    {
+      "id": "H1.selected-2",
+      "family": "H1",
+      "phase": "selected-2",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "tabview",
+      "shapes": [
+        {
+          "id": "glass-track",
+          "x": 10,
+          "y": 770,
+          "width": 382,
+          "height": 84,
+          "radius": 30
+        },
+        {
+          "id": "glass-selector",
+          "x": 166,
+          "y": 778,
+          "width": 68,
+          "height": 68,
+          "radius": 26
+        }
+      ],
+      "spacing": 36,
+      "symbols": [
+        "house",
+        "magnifyingglass",
+        "plus.circle.fill",
+        "heart",
+        "person"
+      ],
+      "selectedIndex": 2
+    },
+    {
+      "id": "H1.selected-4",
+      "family": "H1",
+      "phase": "selected-4",
+      "background": "checker-bars.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "tabview",
+      "shapes": [
+        {
+          "id": "glass-track",
+          "x": 10,
+          "y": 770,
+          "width": 382,
+          "height": 84,
+          "radius": 30
+        },
+        {
+          "id": "glass-selector",
+          "x": 314,
+          "y": 778,
+          "width": 68,
+          "height": 68,
+          "radius": 26
+        }
+      ],
+      "spacing": 36,
+      "symbols": [
+        "house",
+        "magnifyingglass",
+        "plus",
+        "heart",
+        "person.fill"
+      ],
+      "selectedIndex": 4
+    },
+    {
+      "id": "H2.rest",
+      "family": "H2",
+      "phase": "rest",
+      "background": "saturated-patches.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "button",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 111,
+          "y": 405,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        }
+      ],
+      "symbol": "sparkles"
+    },
+    {
+      "id": "A3.step-00",
+      "family": "A3",
+      "phase": "step-00",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 191.429,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-01",
+      "family": "A3",
+      "phase": "step-01",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 172.286,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-02",
+      "family": "A3",
+      "phase": "step-02",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 153.143,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-03",
+      "family": "A3",
+      "phase": "step-03",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 134,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-04",
+      "family": "A3",
+      "phase": "step-04",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 114.857,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-05",
+      "family": "A3",
+      "phase": "step-05",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 95.714,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-06",
+      "family": "A3",
+      "phase": "step-06",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 76.571,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-07",
+      "family": "A3",
+      "phase": "step-07",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 57.429,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-08",
+      "family": "A3",
+      "phase": "step-08",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 38.286,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-09",
+      "family": "A3",
+      "phase": "step-09",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 19.143,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-10",
+      "family": "A3",
+      "phase": "step-10",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-11",
+      "family": "A3",
+      "phase": "step-11",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -19.143,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-12",
+      "family": "A3",
+      "phase": "step-12",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -38.286,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-13",
+      "family": "A3",
+      "phase": "step-13",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -57.429,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-14",
+      "family": "A3",
+      "phase": "step-14",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -76.571,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-15",
+      "family": "A3",
+      "phase": "step-15",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -95.714,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-16",
+      "family": "A3",
+      "phase": "step-16",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -114.857,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-17",
+      "family": "A3",
+      "phase": "step-17",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -134,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-18",
+      "family": "A3",
+      "phase": "step-18",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -153.143,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-19",
+      "family": "A3",
+      "phase": "step-19",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -172.286,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "A3.step-20",
+      "family": "A3",
+      "phase": "step-20",
+      "background": "luminance-sweep.png",
+      "backgroundOffset": -191.429,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "glass-0",
+          "x": 153,
+          "y": 415,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "K1.patches",
+      "family": "K1",
+      "phase": "patches",
+      "background": "color-chart.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "patch-0-0",
+          "x": 11.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-1",
+          "x": 78.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-2",
+          "x": 145.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-3",
+          "x": 212.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-4",
+          "x": 279.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-5",
+          "x": 346.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-0",
+          "x": 11.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-1",
+          "x": 78.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-2",
+          "x": 145.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-3",
+          "x": 212.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-4",
+          "x": 279.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-5",
+          "x": 346.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-0",
+          "x": 11.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-1",
+          "x": 78.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-2",
+          "x": 145.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-3",
+          "x": 212.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-4",
+          "x": 279.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-5",
+          "x": 346.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-0",
+          "x": 11.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-1",
+          "x": 78.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-2",
+          "x": 145.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-3",
+          "x": 212.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-4",
+          "x": 279.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-5",
+          "x": 346.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "K2.patches",
+      "family": "K2",
+      "phase": "patches",
+      "background": "color-chart.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "patch-0-0",
+          "x": 11.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-1",
+          "x": 78.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-2",
+          "x": 145.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-3",
+          "x": 212.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-4",
+          "x": 279.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-0-5",
+          "x": 346.5,
+          "y": 87.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-0",
+          "x": 11.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-1",
+          "x": 78.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-2",
+          "x": 145.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-3",
+          "x": 212.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-4",
+          "x": 279.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-1-5",
+          "x": 346.5,
+          "y": 305.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-0",
+          "x": 11.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-1",
+          "x": 78.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-2",
+          "x": 145.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-3",
+          "x": 212.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-4",
+          "x": 279.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-2-5",
+          "x": 346.5,
+          "y": 524.333,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-0",
+          "x": 11.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-1",
+          "x": 78.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-2",
+          "x": 145.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-3",
+          "x": 212.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-4",
+          "x": 279.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "patch-3-5",
+          "x": 346.5,
+          "y": 742.833,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        }
+      ]
+    },
+    {
+      "id": "L1.x",
+      "family": "L1",
+      "phase": "x",
+      "background": "phase-x.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "capsule-96",
+          "x": 30,
+          "y": 110,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "circle-100",
+          "x": 170,
+          "y": 90,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "circle-44",
+          "x": 320,
+          "y": 118,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "rect-180",
+          "x": 30,
+          "y": 250,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        },
+        {
+          "id": "rect-120",
+          "x": 250,
+          "y": 230,
+          "width": 120,
+          "height": 120,
+          "radius": 28
+        },
+        {
+          "id": "capsule-200",
+          "x": 30,
+          "y": 410,
+          "width": 200,
+          "height": 56,
+          "radius": 28
+        },
+        {
+          "id": "rect-72",
+          "x": 280,
+          "y": 400,
+          "width": 72,
+          "height": 72,
+          "radius": 20
+        },
+        {
+          "id": "rect-220",
+          "x": 30,
+          "y": 530,
+          "width": 180,
+          "height": 220,
+          "radius": 28
+        },
+        {
+          "id": "circle-60",
+          "x": 280,
+          "y": 560,
+          "width": 60,
+          "height": 60,
+          "radius": 30
+        }
+      ],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "L1.y",
+      "family": "L1",
+      "phase": "y",
+      "background": "phase-y.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "capsule-96",
+          "x": 30,
+          "y": 110,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "circle-100",
+          "x": 170,
+          "y": 90,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "circle-44",
+          "x": 320,
+          "y": 118,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "rect-180",
+          "x": 30,
+          "y": 250,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        },
+        {
+          "id": "rect-120",
+          "x": 250,
+          "y": 230,
+          "width": 120,
+          "height": 120,
+          "radius": 28
+        },
+        {
+          "id": "capsule-200",
+          "x": 30,
+          "y": 410,
+          "width": 200,
+          "height": 56,
+          "radius": 28
+        },
+        {
+          "id": "rect-72",
+          "x": 280,
+          "y": 400,
+          "width": 72,
+          "height": 72,
+          "radius": 20
+        },
+        {
+          "id": "rect-220",
+          "x": 30,
+          "y": 530,
+          "width": 180,
+          "height": 220,
+          "radius": 28
+        },
+        {
+          "id": "circle-60",
+          "x": 280,
+          "y": 560,
+          "width": 60,
+          "height": 60,
+          "radius": 30
+        }
+      ],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "L2.x",
+      "family": "L2",
+      "phase": "x",
+      "background": "phase-x.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "panel-320",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "L2.y",
+      "family": "L2",
+      "phase": "y",
+      "background": "phase-y.png",
+      "backgroundOffset": 0,
+      "material": "clear",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "panel-320",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ],
+      "appearances": [
+        "light"
+      ]
+    },
+    {
+      "id": "L3.x",
+      "family": "L3",
+      "phase": "x",
+      "background": "phase-x.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "capsule-96",
+          "x": 30,
+          "y": 110,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "circle-100",
+          "x": 170,
+          "y": 90,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "circle-44",
+          "x": 320,
+          "y": 118,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "rect-180",
+          "x": 30,
+          "y": 250,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        },
+        {
+          "id": "rect-120",
+          "x": 250,
+          "y": 230,
+          "width": 120,
+          "height": 120,
+          "radius": 28
+        },
+        {
+          "id": "capsule-200",
+          "x": 30,
+          "y": 410,
+          "width": 200,
+          "height": 56,
+          "radius": 28
+        },
+        {
+          "id": "rect-72",
+          "x": 280,
+          "y": 400,
+          "width": 72,
+          "height": 72,
+          "radius": 20
+        },
+        {
+          "id": "rect-220",
+          "x": 30,
+          "y": 530,
+          "width": 180,
+          "height": 220,
+          "radius": 28
+        },
+        {
+          "id": "circle-60",
+          "x": 280,
+          "y": 560,
+          "width": 60,
+          "height": 60,
+          "radius": 30
+        }
+      ]
+    },
+    {
+      "id": "L3.y",
+      "family": "L3",
+      "phase": "y",
+      "background": "phase-y.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "capsule-96",
+          "x": 30,
+          "y": 110,
+          "width": 96,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "circle-100",
+          "x": 170,
+          "y": 90,
+          "width": 100,
+          "height": 100,
+          "radius": 50
+        },
+        {
+          "id": "circle-44",
+          "x": 320,
+          "y": 118,
+          "width": 44,
+          "height": 44,
+          "radius": 22
+        },
+        {
+          "id": "rect-180",
+          "x": 30,
+          "y": 250,
+          "width": 180,
+          "height": 64,
+          "radius": 22
+        },
+        {
+          "id": "rect-120",
+          "x": 250,
+          "y": 230,
+          "width": 120,
+          "height": 120,
+          "radius": 28
+        },
+        {
+          "id": "capsule-200",
+          "x": 30,
+          "y": 410,
+          "width": 200,
+          "height": 56,
+          "radius": 28
+        },
+        {
+          "id": "rect-72",
+          "x": 280,
+          "y": 400,
+          "width": 72,
+          "height": 72,
+          "radius": 20
+        },
+        {
+          "id": "rect-220",
+          "x": 30,
+          "y": 530,
+          "width": 180,
+          "height": 220,
+          "radius": 28
+        },
+        {
+          "id": "circle-60",
+          "x": 280,
+          "y": 560,
+          "width": 60,
+          "height": 60,
+          "radius": 30
+        }
+      ]
+    },
+    {
+      "id": "L4.x",
+      "family": "L4",
+      "phase": "x",
+      "background": "phase-x.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "panel-320",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "id": "L4.y",
+      "family": "L4",
+      "phase": "y",
+      "background": "phase-y.png",
+      "backgroundOffset": 0,
+      "material": "regular",
+      "container": "none",
+      "shapes": [
+        {
+          "id": "panel-320",
+          "x": 41,
+          "y": 327,
+          "width": 320,
+          "height": 220,
+          "radius": 36
+        }
+      ]
+    }
+  ]
+}

@@ -33,3 +33,6 @@ Thumbs.db
 memory-bank/
 GOAL.md
 tmp-*
+
+artifacts/
+tools/apple-oracle/*.xcodeproj/

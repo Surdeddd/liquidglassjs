@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Glass match fixture</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 402px;
+        height: 874px;
+        overflow: hidden;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+        width: 402px;
+        height: 874px;
+        overflow: hidden;
+      }
+      #fill {
+        position: absolute;
+        inset: 0;
+      }
+      #backdrop {
+        position: absolute;
+        top: 0;
+        width: 402px;
+        height: 874px;
+        display: block;
+      }
+      .glass {
+        position: absolute;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"><div id="fill"></div><img id="backdrop" alt="" /></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
