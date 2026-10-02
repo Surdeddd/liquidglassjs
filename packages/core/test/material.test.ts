@@ -31,7 +31,7 @@ describe('resolveMaterial', () => {
   it('carries the lens params with iOS-parity defaults', () => {
     const material = resolveMaterial({ preset: 'clear' })
     expect(material.ior).toBe(1.5)
-    expect(material.magnify).toBeCloseTo(0.02)
+    expect(material.magnify).toBe(0)
     expect(material.bevelWidth).toBe('auto')
   })
 

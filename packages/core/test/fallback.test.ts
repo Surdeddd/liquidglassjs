@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { attach } from '../src/index'
+import { MATERIAL_PRESETS } from '../src/material'
 
 describe('css-fallback backend', () => {
   it('applies backdrop-filter and tint styles', () => {
     const el = document.createElement('div')
     attach(el, { preset: 'frosted', backend: 'css-fallback', adaptive: false })
-    expect(el.style.getPropertyValue('backdrop-filter')).toContain('blur(10px)')
+    expect(el.style.getPropertyValue('backdrop-filter')).toContain(`blur(${MATERIAL_PRESETS.frosted.blur}px)`)
     expect(el.style.getPropertyValue('background')).toContain('rgba(255, 255, 255')
     expect(el.getAttribute('data-liquid-glass-backend')).toBe('css-fallback')
   })

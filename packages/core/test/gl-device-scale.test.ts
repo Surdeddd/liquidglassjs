@@ -139,9 +139,8 @@ describe('gl backends hand the shader device pixels', () => {
     expect(retina.get('u_bevelWidth')).toBe(BEVEL_WIDTH * 2)
   })
 
-  it('scales thickness by the same ratio as the rim', () => {
-    const retina = paintAt(2)
-    expect(retina.get('u_thickness')).toBe(THICKNESS * 2)
+  it('no longer sends thickness, which the measured lens does not read', () => {
+    expect(paintAt(2).has('u_thickness')).toBe(false)
   })
 
   it('tells the shader the pixel ratio so css-sized grain survives the dpr', () => {

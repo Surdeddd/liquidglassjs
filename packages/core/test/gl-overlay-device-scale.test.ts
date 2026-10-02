@@ -118,7 +118,10 @@ function makeSurface(): BackendSurface {
   }
 }
 
-async function overlayUniformsAt(ratio: number): Promise<Map<string, number>> {
+async function overlayUniformsAt(
+  ratio: number,
+  inspect: (surface: BackendSurface) => void = () => {}
+): Promise<Map<string, number>> {
   const uniforms = new Map<string, number>()
   const originalContext = HTMLCanvasElement.prototype.getContext
   const originalDpr = Object.getOwnPropertyDescriptor(globalThis, 'devicePixelRatio')
@@ -141,6 +144,7 @@ async function overlayUniformsAt(ratio: number): Promise<Map<string, number>> {
   const instance = webglOverlayBackend.mount(surface)
   try {
     await vi.advanceTimersByTimeAsync(getQuality().snapshotThrottleMs * 6)
+    inspect(surface)
   } finally {
     instance.destroy()
     surface.element.remove()
@@ -164,7 +168,30 @@ describe('webgl-overlay hands the shader device pixels', () => {
     expect((await overlayUniformsAt(2)).get('u_pxRatio')).toBe(2)
   })
 
-  it('keeps thickness on the same ratio as the rim', async () => {
-    expect((await overlayUniformsAt(2)).get('u_thickness')).toBe(THICKNESS * 2)
+  it('no longer sends thickness to the lens', async () => {
+    expect((await overlayUniformsAt(2)).has('u_thickness')).toBe(false)
+  })
+})
+
+describe('webgl-overlay owns the material once its frame is on screen', () => {
+  it('stops the host compositing a second blur and tint under a valid gl frame', async () => {
+    let filter = ''
+    let background = ''
+    await overlayUniformsAt(1, surface => {
+      const style = (surface.element as HTMLElement).style
+      filter = style.getPropertyValue('backdrop-filter')
+      background = style.getPropertyValue('background')
+    })
+    expect(filter).toBe('none')
+    expect(background).toBe('transparent')
+  })
+
+  it('hands the material back to css the moment the context is lost', async () => {
+    let filter = ''
+    await overlayUniformsAt(1, surface => {
+      document.querySelector('[data-liquid-glass-overlay]')?.dispatchEvent(new Event('webglcontextlost'))
+      filter = (surface.element as HTMLElement).style.getPropertyValue('backdrop-filter')
+    })
+    expect(filter).toContain('blur(')
   })
 })

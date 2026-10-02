@@ -38,7 +38,7 @@ describe('css-svg backend', () => {
     const style = (surface.element as HTMLElement).style
     expect(style.getPropertyValue('backdrop-filter')).toBe(`url("#${id}")`)
     expect(filter.querySelector('feDisplacementMap')).not.toBeNull()
-    expect(filter.querySelector('feGaussianBlur')?.getAttribute('stdDeviation')).toBe('10')
+    expect(filter.querySelector('feGaussianBlur')?.getAttribute('stdDeviation')).toBe(String(surface.material.blur))
     instance.destroy()
     surface.element.remove()
   })
@@ -95,16 +95,17 @@ describe('css-svg backend', () => {
     surface.element.remove()
   })
 
-  it('adds fine turbulence micro-scatter only when frost > 0', () => {
+  it('adds the wide scatter blur only when frost > 0', () => {
     const frosted = makeSurface({ frost: 0.4 })
     const a = cssSvgBackend.mount(frosted)
-    expect(lastFilter().querySelector('feTurbulence')).not.toBeNull()
+    expect(lastFilter().querySelector('[data-lg-role="frost"]')).not.toBeNull()
+    expect(lastFilter().querySelector('feTurbulence')).toBeNull()
     a.destroy()
     frosted.element.remove()
 
     const clear = makeSurface({ frost: 0 })
     const b = cssSvgBackend.mount(clear)
-    expect(lastFilter().querySelector('feTurbulence')).toBeNull()
+    expect(lastFilter().querySelector('[data-lg-role="frost"]')).toBeNull()
     b.destroy()
     clear.element.remove()
   })
@@ -131,24 +132,36 @@ describe('css-svg backend', () => {
     surface.element.remove()
   })
 
-  it('auto bevelWidth resolves from the corner radius', () => {
+  it('places the lens map in element pixels, not in the zero-sized defs viewport', () => {
+    const surface = makeSurface()
+    const instance = cssSvgBackend.mount(surface)
+    const image = lastFilter().querySelector('feImage')
+    expect(image?.getAttribute('x')).toBe(String(-0.2 * 240))
+    expect(image?.getAttribute('y')).toBe(String(-0.2 * 120))
+    expect(image?.getAttribute('width')).toBe(String(1.4 * 240))
+    expect(image?.getAttribute('height')).toBe(String(1.4 * 120))
+    instance.destroy()
+    surface.element.remove()
+  })
+
+  it('auto bevelWidth follows the native band law, not the corner radius', () => {
     const surface = makeSurface()
     ;(surface.element as HTMLElement).style.borderRadius = '18px'
     const instance = cssSvgBackend.mount(surface)
-    expect(instance.debug?.().band).toBe(18)
+    expect(instance.debug?.().band).toBe(20)
     instance.destroy()
     surface.element.remove()
   })
 })
 
 describe('resolveBandPx', () => {
-  it('uses the corner radius capped by half the min side', () => {
-    expect(resolveBandPx('auto', 24, 240, 120)).toBe(24)
-    expect(resolveBandPx('auto', 200, 240, 120)).toBe(60)
+  it('is 20 css px for any corner once the short side reaches 60', () => {
+    expect(resolveBandPx('auto', 24, 240, 120)).toBe(20)
+    expect(resolveBandPx('auto', 0, 240, 120)).toBe(20)
   })
 
-  it('keeps a minimum lens band on square corners', () => {
-    expect(resolveBandPx('auto', 0, 240, 120)).toBe(12)
+  it('narrows to 0.7 of the half side on small controls', () => {
+    expect(resolveBandPx('auto', 22, 96, 44)).toBeCloseTo(15.4, 6)
   })
 
   it('passes explicit numbers through', () => {

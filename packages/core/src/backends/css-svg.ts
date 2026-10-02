@@ -1,7 +1,7 @@
-import { glassInnerShadowCss, glassShadowCss, glassSheenCss } from '../material'
+import { frostSpread, glassInnerShadowCss, glassShadowCss, glassSheenCss } from '../material'
 import { resolveBandPx, resolveRadiusPx, resolveThicknessPx, squircleClipPath } from '../displacement'
 import { requestLensMap } from '../worker/host'
-import { buildLensChain } from './filter-chain'
+import { buildLensChain, placeLensMap } from './filter-chain'
 import type { LensChainNodes } from './filter-chain'
 import { getQuality } from '../quality/profile'
 import { captureInlineStyles } from '../style-restore'
@@ -118,7 +118,7 @@ class CssSvgInstance implements BackendInstance {
     } else {
       style.removeProperty('clip-path')
     }
-    const inner = glassInnerShadowCss(material.specular, surfaceSize(surface).height)
+    const inner = glassInnerShadowCss(material.specular)
     const cast = glassShadowCss(material.shadow, surfaceSize(surface).height)
     style.setProperty('box-shadow', cast ? `${cast}, ${inner}` : inner)
   }
@@ -160,22 +160,26 @@ class CssSvgInstance implements BackendInstance {
         const passes =
           latest.dispersion > 0.001 && getQuality(surface.quality).caPasses === 3 ? 3 : 1
         const scale = 2 * map.maxOffset * latest.refraction * 2
-        const chainKey = `${passes}|${latest.frost > 0}|${latest.blur}|${latest.saturation}|${latest.brightness}|${latest.dispersion}`
+        const spread = Math.round(frostSpread(width, height) * 10) / 10
+        const chainKey = `${passes}|${latest.frost}|${spread}|${latest.blur}|${latest.saturation}|${latest.brightness}|${latest.dispersion}`
         if (!this.#chain || chainKey !== this.#chainKey) {
           this.#chain = buildLensChain({
             filter: this.#filter,
             material: latest,
             scale,
-            passes
+            passes,
+            spread
           })
           this.#chainKey = chainKey
           this.#lastMapKey = ''
         } else {
           this.#chain.setScale(scale)
         }
+        const image = this.#chain.feImage
+        placeLensMap(image, width, height)
         const mapKey = map.url ?? ''
         if (map.url && mapKey !== this.#lastMapKey) {
-          this.#chain.feImage.setAttribute('href', map.url)
+          image.setAttribute('href', map.url)
           this.#lastMapKey = mapKey
         }
       }

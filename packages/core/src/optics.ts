@@ -5,33 +5,36 @@ export interface LensOptions {
   bevelDepth?: number | undefined
 }
 
-const FOLD_CAP = 0.9
-
 export const DEFAULT_BEVEL_DEPTH = 0.6
 
-/**
- * The bevel is a superellipse of revolution: height rises as (1 - u^n)^(1/n) across the
- * band. n = 2 is a circular roll-off; larger n holds the surface flat and turns down late.
- */
+export const BAND_LIMIT = 20
+
+export const BAND_RATIO = 0.7
+
+export const EDGE_REACH = 2.39
+
+export const EDGE_DECAY = 0.31
+
+export const REFERENCE_IOR = 1.5
+
 export function domeExponent(bevelDepth: number): number {
   return 2 + 4 * bevelDepth
 }
 
-export function lensProfile(
-  depth: number,
-  { band, ior, thickness, bevelDepth }: LensOptions
-): number {
+export function appleBand(halfMin: number): number {
+  return Math.min(BAND_LIMIT, BAND_RATIO * Math.max(halfMin, 0))
+}
+
+export function edgeDecay(bevelDepth: number): number {
+  return (EDGE_DECAY * (1.6 - bevelDepth)) / (1.6 - DEFAULT_BEVEL_DEPTH)
+}
+
+export function lensProfile(depth: number, { band, ior, bevelDepth }: LensOptions): number {
   if (depth < 0 || depth >= band || band <= 0 || ior <= 1) return 0
-  const n = domeExponent(bevelDepth ?? DEFAULT_BEVEL_DEPTH)
-  const u = 1 - depth / band
-  const slope =
-    (thickness / band) *
-    Math.pow(u, n - 1) *
-    Math.pow(Math.max(1 - Math.pow(u, n), 1e-4), (1 - n) / n)
-  const alpha = Math.atan(slope)
-  const beta = Math.asin(Math.min(1, Math.sin(alpha) / ior))
-  const offset = thickness * Math.tan(alpha - beta)
-  return Math.min(offset, band * FOLD_CAP)
+  const decay = edgeDecay(bevelDepth ?? DEFAULT_BEVEL_DEPTH)
+  const floor = Math.exp(-1 / decay)
+  const shape = (Math.exp(-depth / band / decay) - floor) / (1 - floor)
+  return (EDGE_REACH * band * shape * (ior - 1)) / (REFERENCE_IOR - 1)
 }
 
 export function interiorZoomOffsetX(px: number, cx: number, magnify: number): number {

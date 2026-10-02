@@ -14,6 +14,11 @@
     "lint": "eslint .",
     "test": "pnpm -r --filter \"./packages/*\" --filter react18-smoke run test",
     "bench": "node scripts/fps-bench.mjs",
+    "glass:native": "node tools/glass-match/capture-native.mjs",
+    "glass:web": "node tools/glass-match/capture-web.mjs",
+    "glass:compare": "node tools/glass-match/compare.mjs",
+    "glass:fit": "node tools/glass-match/fit.mjs",
+    "test:glass": "node --test tools/glass-match/test/*.test.mjs",
     "coverage": "pnpm -r --filter \"./packages/*\" run coverage",
     "e2e": "playwright test",
     "ssr": "node scripts/ssr-smoke.mjs",
@@ -36,7 +41,7 @@
     {
       "name": "cdn global build",
       "path": "packages/liquidglass/dist/liquidglass.global.js",
-      "limit": "29 kB"
+      "limit": "29.5 kB"
     },
     {
       "name": "snapshot chunk (lazy)",

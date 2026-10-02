@@ -170,7 +170,8 @@ class WebglSceneInstance implements BackendInstance {
             ratio: dpr
           }),
           pxRatio: dpr,
-          mergeK: 1
+          mergeK: 1,
+          rimTone: surface.appearance === 'dark' ? 1 : 0
         }
       ],
       {

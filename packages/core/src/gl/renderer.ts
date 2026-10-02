@@ -1,5 +1,7 @@
 import { resolveBandPx, resolveThicknessPx } from '../displacement'
 import { globalLightDir } from '../fx/light'
+import { FROST_SPREAD } from '../material'
+import { DEFAULT_BEVEL_DEPTH, EDGE_DECAY, EDGE_REACH, REFERENCE_IOR } from '../optics'
 import type { MaterialParams } from '../types'
 
 export interface GlRect {
@@ -21,12 +23,12 @@ export interface GlDraw {
   mergeK: number
   /** Device pixels per CSS pixel for this draw; every length above is already in device pixels. */
   pxRatio?: number | undefined
+  rimTone?: number | undefined
 }
 
 export const MAX_SHAPES = 8
 
-/** Matches the feDisplacementMap scale the SVG chain gives its frost turbulence. */
-export const FROST_SCALE = 6
+export { FROST_SPREAD }
 
 export interface DeviceScale {
   radius: number
@@ -74,7 +76,6 @@ uniform float u_mergeK;
 uniform float u_bevelWidth;
 uniform float u_ior;
 uniform float u_magnify;
-uniform float u_thickness;
 uniform vec2 u_center;
 uniform vec2 u_lightDir;
 uniform float u_displace;
@@ -87,6 +88,7 @@ uniform float u_specular;
 uniform float u_frost;
 uniform float u_bevelDepth;
 uniform float u_pxRatio;
+uniform float u_rimTone;
 in vec2 v_local;
 out vec4 outColor;
 
@@ -129,7 +131,8 @@ vec3 sampleBg(vec2 px) {
   return texture(u_tex, clamp(uv, 0.001, 0.999)).rgb;
 }
 
-vec3 blurredBg(vec2 px, float radius) {
+vec3 blurredBg(vec2 px, float sigma) {
+  float radius = sigma * 1.4;
   if (radius < 0.5) return sampleBg(px);
   float tpp = u_texSize.x / max(u_texRect.z, 1.0);
   float lod = log2(max(radius * tpp, 1.0));
@@ -143,31 +146,12 @@ vec3 blurredBg(vec2 px, float radius) {
   return acc / 5.0;
 }
 
-float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-
-float slopeAngle(float depth, float band, float thickness) {
-  if (depth < 0.0 || depth >= band) return 0.0;
-  float n = 2.0 + 4.0 * u_bevelDepth;
-  float u = max(1.0 - depth / band, 1e-4);
-  float slope = (thickness / band) * pow(u, n - 1.0) * pow(max(1.0 - pow(u, n), 1e-4), (1.0 - n) / n);
-  return atan(slope);
-}
-
-vec2 frostOffset(vec2 px) {
-  if (u_frost <= 0.001) return vec2(0.0);
-  float ratio = max(u_pxRatio, 1e-3);
-  vec2 cell = floor(px / ratio);
-  vec2 noise = vec2(hash(cell), hash(cell + vec2(37.0, 17.0)));
-  return (noise - 0.5) * u_frost * ${FROST_SCALE}.0 * ratio;
-}
-
-float lensMag(float depth, float band, float ior, float thickness) {
+float lensMag(float depth, float band, float ior) {
   if (depth < 0.0 || depth >= band || ior <= 1.0) return 0.0;
-  float alpha = slopeAngle(depth, band, thickness);
-  float beta = asin(clamp(sin(alpha) / ior, -1.0, 1.0));
-  return min(thickness * tan(alpha - beta), band * 0.9);
+  float decay = ${EDGE_DECAY} * (1.6 - u_bevelDepth) / (1.6 - ${DEFAULT_BEVEL_DEPTH});
+  float floorLevel = exp(-1.0 / decay);
+  float shape = (exp(-depth / band / decay) - floorLevel) / (1.0 - floorLevel);
+  return ${EDGE_REACH} * band * shape * (ior - 1.0) / (${REFERENCE_IOR} - 1.0);
 }
 
 void main() {
@@ -185,47 +169,48 @@ void main() {
   float gradLen = max(length(grad), 1e-5);
   grad /= gradLen;
 
-  float mag = lensMag(depth, max(u_bevelWidth, 1e-3), u_ior, u_thickness) * u_displace;
-  vec2 zoom = (basePx - u_center) * -u_magnify + frostOffset(basePx);
+  float mag = lensMag(depth, max(u_bevelWidth, 1e-3), u_ior) * u_displace;
+  vec2 bend = -grad * mag;
+  vec2 zoom = (basePx - u_center) * -u_magnify;
+  float px = max(u_pxRatio, 1.0);
 
   vec3 col;
   if (u_dispersion > 0.001) {
     col = vec3(
-      blurredBg(basePx + grad * mag * (1.0 - u_dispersion * 0.6) + zoom, u_blur).r,
-      blurredBg(basePx + grad * mag + zoom, u_blur).g,
-      blurredBg(basePx + grad * mag * (1.0 + u_dispersion * 0.6) + zoom, u_blur).b
+      blurredBg(basePx + bend * (1.0 - u_dispersion * 0.6) + zoom, u_blur).r,
+      blurredBg(basePx + bend + zoom, u_blur).g,
+      blurredBg(basePx + bend * (1.0 + u_dispersion * 0.6) + zoom, u_blur).b
     );
   } else {
-    col = blurredBg(basePx + grad * mag + zoom, u_blur);
+    col = blurredBg(basePx + bend + zoom, u_blur);
+  }
+  if (u_frost > 0.001) {
+    vec2 lo = u_shapes[0].xy;
+    vec2 hi = u_shapes[0].xy + u_shapes[0].zw;
+    for (int i = 1; i < 8; i++) {
+      if (i >= u_shapeCount) break;
+      lo = min(lo, u_shapes[i].xy);
+      hi = max(hi, u_shapes[i].xy + u_shapes[i].zw);
+    }
+    vec2 halfSize = (hi - lo) * 0.5;
+    float spread = min(${FROST_SPREAD}.0 * px, 0.5 * min(halfSize.x, halfSize.y));
+    vec2 at = clamp(basePx + bend + zoom, lo + vec2(spread), max(lo + vec2(spread), hi - vec2(spread)));
+    vec3 scattered = blurredBg(at, spread);
+    col = mix(col, scattered, u_frost);
   }
 
   float grey = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(grey), col, u_saturation) * u_brightness;
   col = mix(col, u_tint.rgb, u_tint.a);
 
-  float band = max(u_bevelWidth, 1e-3);
-  float alpha = slopeAngle(depth, band, u_thickness);
-  vec3 N = normalize(vec3(grad * sin(alpha), max(cos(alpha), 1e-3)));
-  vec2 lightXY = normalize(u_lightDir);
-  vec3 V = vec3(0.0, 0.0, 1.0);
-  vec3 H = normalize(normalize(vec3(lightXY, 0.75)) + V);
-  vec3 Hc = normalize(normalize(vec3(-lightXY, 0.75)) + V);
-  float ndh = max(dot(N, H), 0.0);
-  float px = max(u_pxRatio, 1.0);
-  float edge = 1.0 - smoothstep(0.0, min(band, 14.0 * px), depth);
-  float spec = pow(ndh, 48.0) * 1.1 + pow(ndh, 8.0) * 0.05;
-  float counter = pow(max(dot(N, Hc), 0.0), 32.0) * 0.14;
-  col += (spec + counter) * u_specular * edge;
-
-  float f0 = pow((u_ior - 1.0) / (u_ior + 1.0), 2.0);
-  float fresnel = f0 + (1.0 - f0) * pow(1.0 - cos(alpha), 5.0);
-  vec3 env = mix(vec3(0.6, 0.66, 0.75), vec3(0.95, 0.97, 1.0), 1.0 - v_local.y);
-  col += env * clamp(fresnel, 0.0, 1.0) * u_specular * 0.5 * edge;
-
-  float hair = 1.0 - smoothstep(0.0, 2.2 * px, depth);
-  float topness = clamp(0.5 - grad.y * 0.5, 0.0, 1.0);
-  col += hair * (0.1 + 0.42 * topness) * u_specular;
-  col -= hair * (1.0 - topness) * 0.06 * u_specular;
+  vec2 light = normalize(u_lightDir);
+  float rim = clamp(1.0 - depth / (1.2 * px), 0.0, 1.0);
+  float facing = 0.15 + 0.85 * abs(dot(grad, light));
+  float k = rim * facing * u_specular;
+  float rimGrey = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  vec3 lifted = vec3(rimGrey) + (col - vec3(rimGrey)) * (1.0 + k) + vec3((1.0 - rimGrey) * k);
+  vec3 vivid = (vec3(rimGrey) + (col - vec3(rimGrey)) * (1.0 + k)) * (1.0 + k);
+  col = clamp(mix(lifted, vivid, u_rimTone), 0.0, 1.0);
 
   outColor = vec4(col, coverage);
 }`
@@ -259,7 +244,6 @@ export const UNIFORMS = [
   'u_bevelWidth',
   'u_ior',
   'u_magnify',
-  'u_thickness',
   'u_center',
   'u_lightDir',
   'u_displace',
@@ -271,7 +255,8 @@ export const UNIFORMS = [
   'u_specular',
   'u_frost',
   'u_bevelDepth',
-  'u_pxRatio'
+  'u_pxRatio',
+  'u_rimTone'
 ] as const
 
 type UniformName = (typeof UNIFORMS)[number]
@@ -308,11 +293,13 @@ export class GlRenderer {
 
   #contextLost = false
   #onRestored: (() => void) | null = null
+  #onLost: (() => void) | null = null
 
   #onContextLost = (event: Event): void => {
     event.preventDefault()
     this.#contextLost = true
     this.#texture = null
+    this.#onLost?.()
   }
 
   #onContextRestored = (): void => {
@@ -345,6 +332,10 @@ export class GlRenderer {
 
   onContextRestored(cb: () => void): void {
     this.#onRestored = cb
+  }
+
+  onContextLost(cb: () => void): void {
+    this.#onLost = cb
   }
 
   static create(canvas: HTMLCanvasElement): GlRenderer | null {
@@ -468,10 +459,6 @@ export class GlRenderer {
       )
       gl.uniform1f(this.#locations.get('u_ior') ?? null, material.ior)
       gl.uniform1f(this.#locations.get('u_magnify') ?? null, material.magnify)
-      gl.uniform1f(
-        this.#locations.get('u_thickness') ?? null,
-        typeof material.thickness === 'number' ? material.thickness : 12
-      )
       gl.uniform2f(
         this.#locations.get('u_center') ?? null,
         quad.x + quad.width / 2,
@@ -489,6 +476,7 @@ export class GlRenderer {
       gl.uniform1f(this.#locations.get('u_frost') ?? null, material.frost)
       gl.uniform1f(this.#locations.get('u_bevelDepth') ?? null, material.bevelDepth)
       gl.uniform1f(this.#locations.get('u_pxRatio') ?? null, draw.pxRatio ?? 1)
+      gl.uniform1f(this.#locations.get('u_rimTone') ?? null, draw.rimTone ?? 0)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
   }
@@ -501,6 +489,7 @@ export class GlRenderer {
       canvas.removeEventListener('webglcontextrestored', this.#onContextRestored)
     }
     this.#onRestored = null
+    this.#onLost = null
     if (this.#buffer) gl.deleteBuffer(this.#buffer)
     if (this.#texture) gl.deleteTexture(this.#texture)
     gl.deleteProgram(this.#program)
