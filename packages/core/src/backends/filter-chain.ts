@@ -109,9 +109,29 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
   const blur = el('feGaussianBlur')
   blur.setAttribute('in', 'SourceGraphic')
   blur.setAttribute('stdDeviation', String(material.blur))
-  blur.setAttribute('result', 'lgSoft')
+  blur.setAttribute('result', material.frost > 0 ? 'lgSharp' : 'lgSoft')
   blur.setAttribute('data-lg-role', 'blur')
   filter.appendChild(blur)
+
+  if (material.frost > 0) {
+    const spread = el('feGaussianBlur')
+    spread.setAttribute('in', 'SourceGraphic')
+    spread.setAttribute('stdDeviation', String(spec.spread ?? FROST_SPREAD))
+    spread.setAttribute('edgeMode', 'duplicate')
+    spread.setAttribute('result', 'lgScatter')
+    spread.setAttribute('data-lg-role', 'frost')
+    const blend = el('feComposite')
+    blend.setAttribute('in', 'lgSharp')
+    blend.setAttribute('in2', 'lgScatter')
+    blend.setAttribute('operator', 'arithmetic')
+    blend.setAttribute('k1', '0')
+    blend.setAttribute('k2', String(Number((1 - material.frost).toFixed(4))))
+    blend.setAttribute('k3', String(material.frost))
+    blend.setAttribute('k4', '0')
+    blend.setAttribute('result', 'lgSoft')
+    blend.setAttribute('data-lg-role', 'frost-mix')
+    filter.append(spread, blend)
+  }
 
   const caShift = material.dispersion * 0.25
   let displace: SVGFEDisplacementMapElement
@@ -138,27 +158,6 @@ export function buildLensChain(spec: LensChainSpec): LensChainNodes {
     displaceNodes.push(displace)
     filter.appendChild(displace)
     lensResult = 'lgLens'
-  }
-
-  if (material.frost > 0) {
-    const spread = el('feGaussianBlur')
-    spread.setAttribute('in', lensResult)
-    spread.setAttribute('stdDeviation', String(spec.spread ?? FROST_SPREAD))
-    spread.setAttribute('edgeMode', 'duplicate')
-    spread.setAttribute('result', 'lgScatter')
-    spread.setAttribute('data-lg-role', 'frost')
-    const blend = el('feComposite')
-    blend.setAttribute('in', lensResult)
-    blend.setAttribute('in2', 'lgScatter')
-    blend.setAttribute('operator', 'arithmetic')
-    blend.setAttribute('k1', '0')
-    blend.setAttribute('k2', String(Number((1 - material.frost).toFixed(4))))
-    blend.setAttribute('k3', String(material.frost))
-    blend.setAttribute('k4', '0')
-    blend.setAttribute('result', 'lgFrost')
-    blend.setAttribute('data-lg-role', 'frost-mix')
-    filter.append(spread, blend)
-    lensResult = 'lgFrost'
   }
 
   // The map's blue channel carries the dome height, so the same texture that bends
