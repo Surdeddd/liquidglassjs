@@ -1,5 +1,7 @@
 # LiquidGlassJS
 
+Русская версия: [README.ru.md](https://github.com/Surdeddd/liquidglassjs/blob/main/README.ru.md)
+
 Liquid Glass for the whole web — one engine, every browser, every framework.
 
 [![CI](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml/badge.svg)](https://github.com/Surdeddd/liquidglassjs/actions/workflows/ci.yml)
